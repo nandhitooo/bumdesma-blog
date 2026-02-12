@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 import kegiatan1 from "../Assets/kegiatan/kegiatan1.jpg";
 import kegiatan2 from "../Assets/kegiatan/kegiatan2.jpg";
 import kegiatan3 from "../Assets/kegiatan/kegiatan3.jpg";
@@ -14,18 +15,18 @@ import kegiatan12 from "../Assets/kegiatan/kegiatan12.jpg";
 
 const Activity = () => {
   const items = [
-    { img: kegiatan1, text: "Evaluasi Kinerja Bumdesma tahun 2023" },
-    { img: kegiatan2, text: "Bazar Produk Desa" },
-    { img: kegiatan3, text: "Dolan bareng kelembagaan BUMDESMA" },
-    { img: kegiatan4, text: "Muasyawarah Antar Desa (MAD)" },
-    { img: kegiatan5, text: "Penyaluran bantuan sosial" },
-    { img: kegiatan6, text: "Pembinaan kelompok SPP/UEP" },
-    { img: kegiatan7, text: "Rapat koordinasi" },
-    { img: kegiatan8, text: "Launching PT LKM ARTHA TANJUNG MANDIRI" },
-    { img: kegiatan9, text: "Bimtek aplikasi laporan keuangan" },
-    { img: kegiatan10, text: "Rapat koordinasi" },
-    { img: kegiatan11, text: "Gerak jalan agustusan" },
-    { img: kegiatan12, text: "Pelatihan" },
+    { img: kegiatan1, text: "Evaluasi Kinerja Bumdesma tahun 2023", logo: <i className="fa-solid fa-thumbtack text-green-700"></i> },
+    { img: kegiatan2, text: "Bazar Produk Desa", logo: <i className="fa-solid fa-thumbtack text-green-700"></i> },
+    { img: kegiatan3, text: "Dolan bareng kelembagaan BUMDESMA", logo: <i className="fa-solid fa-thumbtack text-green-700"></i> },
+    { img: kegiatan4, text: "Muasyawarah Antar Desa (MAD)", logo: <i className="fa-solid fa-thumbtack text-green-700"></i> },
+    { img: kegiatan5, text: "Penyaluran bantuan sosial", logo: <i className="fa-solid fa-thumbtack text-green-700"></i> },
+    { img: kegiatan6, text: "Pembinaan kelompok SPP/UEP", logo: <i className="fa-solid fa-thumbtack text-green-700"></i> },
+    { img: kegiatan7, text: "Rapat koordinasi", logo: <i className="fa-solid fa-thumbtack text-green-700"></i> },
+    { img: kegiatan8, text: "Launching PT LKM ARTHA TANJUNG MANDIRI", logo: <i className="fa-solid fa-thumbtack text-green-700"></i> },
+    { img: kegiatan9, text: "Bimtek aplikasi laporan keuangan", logo: <i className="fa-solid fa-thumbtack text-green-700"></i> },
+    { img: kegiatan10, text: "Rapat koordinasi", logo: <i className="fa-solid fa-thumbtack text-green-700"></i> },
+    { img: kegiatan11, text: "Gerak jalan agustusan", logo: <i className="fa-solid fa-thumbtack text-green-700"></i> },
+    { img: kegiatan12, text: "Pelatihan", logo: <i className="fa-solid fa-thumbtack text-green-700"></i> },
   ];
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,7 +61,7 @@ const Activity = () => {
               />
               <div className="p-5">
                 <h3 className="text-base md:text-lg font-semibold text-gray-800">
-                  {item.text}
+                  {item.logo} {item.text}
                 </h3>
               </div>
             </div>
