@@ -6,6 +6,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import { motion } from "framer-motion";
 
 const About = () => {
   const Data = [
@@ -22,57 +23,88 @@ const About = () => {
   ];
 
   return (
-    <section className="pt-24 pb-16 bg-gray-100" id="about">
-      <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-5xl font-bold text-center mb-4">
-          Tentang BUMDESMA
-        </h2>
+    <section className="pt-24 pb-20 bg-white overflow-hidden" id="about">
+      <div className="container mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-4xl mx-auto text-center mb-12 lg:mb-16"
+        >
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 text-gray-900 leading-tight">
+            Tentang <span className="text-green-700">BUMDESMA</span>
+          </h2>
+          <div className="w-20 h-1 bg-green-700 mx-auto mb-6 rounded-full"></div>
+          <p className="text-base lg:text-lg text-gray-600 font-medium">
+            Kecamatan Wilangan • Kabupaten Nganjuk • Jawa Timur
+          </p>
+        </motion.div>
 
-        <p className="text-center mb-10 text-gray-700 text-sm md:text-base">
-          Desa Wilangan - Kec. Wilangan - Kab. Nganjuk
-        </p>
-
-        <div className="flex flex-col md:flex-row items-center gap-15">
-          <div className="w-full md:w-1/3 flex justify-center">
-            <img
-              src={Podorukun}
-              alt="Podo Rukun Logo"
-              className="w-64 md:w-80 object-contain"
-            />
-          </div>
-
-          <div className="w-full md:w-1/2">
-            <Swiper
-              modules={[Pagination, Autoplay]}
-              spaceBetween={30}
-              slidesPerView={1}
-              pagination={{ clickable: false }}
-              autoplay={{ delay: 9000 }}
-              loop
-            >
-              {Data.map((item) => (
-                <SwiperSlide key={item.id}>
-                  <p className="text-justify text-sm md:text-lg mb-10 leading-relaxed text-gray-800">
-                    {item.paragraf}
-                  </p>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-
-            <div className="flex justify-center mt-2">
-              <button
-                className="bg-green-700 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-800 transition"
-                onClick={() =>
-                  window.open(
-                    "https://drive.google.com/file/d/1EvypZ1A4ly4bN0URJ0BAASBzNXsf2AWJ/view?usp=sharing",
-                    "_blank",
-                  )
-                }
-              >
-                Lihat Selengkapnya <i className="fa-solid fa-book ml-2"></i>
-              </button>
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="w-full lg:w-1/3 flex justify-center"
+          >
+            <div className="relative group">
+              <div className="absolute -inset-4 bg-green-100 rounded-full opacity-50 group-hover:opacity-100 blur-2xl transition duration-500"></div>
+              <img
+                src={Podorukun}
+                alt="Podo Rukun Logo"
+                className="relative w-56 md:w-72 lg:w-96 object-contain drop-shadow-2xl"
+              />
             </div>
-          </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="w-full lg:w-1/2"
+          >
+            <div className="bg-gray-50 p-6 md:p-10 lg:p-12 rounded-3xl lg:rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-green-100/50 rounded-bl-full -mr-10 -mt-10"></div>
+
+              <Swiper
+                modules={[Pagination, Autoplay]}
+                spaceBetween={30}
+                slidesPerView={1}
+                pagination={{
+                  clickable: true,
+                }}
+                autoplay={{ delay: 10000 }}
+                className="custom-swiper"
+              >
+                {Data.map((item) => (
+                  <SwiperSlide key={item.id} className="pb-4">
+                    <p className="text-justify text-gray-700 text-sm md:text-base lg:text-xl leading-relaxed italic">
+                      "{item.paragraf}"
+                    </p>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+
+              <div className="flex justify-center lg:justify-start mt-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-green-700 text-white font-bold px-6 py-3 lg:px-8 lg:py-4 rounded-2xl hover:bg-green-800 transition shadow-lg flex items-center gap-3 text-sm lg:text-base"
+                  onClick={() =>
+                    window.open(
+                      "https://drive.google.com/file/d/1EvypZ1A4ly4bN0URJ0BAASBzNXsf2AWJ/view?usp=sharing",
+                      "_blank",
+                    )
+                  }
+                >
+                  <span>Profil Lengkap</span>
+                  <i className="fa-solid fa-file-pdf"></i>
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>
