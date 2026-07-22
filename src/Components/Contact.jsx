@@ -7,7 +7,7 @@ const Contact = () => {
     {
       title: "Alamat",
       content:
-        "Jl. Wilis, Wilangan, Kec. Wilangan, Kabupaten Nganjuk, Jawa Timur 64462",
+        "Jln. Makam Syekh Sulukhi, Wilangan, Kec. Wilangan, Kabupaten Nganjuk, Jawa Timur 64462",
       icon: "fa-location-dot",
       linkText: "Lihat di Google Maps",
       link: "https://maps.app.goo.gl/DRFWDQnaQ5on7btF8",
