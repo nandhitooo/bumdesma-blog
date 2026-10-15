@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['frontend/dist', 'backend/uploads']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -23,7 +23,17 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': [
+        'error',
+        { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
+    // Backend Node.js di /server memakai global Node, bukan global browser.
+    files: ['backend/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
     },
   },
 ])

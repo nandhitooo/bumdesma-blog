@@ -1,0 +1,65 @@
+import { randomUUID } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import express from "express";
+import multer from "multer";
+import { serverDirPath } from "../config/env.js";
+
+const router = express.Router();
+const uploadDir = path.join(serverDirPath, "uploads");
+const mimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const multipart = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024, files: 1 },
+  fileFilter(req, file, callback) {
+    if (!mimeTypes.has(file.mimetype)) {
+      const error = new Error("Format file harus JPG, PNG, atau WebP.");
+      error.status = 400;
+      return callback(error);
+    }
+    return callback(null, true);
+  },
+});
+
+function detectImage(buffer) {
+  if (
+    buffer.length >= 3 &&
+    buffer[0] === 0xff &&
+    buffer[1] === 0xd8 &&
+    buffer[2] === 0xff
+  ) {
+    return { mime: "image/jpeg", extension: "jpg" };
+  }
+  if (
+    buffer.length >= 8 &&
+    buffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
+  ) {
+    return { mime: "image/png", extension: "png" };
+  }
+  if (
+    buffer.length >= 12 &&
+    buffer.toString("ascii", 0, 4) === "RIFF" &&
+    buffer.toString("ascii", 8, 12) === "WEBP"
+  ) {
+    return { mime: "image/webp", extension: "webp" };
+  }
+  return null;
+}
+
+router.post("/", multipart.single("image"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "Pilih file gambar untuk diunggah." });
+  }
+
+  const image = detectImage(req.file.buffer);
+  if (!image || image.mime !== req.file.mimetype) {
+    return res.status(400).json({ message: "Isi file bukan gambar JPG, PNG, atau WebP yang valid." });
+  }
+
+  await mkdir(uploadDir, { recursive: true });
+  const filename = `${randomUUID()}.${image.extension}`;
+  await writeFile(path.join(uploadDir, filename), req.file.buffer, { flag: "wx" });
+  return res.status(201).json({ url: `/uploads/${filename}` });
+});
+
+export default router;

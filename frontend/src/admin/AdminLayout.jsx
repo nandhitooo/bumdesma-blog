@@ -1,0 +1,130 @@
+import { useEffect, useState } from "react";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { adminApi } from "./api";
+
+const navigation = [
+  { to: "/admin", label: "Ringkasan", icon: "gauge", end: true },
+  { to: "/admin/articles", label: "Artikel", icon: "newspaper" },
+  { to: "/admin/categories", label: "Kategori", icon: "layer-group", adminOnly: true },
+  { to: "/admin/users", label: "Pengguna", icon: "users", adminOnly: true },
+];
+
+function AdminLayout() {
+  const [user, setUser] = useState(null);
+  const [authState, setAuthState] = useState("loading");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let active = true;
+    adminApi("/api/auth/me")
+      .then(({ user: currentUser }) => {
+        if (active) {
+          setUser(currentUser);
+          setAuthState("ready");
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          if (error.status === 401) {
+            navigate("/admin/login", { replace: true, state: { from: location } });
+          } else {
+            setAuthState("error");
+          }
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [location, navigate]);
+
+  const logout = async () => {
+    try {
+      await adminApi("/api/auth/logout", { method: "POST" });
+      navigate("/admin/login", { replace: true });
+    } catch (error) {
+      window.alert(error.message);
+    }
+  };
+
+  if (authState === "loading") {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-600">
+        Memeriksa sesi...
+      </main>
+    );
+  }
+
+  if (authState === "error") {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
+        <p role="alert" className="rounded-2xl bg-red-50 p-6 text-red-700">
+          Gagal memeriksa sesi. Periksa koneksi, lalu muat ulang halaman.
+        </p>
+      </main>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 lg:flex">
+      <aside className="bg-green-900 text-white lg:min-h-screen lg:w-72 lg:shrink-0">
+        <div className="flex items-center justify-between gap-4 px-5 py-5 lg:block lg:px-7 lg:py-8">
+          <Link to="/admin" className="text-lg font-extrabold leading-tight">
+            BUMDESMA
+            <span className="mt-1 block text-xs font-medium text-green-200">
+              Panel pengelola
+            </span>
+          </Link>
+          <div className="text-right text-xs text-green-100 lg:mt-8 lg:text-left">
+            <p className="font-bold text-white">{user.name}</p>
+            <p>{user.role === "admin" ? "Admin" : "Editor"}</p>
+          </div>
+        </div>
+
+        <nav aria-label="Navigasi admin" className="overflow-x-auto px-3 pb-4 lg:px-4">
+          <ul className="flex gap-2 lg:flex-col">
+            {navigation
+              .filter((item) => !item.adminOnly || user.role === "admin")
+              .map((item) => (
+                <li key={item.to}>
+                  <NavLink
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 whitespace-nowrap rounded-xl px-4 py-3 text-sm font-bold transition ${
+                        isActive
+                          ? "bg-white text-green-900"
+                          : "text-green-100 hover:bg-green-800"
+                      }`
+                    }
+                  >
+                    <i className={`fa-solid fa-${item.icon} w-5`} aria-hidden="true"></i>
+                    {item.label}
+                  </NavLink>
+                </li>
+              ))}
+          </ul>
+        </nav>
+
+        <div className="flex items-center justify-between border-t border-green-800 px-5 py-4 lg:mx-4 lg:mt-8 lg:px-0">
+          <Link to="/" className="text-sm font-semibold text-green-100 hover:text-white">
+            Lihat situs
+          </Link>
+          <button
+            type="button"
+            onClick={logout}
+            className="rounded-lg px-3 py-2 text-sm font-bold text-green-100 transition hover:bg-green-800 hover:text-white"
+          >
+            Keluar
+          </button>
+        </div>
+      </aside>
+
+      <main className="min-w-0 flex-1 px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
+        <Outlet context={{ user }} />
+      </main>
+    </div>
+  );
+}
+
+export default AdminLayout;

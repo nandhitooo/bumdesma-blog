@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: "Poppins", sans-serif;
+  }
+}
+
+/* Custom Swiper Styles */
+.swiper-pagination-bullet {
+  background: #15803d !important; /* text-green-700 */
+  opacity: 0.3;
+  width: 10px !important;
+  height: 10px !important;
+}
+
+.swiper-pagination-bullet-active {
+  opacity: 1;
+  width: 24px !important;
+  border-radius: 5px !important;
+}
+
+.custom-swiper .swiper-pagination {
+  position: relative !important;
+  bottom: 0 !important;
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.article-content {
+  color: #374151;
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+
+.article-content > * + * {
+  margin-top: 1.25rem;
+}
+
+.article-content h1,
+.article-content h2,
+.article-content h3,
+.article-content h4 {
+  color: #111827;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 2rem;
+}
+
+.article-content h1 {
+  font-size: 2.25rem;
+}
+
+.article-content h2 {
+  font-size: 1.875rem;
+}
+
+.article-content h3 {
+  font-size: 1.5rem;
+}
+
+.article-content ul,
+.article-content ol {
+  padding-left: 1.5rem;
+}
+
+.article-content ul {
+  list-style: disc;
+}
+
+.article-content ol {
+  list-style: decimal;
+}
+
+.article-content blockquote {
+  border-left: 4px solid #15803d;
+  color: #4b5563;
+  padding-left: 1rem;
+}
+
+.article-content a {
+  color: #15803d;
+  text-decoration: underline;
+}
+
+.article-content img {
+  border-radius: 1rem;
+  height: auto;
+  margin-inline: auto;
+  max-width: 100%;
+}

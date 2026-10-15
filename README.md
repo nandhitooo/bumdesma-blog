@@ -1,16 +1,20 @@
-# React + Vite
+# BUMDESMA Podo Rukun LKD
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Repository uses two npm workspaces:
 
-Currently, two official plugins are available:
+- `frontend/` — React, Vite, and public/admin pages.
+- `backend/` — Express API, PostgreSQL migrations, and uploaded images.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Install dependencies from repository root with `npm install`.
 
-## React Compiler
+Run frontend with `npm run dev`. Run API with `npm run server`.
+Vite proxies `/api` and `/uploads` to `http://localhost:4000`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Copy `backend/.env.example` to `backend/.env`, then set local PostgreSQL
+connection values and a strong JWT secret. Do not commit `.env`.
 
-## Expanding the ESLint configuration
+Run `npm run migrate` to apply migrations and `npm run seed` to create the
+first admin from `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Run `npm run build` to build the frontend and `npm run lint` to lint both
+workspaces.

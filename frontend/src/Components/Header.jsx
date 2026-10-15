@@ -1,25 +1,43 @@
 import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import podoRukun from "../Assets/podo-rukun.png";
 import bumdesmaNganjuk from "../Assets/bumdesma-nganjuk.png";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 
 const Header = () => {
   const [active, setActive] = useState("home");
   const [scrolled, setScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const scrollToSection = (id) => {
     const section = document.getElementById(id);
     if (section) {
       section.scrollIntoView({ behavior: "smooth" });
+    } else {
+      navigate(`/#${id}`);
     }
     setIsOpen(false);
   };
 
   useEffect(() => {
+    if (location.pathname === "/" && location.hash) {
+      requestAnimationFrame(() => {
+        document
+          .getElementById(location.hash.slice(1))
+          ?.scrollIntoView({ behavior: "smooth" });
+      });
+    }
+  }, [location.hash, location.pathname]);
+
+  useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
+      if (location.pathname !== "/") {
+        return;
+      }
       const sections = ["home", "about", "services", "activity", "contact"];
       sections.forEach((Id) => {
         const section = document.getElementById(Id);
@@ -38,7 +56,7 @@ const Header = () => {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [location.pathname]);
 
   const navItems = [
     { id: "home", label: "Beranda", icon: "house" },
@@ -48,8 +66,10 @@ const Header = () => {
     { id: "contact", label: "Kontak", icon: "phone" },
   ];
 
+  const blogItem = { id: "blog", label: "Blog", icon: "newspaper" };
+
   return (
-    <motion.header
+    <Motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       className={`fixed w-full z-50 transition-all duration-300 ${
@@ -59,10 +79,12 @@ const Header = () => {
       }`}
     >
       <div className="container mx-auto px-6 flex justify-between items-center">
-        <motion.div
-          whileHover={{ scale: 1.05 }}
+        <Link
+          to="/#home"
           className="flex items-center cursor-pointer"
-          onClick={() => scrollToSection("home")}
+          onClick={() => {
+            if (location.pathname === "/") scrollToSection("home");
+          }}
         >
           <img
             src={bumdesmaNganjuk}
@@ -73,7 +95,7 @@ const Header = () => {
           <h2 className="text-xl md:text-2xl font-bold text-green-700">
             BUMDESMA
           </h2>
-        </motion.div>
+        </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden lg:block">
@@ -93,7 +115,7 @@ const Header = () => {
                 >
                   <span>{item.label}</span>
                   {active === item.id && (
-                    <motion.div
+                    <Motion.div
                       layoutId="activeNav"
                       className="absolute -bottom-1 left-0 right-0 h-1 bg-green-700 rounded-full"
                       transition={{
@@ -106,6 +128,24 @@ const Header = () => {
                 </div>
               </li>
             ))}
+            <li key={blogItem.id} className="relative group">
+              <Link
+                to="/blog"
+                className={`px-2 py-1 text-base font-bold transition-colors ${
+                  location.pathname.startsWith("/blog")
+                    ? "text-green-700"
+                    : "text-gray-700 hover:text-green-600"
+                }`}
+              >
+                <span>{blogItem.label}</span>
+                {location.pathname.startsWith("/blog") && (
+                  <Motion.div
+                    layoutId="activeNav"
+                    className="absolute -bottom-1 left-0 right-0 h-1 bg-green-700 rounded-full"
+                  />
+                )}
+              </Link>
+            </li>
           </ul>
         </nav>
 
@@ -121,7 +161,7 @@ const Header = () => {
       {/* Mobile Drawer */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -142,13 +182,26 @@ const Header = () => {
                   <span>{item.label}</span>
                 </li>
               ))}
+              <li>
+                <Link
+                  to="/blog"
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${
+                    location.pathname.startsWith("/blog")
+                      ? "bg-green-50 text-green-700"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <i className={`fa-solid fa-${blogItem.icon} w-6 text-center`}></i>
+                  <span>{blogItem.label}</span>
+                </Link>
+              </li>
             </ul>
-          </motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </Motion.header>
   );
 };
 
 export default Header;
-

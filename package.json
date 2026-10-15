@@ -3,32 +3,24 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@fortawesome/fontawesome-free": "^7.1.0",
-    "@tailwindcss/vite": "^4.3.3",
-    "framer-motion": "^12.40.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "swiper": "^12.1.0"
+    "dev": "npm run dev --workspace frontend --",
+    "build": "npm run build --workspace frontend",
+    "lint": "eslint frontend backend",
+    "preview": "npm run preview --workspace frontend --",
+    "server": "npm run server --workspace backend",
+    "migrate": "npm run migrate --workspace backend",
+    "seed": "npm run seed --workspace backend"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "autoprefixer": "^10.4.24",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.3.3",
-    "vite": "^7.3.1"
+    "globals": "^16.5.0"
   }
 }

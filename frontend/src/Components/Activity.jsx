@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import kegiatan1 from "../Assets/kegiatan/kegiatan1.jpg";
 import kegiatan2 from "../Assets/kegiatan/kegiatan2.jpg";
 import kegiatan3 from "../Assets/kegiatan/kegiatan3.jpg";
@@ -15,7 +16,7 @@ import kegiatan11 from "../Assets/kegiatan/kegiatan11.jpg";
 import kegiatan12 from "../Assets/kegiatan/kegiatan12.jpg";
 
 const Activity = () => {
-  const items = [
+  const fallbackItems = [
     {
       img: kegiatan1,
       text: "Evaluasi Kinerja Bumdesma tahun 2023",
@@ -51,11 +52,42 @@ const Activity = () => {
   ];
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [articles, setArticles] = useState(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const itemsPerPage = 6;
 
-  const totalPages = Math.ceil(items.length / itemsPerPage);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/articles?limit=6&page=1", { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error("Gagal memuat artikel kegiatan.");
+        return response.json();
+      })
+      .then((data) => {
+        if (!Array.isArray(data.articles)) {
+          throw new Error("Format data artikel tidak valid.");
+        }
+        setArticles(data.articles);
+      })
+      .catch((error) => {
+        if (error.name !== "AbortError") {
+          console.error("Gagal memuat artikel kegiatan:", error);
+          setArticles(null);
+        }
+      })
+      .finally(() => setHasLoaded(true));
+
+    return () => controller.abort();
+  }, []);
+
+  const usingArticles = hasLoaded && articles !== null;
+  const totalPages = usingArticles
+    ? 1
+    : Math.ceil(fallbackItems.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentItems = items.slice(startIndex, startIndex + itemsPerPage);
+  const currentItems = usingArticles
+    ? articles
+    : fallbackItems.slice(startIndex, startIndex + itemsPerPage);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -79,7 +111,7 @@ const Activity = () => {
   return (
     <section className="pt-24 pb-20 bg-gray-50" id="activity">
       <div className="container mx-auto px-6">
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -93,45 +125,55 @@ const Activity = () => {
             Dokumentasi berbagai program dan kegiatan yang telah kami laksanakan
             untuk memajukan ekonomi desa.
           </p>
-        </motion.div>
+        </Motion.div>
 
-        <motion.div
+        <Motion.div
           key={currentPage}
           variants={containerVariants}
           initial="hidden"
           animate="visible"
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
         >
-          {currentItems.map((item, index) => (
-            <motion.div
-              key={index}
+          {currentItems.map((item) => {
+            const isArticle = usingArticles;
+            const image = isArticle ? item.coverImageUrl : item.img;
+            const title = isArticle ? item.title : item.text;
+            const category = isArticle ? item.categoryName || "Berita" : item.category;
+
+            return (
+            <Motion.div
+              key={isArticle ? item.id : item.text}
               variants={itemVariants}
               whileHover={{ y: -10 }}
               className="bg-white rounded-[2rem] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 group"
             >
-              <div className="relative overflow-hidden h-64">
-                <img
-                  src={item.img}
-                  alt={item.text}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute top-4 left-4">
-                  <span className="bg-green-700 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
-                    {item.category}
-                  </span>
+              <Link to={isArticle ? `/blog/${item.slug}` : "/blog"}>
+                <div className="relative overflow-hidden h-64">
+                  <img
+                    src={image}
+                    alt={title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-green-700 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
+                      {category}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="p-6 md:p-8">
-                <h3 className="text-lg md:text-xl font-bold text-gray-800 leading-tight group-hover:text-green-700 transition-colors duration-300">
-                  {item.text}
-                </h3>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+                <div className="p-6 md:p-8">
+                  <h3 className="text-lg md:text-xl font-bold text-gray-800 leading-tight group-hover:text-green-700 transition-colors duration-300">
+                    {title}
+                  </h3>
+                </div>
+              </Link>
+            </Motion.div>
+            );
+          })}
+        </Motion.div>
 
-        <div className="flex flex-wrap justify-center mt-12 lg:mt-16 gap-3 md:gap-6">
-          <motion.button
+        {!usingArticles && (
+          <div className="flex flex-wrap justify-center mt-12 lg:mt-16 gap-3 md:gap-6">
+          <Motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             disabled={currentPage === 1}
@@ -140,13 +182,13 @@ const Activity = () => {
           >
             <i className="fa-solid fa-arrow-left"></i>
             <span className="hidden xs:inline">Sebelumnya</span>
-          </motion.button>
+          </Motion.button>
 
           <div className="flex items-center px-4 md:px-6 bg-green-700 text-white font-bold rounded-xl md:rounded-2xl shadow-inner text-xs md:text-sm lg:text-base">
             {currentPage} / {totalPages}
           </div>
 
-          <motion.button
+          <Motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             disabled={currentPage === totalPages}
@@ -155,8 +197,9 @@ const Activity = () => {
           >
             <span className="hidden xs:inline">Selanjutnya</span>
             <i className="fa-solid fa-arrow-right"></i>
-          </motion.button>
-        </div>
+          </Motion.button>
+          </div>
+        )}
       </div>
     </section>
   );

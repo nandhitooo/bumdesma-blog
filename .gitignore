@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# Env (berisi kredensial) dan file upload runtime
+.env
+.env.*
+!.env.example
+backend/uploads/*
+!backend/uploads/.gitkeep
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
