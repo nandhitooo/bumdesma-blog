@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import { motion as Motion } from "framer-motion";
 import kegiatan1 from "../Assets/kegiatan/kegiatan1.jpg";
 import kegiatan2 from "../Assets/kegiatan/kegiatan2.jpg";
 import kegiatan3 from "../Assets/kegiatan/kegiatan3.jpg";
@@ -15,42 +14,42 @@ import kegiatan10 from "../Assets/kegiatan/kegiatan10.jpg";
 import kegiatan11 from "../Assets/kegiatan/kegiatan11.jpg";
 import kegiatan12 from "../Assets/kegiatan/kegiatan12.jpg";
 
-const Activity = () => {
-  const fallbackItems = [
-    {
-      img: kegiatan1,
-      text: "Evaluasi Kinerja Bumdesma tahun 2023",
-      category: "Internal",
-    },
-    { img: kegiatan2, text: "Bazar Produk Desa", category: "Event" },
-    {
-      img: kegiatan3,
-      text: "Dolan bareng kelembagaan BUMDESMA",
-      category: "Gathering",
-    },
-    {
-      img: kegiatan4,
-      text: "Muasyawarah Antar Desa (MAD)",
-      category: "Internal",
-    },
-    { img: kegiatan5, text: "Penyaluran bantuan sosial", category: "Sosial" },
-    { img: kegiatan6, text: "Pembinaan kelompok SPP/UEP", category: "Edukasi" },
-    { img: kegiatan7, text: "Rapat koordinasi", category: "Internal" },
-    {
-      img: kegiatan8,
-      text: "Launching PT LKM ARTHA TANJUNG MANDIRI",
-      category: "Bisnis",
-    },
-    {
-      img: kegiatan9,
-      text: "Bimtek aplikasi laporan keuangan",
-      category: "Edukasi",
-    },
-    { img: kegiatan10, text: "Rapat koordinasi", category: "Internal" },
-    { img: kegiatan11, text: "Gerak jalan agustusan", category: "Event" },
-    { img: kegiatan12, text: "Pelatihan", category: "Edukasi" },
-  ];
+const fallbackItems = [
+  {
+    img: kegiatan1,
+    text: "Evaluasi Kinerja Bumdesma tahun 2023",
+    category: "Internal",
+  },
+  { img: kegiatan2, text: "Bazar Produk Desa", category: "Event" },
+  {
+    img: kegiatan3,
+    text: "Dolan bareng kelembagaan BUMDESMA",
+    category: "Gathering",
+  },
+  {
+    img: kegiatan4,
+    text: "Muasyawarah Antar Desa (MAD)",
+    category: "Internal",
+  },
+  { img: kegiatan5, text: "Penyaluran bantuan sosial", category: "Sosial" },
+  { img: kegiatan6, text: "Pembinaan kelompok SPP/UEP", category: "Edukasi" },
+  { img: kegiatan7, text: "Rapat koordinasi", category: "Internal" },
+  {
+    img: kegiatan8,
+    text: "Launching PT LKM ARTHA TANJUNG MANDIRI",
+    category: "Bisnis",
+  },
+  {
+    img: kegiatan9,
+    text: "Bimtek aplikasi laporan keuangan",
+    category: "Edukasi",
+  },
+  { img: kegiatan10, text: "Rapat koordinasi", category: "Internal" },
+  { img: kegiatan11, text: "Gerak jalan agustusan", category: "Event" },
+  { img: kegiatan12, text: "Pelatihan", category: "Edukasi" },
+];
 
+const Activity = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [articles, setArticles] = useState(null);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -64,14 +63,14 @@ const Activity = () => {
         return response.json();
       })
       .then((data) => {
-        if (!Array.isArray(data.articles)) {
-          throw new Error("Format data artikel tidak valid.");
+        if (!Array.isArray(data.articles) || data.articles.length === 0) {
+          setArticles(null);
+        } else {
+          setArticles(data.articles);
         }
-        setArticles(data.articles);
       })
       .catch((error) => {
         if (error.name !== "AbortError") {
-          console.error("Gagal memuat artikel kegiatan:", error);
           setArticles(null);
         }
       })
@@ -80,7 +79,7 @@ const Activity = () => {
     return () => controller.abort();
   }, []);
 
-  const usingArticles = hasLoaded && articles !== null;
+  const usingArticles = hasLoaded && articles !== null && articles.length > 0;
   const totalPages = usingArticles
     ? 1
     : Math.ceil(fallbackItems.length / itemsPerPage);
@@ -89,115 +88,85 @@ const Activity = () => {
     ? articles
     : fallbackItems.slice(startIndex, startIndex + itemsPerPage);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 0.5 },
-    },
-  };
-
   return (
-    <section className="pt-24 pb-20 bg-gray-50" id="activity">
-      <div className="container mx-auto px-6">
-        <Motion.div
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 text-gray-900">
-            Kegiatan <span className="text-green-700">Terbaru</span>
+    <section className="py-16 sm:py-24 bg-white" id="activity">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="max-w-3xl mb-12">
+          <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
+            Dokumentasi
+          </span>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3">
+            Kegiatan Terbaru
           </h2>
-          <div className="w-24 h-1.5 bg-green-700 mx-auto rounded-full mb-8"></div>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Dokumentasi berbagai program dan kegiatan yang telah kami laksanakan
-            untuk memajukan ekonomi desa.
+          <p className="text-sm sm:text-base text-gray-600">
+            Dokumentasi berbagai program dan kegiatan operasional BUMDESMA dalam memajukan ekonomi desa.
           </p>
-        </Motion.div>
+        </div>
 
-        <Motion.div
-          key={currentPage}
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
+        {/* Max 3 columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {currentItems.map((item) => {
             const isArticle = usingArticles;
             const image = isArticle ? item.coverImageUrl : item.img;
             const title = isArticle ? item.title : item.text;
             const category = isArticle ? item.categoryName || "Berita" : item.category;
+            const targetLink = isArticle && item.slug ? `/blog/${item.slug}` : "/blog";
 
             return (
-            <Motion.div
-              key={isArticle ? item.id : item.text}
-              variants={itemVariants}
-              whileHover={{ y: -10 }}
-              className="bg-white rounded-[2rem] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 group"
-            >
-              <Link to={isArticle ? `/blog/${item.slug}` : "/blog"}>
-                <div className="relative overflow-hidden h-64">
-                  <img
-                    src={image}
-                    alt={title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-green-700 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
-                      {category}
+              <article
+                key={isArticle ? item.id : item.text}
+                className="group bg-white rounded-xl overflow-hidden border border-gray-200 hover:border-gray-300 transition-colors flex flex-col"
+              >
+                <Link to={targetLink} className="flex-1 flex flex-col">
+                  <div className="relative h-52 bg-gray-100 overflow-hidden">
+                    <img
+                      src={image}
+                      alt={title}
+                      className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90"
+                    />
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-white/95 text-brand-primary text-xs font-semibold px-2.5 py-1 rounded border border-gray-200">
+                        {category}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <h3 className="text-base font-bold text-gray-900 group-hover:text-brand-primary transition-colors leading-snug">
+                      {title}
+                    </h3>
+                    <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-primary">
+                      <span>Lihat detail</span>
+                      <i className="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i>
                     </span>
                   </div>
-                </div>
-                <div className="p-6 md:p-8">
-                  <h3 className="text-lg md:text-xl font-bold text-gray-800 leading-tight group-hover:text-green-700 transition-colors duration-300">
-                    {title}
-                  </h3>
-                </div>
-              </Link>
-            </Motion.div>
+                </Link>
+              </article>
             );
           })}
-        </Motion.div>
+        </div>
 
-        {!usingArticles && (
-          <div className="flex flex-wrap justify-center mt-12 lg:mt-16 gap-3 md:gap-6">
-          <Motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(currentPage - 1)}
-            className="flex items-center gap-2 px-5 lg:px-8 py-2.5 lg:py-3 bg-white text-green-700 font-bold rounded-xl md:rounded-2xl shadow-md border border-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition text-xs md:text-sm lg:text-base"
-          >
-            <i className="fa-solid fa-arrow-left"></i>
-            <span className="hidden xs:inline">Sebelumnya</span>
-          </Motion.button>
-
-          <div className="flex items-center px-4 md:px-6 bg-green-700 text-white font-bold rounded-xl md:rounded-2xl shadow-inner text-xs md:text-sm lg:text-base">
-            {currentPage} / {totalPages}
-          </div>
-
-          <Motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(currentPage + 1)}
-            className="flex items-center gap-2 px-5 lg:px-8 py-2.5 lg:py-3 bg-white text-green-700 font-bold rounded-xl md:rounded-2xl shadow-md border border-gray-100 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition text-xs md:text-sm lg:text-base"
-          >
-            <span className="hidden xs:inline">Selanjutnya</span>
-            <i className="fa-solid fa-arrow-right"></i>
-          </Motion.button>
+        {/* Fallback Pagination */}
+        {!usingArticles && totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 mt-12">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              className="px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              Sebelumnya
+            </button>
+            <span className="px-3 text-xs font-semibold text-gray-600">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              className="px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              Selanjutnya
+            </button>
           </div>
         )}
       </div>

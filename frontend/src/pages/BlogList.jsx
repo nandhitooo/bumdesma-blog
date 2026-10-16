@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { motion as Motion } from "framer-motion";
 
 const dateFormatter = new Intl.DateTimeFormat("id-ID", {
   day: "numeric",
@@ -84,7 +83,7 @@ function BlogList() {
             error: "Artikel belum dapat dimuat. Coba muat ulang halaman.",
           });
         }
-      })
+      });
 
     return () => controller.abort();
   }, [category, page, query, requestKey]);
@@ -105,34 +104,31 @@ function BlogList() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 pt-32 pb-20">
-      <section className="container mx-auto px-6">
-        <Motion.header
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mx-auto mb-12 max-w-3xl text-center"
-        >
-          <p className="mb-3 font-bold uppercase tracking-[0.2em] text-green-700">
-            Kabar dan cerita
-          </p>
-          <h1 className="mb-5 text-4xl font-extrabold text-gray-900 md:text-5xl">
-            Blog <span className="text-green-700">Podo Rukun</span>
+    <main className="min-h-screen bg-gray-50 py-12 sm:py-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        {/* Header */}
+        <div className="mb-10 max-w-2xl">
+          <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
+            Kabar & Publikasi
+          </span>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3">
+            Blog BUMDESMA Podo Rukun
           </h1>
-          <p className="text-lg leading-relaxed text-gray-600">
-            Informasi, kegiatan, dan cerita terbaru dari BUMDESMA Podo Rukun
-            LKD.
+          <p className="text-sm sm:text-base text-gray-600">
+            Informasi, kegiatan, dan cerita terbaru dari BUMDESMA Podo Rukun LKD Kecamatan Wilangan.
           </p>
-        </Motion.header>
+        </div>
 
-        <div className="mb-10 flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-wrap gap-2" aria-label="Filter kategori">
+        {/* Filter and Search Bar */}
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2" aria-label="Filter kategori">
             <button
               type="button"
               onClick={() => updateFilters({ category: "" })}
-              className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+              className={`px-3.5 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer ${
                 !category
-                  ? "bg-green-700 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-700"
+                  ? "bg-brand-primary text-white"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
               }`}
             >
               Semua
@@ -142,10 +138,10 @@ function BlogList() {
                 key={item.id}
                 type="button"
                 onClick={() => updateFilters({ category: item.slug })}
-                className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                className={`px-3.5 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer ${
                   category === item.slug
-                    ? "bg-green-700 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-700"
+                    ? "bg-brand-primary text-white"
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                 }`}
               >
                 {item.name}
@@ -153,7 +149,7 @@ function BlogList() {
             ))}
           </div>
 
-          <form onSubmit={submitSearch} className="flex gap-2">
+          <form onSubmit={submitSearch} className="flex items-center gap-2">
             <label className="sr-only" htmlFor="blog-search">
               Cari artikel
             </label>
@@ -163,11 +159,11 @@ function BlogList() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Cari artikel..."
-              className="min-w-0 flex-1 rounded-xl border border-gray-200 px-4 py-3 outline-none transition focus:border-green-700 md:w-56"
+              className="w-full sm:w-56 px-3.5 py-2 text-sm bg-white border border-gray-300 rounded-lg outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-colors text-gray-900"
             />
             <button
               type="submit"
-              className="rounded-xl bg-green-700 px-5 py-3 font-bold text-white transition hover:bg-green-800"
+              className="bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer shrink-0"
             >
               Cari
             </button>
@@ -175,105 +171,121 @@ function BlogList() {
         </div>
 
         {error && (
-          <p role="alert" className="mb-8 rounded-2xl bg-red-50 p-5 text-red-700">
+          <div role="alert" className="mb-8 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
             {error}
-          </p>
-        )}
-
-        {loading ? (
-          <p className="py-16 text-center font-semibold text-gray-500">
-            Memuat artikel...
-          </p>
-        ) : articles.length ? (
-          <Motion.div
-            layout
-            className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
-          >
-            {articles.map((article) => (
-              <Motion.article
-                key={article.id}
-                layout
-                whileHover={{ y: -6 }}
-                className="group overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-md transition hover:shadow-xl"
-              >
-                <Link to={`/blog/${article.slug}`} className="block h-full">
-                  {article.coverImageUrl ? (
-                    <img
-                      src={article.coverImageUrl}
-                      alt={article.title}
-                      className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-56 items-center justify-center bg-green-50 text-5xl text-green-700">
-                      <i className="fa-regular fa-newspaper" aria-hidden="true"></i>
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-gray-500">
-                      {article.categoryName && (
-                        <span className="rounded-full bg-green-50 px-3 py-1 font-bold text-green-700">
-                          {article.categoryName}
-                        </span>
-                      )}
-                      {article.publishedAt && (
-                        <time dateTime={article.publishedAt}>
-                          {dateFormatter.format(new Date(article.publishedAt))}
-                        </time>
-                      )}
-                    </div>
-                    <h2 className="mb-3 text-xl font-bold leading-snug text-gray-900 transition-colors group-hover:text-green-700">
-                      {article.title}
-                    </h2>
-                    <p className="line-clamp-3 leading-relaxed text-gray-600">
-                      {article.excerpt}
-                    </p>
-                    <span className="mt-5 inline-flex items-center gap-2 font-bold text-green-700">
-                      Baca selengkapnya
-                      <i className="fa-solid fa-arrow-right text-sm" aria-hidden="true"></i>
-                    </span>
-                  </div>
-                </Link>
-              </Motion.article>
-            ))}
-          </Motion.div>
-        ) : (
-          <div className="rounded-3xl bg-white px-6 py-16 text-center shadow-sm">
-            <h2 className="mb-2 text-2xl font-bold text-gray-800">
-              Belum ada artikel
-            </h2>
-            <p className="text-gray-600">
-              Artikel yang sesuai belum tersedia.
-            </p>
           </div>
         )}
 
+        {/* Content Section */}
+        {loading ? (
+          <div className="py-20 text-center text-sm font-medium text-gray-500">
+            Memuat artikel...
+          </div>
+        ) : articles.length ? (
+          /* At most 3 columns */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {articles.map((article) => (
+              <article
+                key={article.id}
+                className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors flex flex-col"
+              >
+                <Link to={`/blog/${article.slug}`} className="flex-1 flex flex-col">
+                  {article.coverImageUrl ? (
+                    <div className="h-48 bg-gray-100 overflow-hidden">
+                      <img
+                        src={article.coverImageUrl}
+                        alt={article.title}
+                        className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-48 bg-brand-light flex items-center justify-center text-brand-primary text-3xl">
+                      <i className="fa-regular fa-newspaper" aria-hidden="true"></i>
+                    </div>
+                  )}
+
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mb-2.5">
+                        {article.categoryName && (
+                          <span className="bg-brand-light text-brand-primary font-semibold px-2 py-0.5 rounded">
+                            {article.categoryName}
+                          </span>
+                        )}
+                        {article.publishedAt && (
+                          <time dateTime={article.publishedAt}>
+                            {dateFormatter.format(new Date(article.publishedAt))}
+                          </time>
+                        )}
+                      </div>
+                      <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-brand-primary transition-colors leading-snug mb-2">
+                        {article.title}
+                      </h2>
+                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-3 leading-relaxed mb-4">
+                        {article.excerpt}
+                      </p>
+                    </div>
+
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-primary">
+                      <span>Baca selengkapnya</span>
+                      <i className="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i>
+                    </span>
+                  </div>
+                </Link>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white border border-gray-200 rounded-xl p-12 text-center max-w-lg mx-auto">
+            <h2 className="text-lg font-bold text-gray-900 mb-1">
+              Belum ada artikel
+            </h2>
+            <p className="text-sm text-gray-600 mb-5">
+              Artikel yang sesuai dengan kriteria pencarian atau kategori belum tersedia.
+            </p>
+            {(category || query) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setSearchParams(new URLSearchParams());
+                }}
+                className="text-xs font-semibold text-brand-primary hover:text-brand-dark transition-colors"
+              >
+                Reset Filter Pencarian
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Pagination */}
         {pagination.totalPages > 1 && !loading && (
           <nav
             aria-label="Navigasi halaman artikel"
-            className="mt-12 flex items-center justify-center gap-4"
+            className="mt-12 flex items-center justify-center gap-3"
           >
             <button
               type="button"
               disabled={pagination.page <= 1}
               onClick={() => updateFilters({ page: String(pagination.page - 1) })}
-              className="rounded-xl bg-white px-5 py-3 font-bold text-green-700 shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+              className="px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               Sebelumnya
             </button>
-            <span className="font-bold text-gray-700">
+            <span className="px-3 text-xs font-semibold text-gray-600">
               {pagination.page} / {pagination.totalPages}
             </span>
             <button
               type="button"
               disabled={pagination.page >= pagination.totalPages}
               onClick={() => updateFilters({ page: String(pagination.page + 1) })}
-              className="rounded-xl bg-white px-5 py-3 font-bold text-green-700 shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+              className="px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               Selanjutnya
             </button>
           </nav>
         )}
-      </section>
+      </div>
     </main>
   );
 }

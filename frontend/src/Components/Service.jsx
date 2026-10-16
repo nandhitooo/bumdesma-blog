@@ -1,115 +1,71 @@
 import React from "react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import { motion } from "framer-motion";
+
+const services = [
+  {
+    icon: "fa-coins",
+    title: "Dana Bergulir Masyarakat",
+    desc: "Penyediaan modal usaha berkelanjutan bagi kelompok masyarakat desa guna meningkatkan kemandirian ekonomi dan kesejahteraan keluarga.",
+  },
+  {
+    icon: "fa-credit-card",
+    title: "Pembelian Kredit",
+    desc: "Layanan pembelian barang secara kredit dengan syarat mudah dan cicilan terjangkau untuk kebutuhan usaha maupun rumah tangga.",
+  },
+  {
+    icon: "fa-building-columns",
+    title: "Keagenan Bank",
+    desc: "Layanan tarik tunai, transfer, dan pembayaran tagihan tanpa perlu ke bank.",
+  },
+  {
+    icon: "fa-bus-simple",
+    title: "Penyewaan Elf",
+    desc: "Sewa armada Elf dengan driver berpengalaman untuk perjalanan dalam dan luar kota.",
+  },
+  {
+    icon: "fa-landmark",
+    title: "PT. LKM",
+    desc: "Layanan keuangan mikro desa untuk mendukung pertumbuhan ekonomi melalui pembiayaan dan pendampingan usaha.",
+  },
+];
 
 const Service = () => {
-  const services = [
-    {
-      icon: "fa-coins",
-      title: "Dana Bergulir Masyarakat",
-      desc: "Penyediaan modal usaha berkelanjutan bagi kelompok masyarakat desa guna meningkatkan kemandirian ekonomi dan kesejahteraan keluarga.",
-    },
-    {
-      icon: "fa-credit-card",
-      title: "Pembelian Kredit",
-      desc: "Layanan pembelian barang secara kredit dengan syarat mudah dan cicilan terjangkau untuk kebutuhan usaha maupun rumah tangga.",
-    },
-    {
-      icon: "fa-building-columns",
-      title: "Keagenan Bank",
-      desc: "Layanan tarik tunai, transfer, dan pembayaran tagihan tanpa perlu ke bank.",
-    },
-    {
-      icon: "fa-bus-simple",
-      title: "Penyewaan Elf",
-      desc: "Sewa armada Elf dengan driver berpengalaman untuk perjalanan dalam dan luar kota.",
-    },
-    {
-      icon: "fa-landmark",
-      title: "PT. LKM",
-      desc: "Layanan keuangan mikro desa untuk mendukung pertumbuhan ekonomi melalui pembiayaan dan pendampingan usaha.",
-    },
-  ];
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const cardVariants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
-      },
-    },
-  };
-
   return (
-    <section className="pt-24 pb-20 bg-gray-50" id="services">
-      <div className="container mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 text-gray-900">
-            Layanan <span className="text-green-700">Kami</span>
+    <section className="py-16 sm:py-24 bg-gray-50 border-t border-gray-200" id="services">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="max-w-3xl mb-12">
+          <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
+            Unit Usaha
+          </span>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3">
+            Layanan Kami
           </h2>
-          <div className="w-24 h-1.5 bg-green-700 mx-auto rounded-full mb-8"></div>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Kami menyediakan berbagai layanan profesional untuk mendukung
-            pertumbuhan ekonomi dan kemandirian masyarakat desa.
+          <p className="text-sm sm:text-base text-gray-600">
+            Berbagai layanan profesional untuk mendukung pertumbuhan ekonomi dan kemandirian masyarakat desa.
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
+        {/* Max 3 columns grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((service, index) => (
-            <motion.div
+            <div
               key={index}
-              variants={cardVariants}
-              whileHover={{
-                y: -10,
-                boxShadow:
-                  "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-              }}
-              className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:border-green-300 transition-all duration-300 group"
+              className="bg-white p-6 sm:p-7 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors flex flex-col justify-between"
             >
-              <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-green-700 transition-colors duration-300">
-                <i
-                  className={`fa-solid ${service.icon} text-2xl text-green-700 group-hover:text-white transition-colors duration-300`}
-                ></i>
+              <div>
+                <div className="w-11 h-11 bg-brand-light rounded-lg flex items-center justify-center text-brand-primary mb-5">
+                  <i className={`fa-solid ${service.icon} text-lg`} aria-hidden="true"></i>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                  {service.title}
+                </h3>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {service.desc}
+                </p>
               </div>
-
-              <h3 className="text-xl font-bold mb-4 text-gray-800">
-                {service.title}
-              </h3>
-
-              <p className="text-gray-600 leading-relaxed">{service.desc}</p>
-
-              <div className="mt-6 flex items-center text-green-700 font-semibold cursor-pointer group-hover:translate-x-2 transition-transform duration-300">
-                <span>Pelajari Selengkapnya</span>
-                <i className="fa-solid fa-arrow-right ml-2 text-sm"></i>
-              </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

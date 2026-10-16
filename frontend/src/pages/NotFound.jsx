@@ -14,18 +14,18 @@ function NotFound() {
   return (
     <>
       <Header />
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 px-6 pt-24">
-        <div className="max-w-xl text-center">
-          <p className="mb-4 text-7xl font-extrabold text-green-700">404</p>
-          <h1 className="mb-3 text-3xl font-bold text-gray-900">
+      <main className="flex min-h-[70vh] items-center justify-center bg-gray-50 px-4 sm:px-6 py-20">
+        <div className="max-w-md text-center bg-white border border-gray-200 rounded-xl p-8 sm:p-10">
+          <p className="text-6xl font-bold text-brand-primary mb-3">404</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             Halaman tidak ditemukan
           </h1>
-          <p className="mb-8 text-gray-600">
-            Halaman yang Anda cari tidak tersedia.
+          <p className="text-sm text-gray-600 mb-6">
+            Halaman yang Anda cari mungkin telah dipindahkan atau tidak tersedia.
           </p>
           <Link
             to="/"
-            className="inline-flex rounded-xl bg-green-700 px-6 py-3 font-bold text-white transition hover:bg-green-800"
+            className="inline-flex bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
           >
             Kembali ke Beranda
           </Link>

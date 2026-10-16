@@ -1,8 +1,3 @@
 .home {
-  background-image:
-    linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255)),
-    url("../Assets/background.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background-color: #ffffff;
 }

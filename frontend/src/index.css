@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-primary: #15803d;
+  --color-brand-dark: #14532d;
+  --color-brand-light: #f0fdf4;
+}
+
 @layer base {
   body {
     font-family: "Poppins", sans-serif;
+    color: #111827;
+    background-color: #ffffff;
   }
 }
 
