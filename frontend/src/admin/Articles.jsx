@@ -1,13 +1,29 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useOutletContext } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useOutletContext,
+} from "react-router-dom";
 import { adminApi, dateFormatter } from "./api";
 
 function AdminArticles() {
   const { user } = useOutletContext();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState("all");
   const [result, setResult] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [actionError, setActionError] = useState("");
+  // Pesan sukses dari halaman editor dibaca sekali saat halaman ini dibuka,
+  // lalu disimpan di state lokal supaya tetap tampil setelah state navigasi
+  // dibersihkan (sehingga notifikasi tidak muncul lagi saat halaman dimuat ulang).
+  const [notice, setNotice] = useState(() => location.state?.notice || "");
+
+  useEffect(() => {
+    if (!location.state?.notice) return;
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.state, location.pathname, navigate]);
   const loading = result?.key !== `${filter}:${refreshKey}`;
   const articles = loading ? [] : result.articles;
   const error = loading ? "" : result.error;
@@ -96,6 +112,22 @@ function AdminArticles() {
           </button>
         ))}
       </div>
+
+      {notice && (
+        <div
+          role="status"
+          className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-green-50 p-4 text-green-800"
+        >
+          <p className="font-semibold">{notice}</p>
+          <button
+            type="button"
+            onClick={() => setNotice("")}
+            className="rounded-lg px-3 py-1 text-sm font-bold text-green-800 transition hover:bg-green-100"
+          >
+            Tutup
+          </button>
+        </div>
+      )}
 
       {(error || actionError) && (
         <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-700">

@@ -16,6 +16,20 @@ const emptyForm = {
   status: "draft",
 };
 
+// Sejalan dengan allowedSchemes di backend (services/articles.js): tautan relatif
+// tetap boleh, tetapi javascript:/data: dan skema lain ditolak sebelum disimpan.
+const ALLOWED_LINK_PROTOCOLS = ["http:", "https:", "mailto:", "tel:"];
+
+function isAllowedLink(value) {
+  try {
+    return ALLOWED_LINK_PROTOCOLS.includes(
+      new URL(value, window.location.origin).protocol,
+    );
+  } catch {
+    return false;
+  }
+}
+
 function ArticleEditor() {
   const { user } = useOutletContext();
   const { id } = useParams();
@@ -31,6 +45,9 @@ function ArticleEditor() {
   const [inlineUploading, setInlineUploading] = useState(false);
   const coverInput = useRef(null);
   const inlineInput = useRef(null);
+  // Cuplikan isi form saat terakhir dimuat/disimpan, dipakai untuk mendeteksi
+  // perubahan yang belum disimpan.
+  const initialSnapshot = useRef(null);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -67,16 +84,28 @@ function ArticleEditor() {
         setExistingArticles(articles);
         setCategories(categoryRows);
         if (article) {
-          setForm({
+          const loadedForm = {
             title: article.title,
             slug: article.slug,
             excerpt: article.excerpt || "",
             categoryId: article.categoryId ? String(article.categoryId) : "",
             coverImageUrl: article.coverImageUrl || "",
             status: article.status,
-          });
+          };
+          setForm(loadedForm);
           setSlugEdited(true);
-          if (editor) editor.commands.setContent(article.contentHtml || "");
+          if (editor) {
+            editor.commands.setContent(article.contentHtml || "");
+            initialSnapshot.current = JSON.stringify({
+              form: loadedForm,
+              html: editor.getHTML(),
+            });
+          }
+        } else if (editor) {
+          initialSnapshot.current = JSON.stringify({
+            form: emptyForm,
+            html: editor.getHTML(),
+          });
         }
         setLoading(false);
       })
@@ -91,6 +120,21 @@ function ArticleEditor() {
       active = false;
     };
   }, [editor, id]);
+
+  // Peringatan browser sebelum menutup/meninggalkan halaman dengan perubahan
+  // yang belum disimpan.
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (!editor || !initialSnapshot.current) return;
+      const current = JSON.stringify({ form, html: editor.getHTML() });
+      if (current === initialSnapshot.current) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [editor, form]);
 
   const setField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -140,7 +184,17 @@ function ArticleEditor() {
     setError("");
     try {
       const url = await uploadImage(file);
-      editor.chain().focus().setImage({ src: url, alt: file.name }).run();
+      // Nama berkas tidak berguna untuk pembaca layar, jadi teks alternatif
+      // diminta langsung ke penulis (boleh dikosongkan untuk gambar hiasan).
+      const alt = window.prompt(
+        "Teks alternatif gambar (deskripsi singkat untuk pembaca layar)",
+        "",
+      );
+      editor
+        .chain()
+        .focus()
+        .setImage({ src: url, alt: (alt ?? "").trim() })
+        .run();
     } catch (uploadError) {
       setError(uploadError.message);
     } finally {
@@ -153,11 +207,18 @@ function ArticleEditor() {
     const current = editor?.getAttributes("link").href || "";
     const href = window.prompt("Masukkan alamat tautan", current);
     if (href === null || !editor) return;
-    if (!href.trim()) {
+    const value = href.trim();
+    if (!value) {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
       return;
     }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: href.trim() }).run();
+    if (!isAllowedLink(value)) {
+      setError(
+        "Tautan hanya boleh diawali http://, https://, mailto:, atau tel:.",
+      );
+      return;
+    }
+    editor.chain().focus().extendMarkRange("link").setLink({ href: value }).run();
   };
 
   const submit = async (event) => {

@@ -11,8 +11,15 @@ import {
   requireAuth,
   signToken,
 } from "../middleware/auth.js";
+import { withPasswordByteLimit } from "../services/passwords.js";
 
 const router = express.Router();
+
+// Hash dummy dengan biaya bcrypt yang sama seperti user sungguhan. Dipakai saat
+// email tidak ditemukan supaya waktu respons login tidak membocorkan apakah
+// sebuah email terdaftar (account enumeration). Bukan kredensial siapa pun.
+const DUMMY_PASSWORD_HASH =
+  "$2b$12$uFlt5pL6uBGBZvr/S4MOUuA2pmd06UYB4Z1mDf9hisN9qRN1kk9bi";
 
 const loginSchema = z.object({
   email: z
@@ -20,9 +27,9 @@ const loginSchema = z.object({
     .trim()
     .toLowerCase()
     .pipe(z.email("Format email tidak valid.")),
-  password: z
-    .string({ error: "Password wajib diisi." })
-    .min(1, "Password wajib diisi."),
+  password: withPasswordByteLimit(
+    z.string({ error: "Password wajib diisi." }).min(1, "Password wajib diisi."),
+  ),
 });
 
 const loginLimiter = rateLimit({
@@ -30,6 +37,9 @@ const loginLimiter = rateLimit({
   limit: 10,
   standardHeaders: "draft-8",
   legacyHeaders: false,
+  // Hanya percobaan gagal yang dihitung: login yang berhasil tidak menghabiskan
+  // jatah, sehingga penggunaan normal tidak mengunci pengguna sendiri.
+  skipSuccessfulRequests: true,
   message: {
     message: "Terlalu banyak percobaan login. Coba lagi beberapa menit lagi.",
   },
@@ -49,9 +59,12 @@ router.post("/login", loginLimiter, async (req, res, next) => {
     );
 
     const user = rows[0];
-    const passwordMatches = user
-      ? await bcrypt.compare(password, user.password_hash)
-      : false;
+    // Bandingkan tetap walau email tidak ada, dengan hash dummy: waktu respons
+    // untuk email yang tidak terdaftar jadi kurang lebih sama.
+    const passwordMatches = await bcrypt.compare(
+      password,
+      user ? user.password_hash : DUMMY_PASSWORD_HASH,
+    );
 
     if (!passwordMatches) {
       return res.status(401).json({ message: "Email atau password salah." });

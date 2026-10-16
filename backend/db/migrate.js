@@ -36,6 +36,10 @@ async function run() {
 
     try {
       await client.query("BEGIN");
+      // Migrasi bisa memakan waktu lebih lama dari statement_timeout pool (10
+      // detik), misalnya saat menambah kolom pada tabel besar. Batas itu hanya
+      // relevan untuk query aplikasi, jadi dimatikan khusus transaksi migrasi.
+      await client.query("SET LOCAL statement_timeout = 0");
       await client.query(sql);
       await client.query("INSERT INTO schema_migrations (name) VALUES ($1)", [
         file,

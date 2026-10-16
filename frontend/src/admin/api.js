@@ -1,12 +1,26 @@
+const LOGIN_PATH = "/api/auth/login";
+
+// Sesi yang habis di tengah pemakaian panel: kembalikan ke halaman login alih-alih
+// menampilkan pesan error di halaman admin yang sudah tidak bisa dipakai.
+// Panggilan login sendiri dikecualikan supaya pesan "Email atau password salah."
+// tetap tampil di formulir. Pemanggil bisa mematikan redirect ini lewat opsi
+// redirectOnUnauthorized (dipakai AdminLayout yang punya alur redirect sendiri).
+function redirectToLogin(path) {
+  if (path === LOGIN_PATH) return;
+  if (window.location.pathname.startsWith("/admin/login")) return;
+  window.location.assign("/admin/login");
+}
+
 export async function adminApi(path, options = {}) {
+  const { redirectOnUnauthorized = true, ...fetchOptions } = options;
   const response = await fetch(path, {
     credentials: "include",
-    ...options,
+    ...fetchOptions,
     headers: {
-      ...(options.body && !(options.body instanceof FormData)
+      ...(fetchOptions.body && !(fetchOptions.body instanceof FormData)
         ? { "Content-Type": "application/json" }
         : {}),
-      ...options.headers,
+      ...fetchOptions.headers,
     },
   });
 
@@ -15,6 +29,9 @@ export async function adminApi(path, options = {}) {
   if (!response.ok) {
     const error = new Error(data.message || "Permintaan gagal. Coba lagi.");
     error.status = response.status;
+    if (response.status === 401 && redirectOnUnauthorized) {
+      redirectToLogin(path);
+    }
     throw error;
   }
   return data;

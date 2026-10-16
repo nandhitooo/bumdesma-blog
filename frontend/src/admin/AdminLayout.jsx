@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { adminApi } from "./api";
 
@@ -15,10 +15,23 @@ function AdminLayout() {
   const [authState, setAuthState] = useState("loading");
   const location = useLocation();
   const navigate = useNavigate();
+  // Tujuan redirect login dibaca lewat ref supaya pemeriksaan sesi cukup sekali
+  // saat panel dimuat, bukan diulang setiap kali rute berubah (yang membuat
+  // kegagalan sesaat langsung mengganti seluruh panel dengan layar error).
+  // `navigate` juga disimpan di ref: dengan BrowserRouter identitasnya berubah
+  // setiap kali rute berganti, sehingga tidak boleh dipakai sebagai dependensi.
+  const locationRef = useRef(location);
+  const navigateRef = useRef(navigate);
+
+  useEffect(() => {
+    locationRef.current = location;
+    navigateRef.current = navigate;
+  }, [location, navigate]);
 
   useEffect(() => {
     let active = true;
-    adminApi("/api/auth/me")
+    // Redirect sesi ditangani di sini (dengan state.from) agar tetap navigasi SPA.
+    adminApi("/api/auth/me", { redirectOnUnauthorized: false })
       .then(({ user: currentUser }) => {
         if (active) {
           setUser(currentUser);
@@ -26,18 +39,20 @@ function AdminLayout() {
         }
       })
       .catch((error) => {
-        if (active) {
-          if (error.status === 401) {
-            navigate("/admin/login", { replace: true, state: { from: location } });
-          } else {
-            setAuthState("error");
-          }
+        if (!active) return;
+        if (error.status === 401) {
+          navigateRef.current("/admin/login", {
+            replace: true,
+            state: { from: locationRef.current },
+          });
+        } else {
+          setAuthState("error");
         }
       });
     return () => {
       active = false;
     };
-  }, [location, navigate]);
+  }, []);
 
   const logout = async () => {
     try {

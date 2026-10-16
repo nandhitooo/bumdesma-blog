@@ -14,6 +14,12 @@ function AdminCategories() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
+    // Editor tanpa hak akses tidak memanggil endpoint admin sama sekali,
+    // sehingga tidak ada kedipan pesan 403 sebelum layar penolakan muncul.
+    // Layar penolakan itu di-render sebelum status loading dibaca, jadi tidak
+    // perlu menyentuh state loading di sini.
+    if (user.role !== "admin") return undefined;
+
     let active = true;
     adminApi("/api/admin/categories")
       .then(({ categories: rows }) => {
@@ -31,7 +37,7 @@ function AdminCategories() {
     return () => {
       active = false;
     };
-  }, [refreshKey]);
+  }, [refreshKey, user.role]);
 
   if (user.role !== "admin") {
     return (

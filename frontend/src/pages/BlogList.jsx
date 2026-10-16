@@ -9,7 +9,10 @@ function BlogList() {
   const [articleResult, setArticleResult] = useState(null);
   const [categories, setCategories] = useState([]);
   const [categoryError, setCategoryError] = useState("");
-  const page = Number(searchParams.get("page") || 1);
+  // ?page=abc atau angka negatif tidak diteruskan ke API; nilai yang tidak
+  // masuk akal dianggap halaman pertama.
+  const pageParam = Number.parseInt(searchParams.get("page") || "1", 10);
+  const page = Number.isInteger(pageParam) && pageParam >= 1 ? pageParam : 1;
   const category = searchParams.get("category") || "";
   const query = searchParams.get("q") || "";
   const requestKey = `${page}:${category}:${query}`;
@@ -31,6 +34,12 @@ function BlogList() {
       document.title = "BUMDESMA Podo Rukun LKD";
     };
   }, []);
+
+  // Kotak pencarian mengikuti ?q= di URL, termasuk saat pengguna menekan tombol
+  // Back/Forward browser.
+  useEffect(() => {
+    setSearch(query);
+  }, [query]);
 
   useEffect(() => {
     const controller = new AbortController();

@@ -4,9 +4,14 @@ import { pool } from "../db/pool.js";
 
 export { AUTH_COOKIE };
 
+// Algoritma dipatok di kedua arah. Tanpa ini, `verify` menerima algoritma HMAC
+// apa pun (HS256/HS384/HS512) selama secret-nya sama.
+const JWT_ALGORITHM = "HS256";
+
 export function signToken(user) {
   return jwt.sign({ sub: String(user.id), role: user.role }, env.jwtSecret, {
     expiresIn: TOKEN_TTL_SECONDS,
+    algorithm: JWT_ALGORITHM,
   });
 }
 
@@ -37,10 +42,24 @@ export function publicUser(user) {
 
 async function loadUser(id) {
   const { rows } = await pool.query(
-    "SELECT id, name, email, role, created_at FROM users WHERE id = $1",
+    `SELECT id, name, email, role, created_at, password_changed_at
+     FROM users WHERE id = $1`,
     [id],
   );
   return rows[0] || null;
+}
+
+// Token hanya boleh dipakai bila terbit setelah password terakhir diubah.
+// Pembandingan memakai satuan detik karena `iat` JWT juga detik: token yang
+// terbit pada detik yang sama dengan perubahan password tidak ditolak, supaya
+// alur ganti password tidak langsung me-logout pemiliknya sendiri.
+function tokenIssuedBeforePasswordChange(payload, user) {
+  if (!user.password_changed_at || typeof payload.iat !== "number") return false;
+
+  const changedAtSeconds = Math.floor(
+    new Date(user.password_changed_at).getTime() / 1000,
+  );
+  return payload.iat < changedAtSeconds;
 }
 
 // Menandai request dengan req.user bila cookie JWT valid; kalau tidak, 401.
@@ -53,7 +72,7 @@ export async function requireAuth(req, res, next) {
 
   let payload;
   try {
-    payload = jwt.verify(token, env.jwtSecret);
+    payload = jwt.verify(token, env.jwtSecret, { algorithms: [JWT_ALGORITHM] });
   } catch {
     res.clearCookie(AUTH_COOKIE, clearCookieOptions());
     return res
@@ -66,6 +85,12 @@ export async function requireAuth(req, res, next) {
     if (!user) {
       res.clearCookie(AUTH_COOKIE, clearCookieOptions());
       return res.status(401).json({ message: "Akun tidak ditemukan." });
+    }
+    if (tokenIssuedBeforePasswordChange(payload, user)) {
+      res.clearCookie(AUTH_COOKIE, clearCookieOptions());
+      return res.status(401).json({
+        message: "Sesi berakhir karena password berubah. Silakan login ulang.",
+      });
     }
     req.user = user;
     return next();

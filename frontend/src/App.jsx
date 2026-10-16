@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import ScrollToTop from "./components/ScrollToTop";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Home from "./components/Home";
 import About from "./components/About";
 import Service from "./components/Service";
@@ -36,84 +37,100 @@ const pageFallback = (
 );
 
 function App() {
+  const location = useLocation();
+
+  // Halaman panel admin tidak boleh muncul di hasil pencarian. Tag dibuat saat
+  // berada di /admin dan dilepas lagi saat pengguna kembali ke halaman publik.
+  useEffect(() => {
+    if (!location.pathname.startsWith("/admin")) return undefined;
+
+    const tag = document.createElement("meta");
+    tag.setAttribute("name", "robots");
+    tag.setAttribute("content", "noindex");
+    document.head.appendChild(tag);
+    return () => tag.remove();
+  }, [location.pathname]);
+
   return (
     <SiteContentProvider>
       <ScrollToTop />
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <>
-              <Header />
-              <main>
-                <Home />
-                <About />
-                <Service />
-                <Activity />
-                <Contact />
-              </main>
-              <Footer />
-            </>
-          }
-        />
-        <Route
-          path="/blog"
-          element={
-            <>
-              <Header />
-              <BlogList />
-              <Footer />
-            </>
-          }
-        />
-        <Route
-          path="/blog/:slug"
-          element={
-            <>
-              <Header />
-              <BlogDetail />
-              <Footer />
-            </>
-          }
-        />
-        <Route
-          path="/cms"
-          element={
-            <>
-              <Header />
-              <Suspense fallback={pageFallback}>
-                <CmsLanding />
+      <ErrorBoundary resetKey={location.pathname}>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <Header />
+                <main>
+                  <Home />
+                  <About />
+                  <Service />
+                  <Activity />
+                  <Contact />
+                </main>
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/blog"
+            element={
+              <>
+                <Header />
+                <BlogList />
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/blog/:slug"
+            element={
+              <>
+                <Header />
+                <BlogDetail />
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/cms"
+            element={
+              <>
+                <Header />
+                <Suspense fallback={pageFallback}>
+                  <CmsLanding />
+                </Suspense>
+                <Footer />
+              </>
+            }
+          />
+          <Route
+            path="/admin/login"
+            element={
+              <Suspense fallback={adminFallback}>
+                <AdminLogin />
               </Suspense>
-              <Footer />
-            </>
-          }
-        />
-        <Route
-          path="/admin/login"
-          element={
-            <Suspense fallback={adminFallback}>
-              <AdminLogin />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <Suspense fallback={adminFallback}>
-              <AdminLayout />
-            </Suspense>
-          }
-        >
-          <Route index element={<AdminDashboard />} />
-          <Route path="articles" element={<AdminArticles />} />
-          <Route path="articles/new" element={<AdminArticleEditor />} />
-          <Route path="articles/:id/edit" element={<AdminArticleEditor />} />
-          <Route path="categories" element={<AdminCategories />} />
-          <Route path="users" element={<AdminUsers />} />
-          <Route path="content" element={<AdminSiteContent />} />
-        </Route>
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <Suspense fallback={adminFallback}>
+                <AdminLayout />
+              </Suspense>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="articles" element={<AdminArticles />} />
+            <Route path="articles/new" element={<AdminArticleEditor />} />
+            <Route path="articles/:id/edit" element={<AdminArticleEditor />} />
+            <Route path="categories" element={<AdminCategories />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="content" element={<AdminSiteContent />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </ErrorBoundary>
     </SiteContentProvider>
   );
 }

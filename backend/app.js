@@ -20,6 +20,7 @@ import siteContentRoutes, {
 import usersRoutes from "./routes/users.js";
 import uploadRoutes from "./routes/upload.js";
 import { requireAuth } from "./middleware/auth.js";
+import { noStore, originCheck } from "./middleware/security.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import { requestLogger } from "./middleware/requestLogger.js";
 
@@ -63,18 +64,40 @@ app.use(
   }),
 );
 
-// Batas umum untuk seluruh API, dijalankan sebelum body di-parse supaya
-// request yang ditolak tidak diproses lebih jauh. Login punya limiter sendiri
-// yang lebih ketat di routes/auth.js.
-const apiLimiter = rateLimit({
+// Setiap request yang mengubah data dan datang dari origin lain ditolak.
+// Dilakukan di samping CORS (yang hanya membatasi pembacaan respons di browser)
+// dan SameSite=Lax pada cookie sesi.
+app.use("/api", originCheck);
+
+// Batas request dibagi dua. Halaman publik memanggil beberapa endpoint sekaligus
+// (konten situs + daftar artikel), jadi satu kantor desa yang berbagi satu IP
+// tidak boleh ikut terkunci hanya karena trafik baca. Penulisan data dibatasi
+// lebih ketat; login dan unggah punya limiter sendiri di routes/auth.js dan
+// routes/upload.js. Dijalankan sebelum body di-parse supaya request yang
+// ditolak tidak diproses lebih jauh.
+const readLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 300,
+  limit: 1000,
   standardHeaders: "draft-8",
   legacyHeaders: false,
   message: { message: "Terlalu banyak permintaan. Coba lagi beberapa saat lagi." },
 });
 
-app.use("/api", apiLimiter);
+const writeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: {
+    message: "Terlalu banyak perubahan data. Coba lagi beberapa saat lagi.",
+  },
+});
+
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+app.use("/api", (req, res, next) =>
+  (SAFE_METHODS.has(req.method) ? readLimiter : writeLimiter)(req, res, next),
+);
 
 // Body parser menolak JSON yang tidak valid; errornya diubah menjadi 400 di
 // middleware/errorHandler.js.
@@ -97,8 +120,20 @@ app.use(
   express.static(path.join(serverDirPath, "uploads"), {
     dotfiles: "deny",
     index: false,
+    // Berkas gambar publik boleh di-cache lama, tetapi tipenya tidak boleh
+    // ditafsirkan ulang oleh browser dan isinya tidak boleh dijalankan.
+    maxAge: "7d",
+    setHeaders(res) {
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Content-Security-Policy", "default-src 'none'");
+    },
   }),
 );
+
+// Respons yang memuat data sesi atau isi panel admin tidak boleh disimpan di
+// cache browser maupun proxy perantara.
+app.use("/api/auth", noStore);
+app.use("/api/admin", noStore);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/articles", articlesRoutes);

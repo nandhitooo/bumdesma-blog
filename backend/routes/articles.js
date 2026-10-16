@@ -30,8 +30,12 @@ const publicQuerySchema = z.object({
   q: z.string().trim().max(200).optional(),
 });
 
+// Daftar artikel admin dibatasi supaya satu request tidak pernah menarik seluruh
+// tabel sekaligus; jumlah default (200) jauh di atas kebutuhan panel dan bentuk
+// responsnya tetap sama.
 const adminListQuerySchema = z.object({
   status: z.enum(["all", "draft", "published"]).default("all"),
+  limit: z.coerce.number().int().min(1).max(500).default(200),
 });
 
 const articleFields = {
@@ -154,7 +158,7 @@ adminRouter.get(
   "/",
   validate(adminListQuerySchema, "query"),
   async (req, res) => {
-    const { status } = req.validated.query;
+    const { status, limit } = req.validated.query;
     const values = [];
     const filters = [];
 
@@ -171,8 +175,9 @@ adminRouter.get(
        LEFT JOIN categories c ON c.id = a.category_id
        LEFT JOIN users u ON u.id = a.author_id
        ${where}
-       ORDER BY a.updated_at DESC`,
-      values,
+       ORDER BY a.updated_at DESC
+       LIMIT $${values.length + 1}`,
+      [...values, limit],
     );
     return res.json({ articles: rows });
   },

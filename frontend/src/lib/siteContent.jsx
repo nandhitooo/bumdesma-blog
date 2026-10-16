@@ -42,7 +42,10 @@ export function SiteContentProvider({ children }) {
 
   const fetchContent = useCallback(async () => {
     try {
-      const response = await fetch("/api/site-content");
+      // no-store: endpoint publik ini memakai max-age=30 di server, dan setelah
+      // admin menyimpan perubahan, pemuatan ulang harus menampilkan isi terbaru
+      // (bukan salinan dari cache browser).
+      const response = await fetch("/api/site-content", { cache: "no-store" });
       if (!response.ok) {
         throw new Error("Gagal mengambil data konten situs.");
       }

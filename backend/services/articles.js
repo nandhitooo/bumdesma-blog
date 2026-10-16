@@ -17,14 +17,29 @@ export const ARTICLE_DETAIL_COLUMNS = `
   a.content_html AS "contentHtml"
 `;
 
+// Gambar hanya boleh berasal dari folder unggahan server sendiri. Ini mencegah
+// gambar pelacak/pihak ketiga ikut termuat di halaman publik (juga membocorkan
+// alamat IP pembaca ke domain luar) sekaligus menutup jalur eksfiltrasi lewat
+// atribut src. Polanya sama dengan validasi coverImageUrl di routes/articles.js.
+const UPLOADED_IMAGE_SRC = /^\/uploads\/[0-9a-fA-F-]+\.(?:jpg|png|webp)$/;
+
 const sanitizeOptions = {
   allowedTags: [
     "a", "blockquote", "br", "code", "em", "h1", "h2", "h3", "h4", "h5",
     "h6", "hr", "img", "li", "ol", "p", "pre", "s", "strong", "u", "ul",
   ],
   allowedAttributes: {
-    a: ["href", "name", "target", "rel"],
+    // "name" dibuang: atribut itu bisa menumbuk elemen global di dalam halaman.
+    a: ["href", "target", "rel"],
     img: ["src", "alt", "title", "width", "height"],
+  },
+  // Skema yang diizinkan eksplisit, dan URL protokol-relatif ("//situs-luar")
+  // ditolak agar tidak ada tautan ke luar yang menyamar sebagai tautan lokal.
+  allowedSchemes: ["http", "https", "mailto", "tel"],
+  allowProtocolRelative: false,
+  exclusiveFilter(frame) {
+    if (frame.tag !== "img") return false;
+    return !UPLOADED_IMAGE_SRC.test(frame.attribs.src || "");
   },
   transformTags: {
     a: sanitizeHtml.simpleTransform(

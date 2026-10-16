@@ -5,6 +5,7 @@ import { BCRYPT_ROUNDS } from "../config/env.js";
 import { pool } from "../db/pool.js";
 import { publicUser, requireAdmin } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
+import { withPasswordByteLimit } from "../services/passwords.js";
 
 const router = express.Router();
 const idSchema = z.object({ id: z.coerce.number().int().positive() });
@@ -12,13 +13,17 @@ const emailSchema = z.string().trim().toLowerCase().pipe(z.email("Format email t
 const userSchema = z.object({
   name: z.string().trim().min(1, "Nama wajib diisi.").max(150),
   email: emailSchema,
-  password: z.string().min(8, "Password minimal 8 karakter.").max(200),
+  password: withPasswordByteLimit(
+    z.string().min(8, "Password minimal 8 karakter."),
+  ),
   role: z.enum(["admin", "editor"]),
 });
 const updateUserSchema = z.object({
   name: z.string().trim().min(1).max(150).optional(),
   email: emailSchema.optional(),
-  password: z.string().min(8, "Password minimal 8 karakter.").max(200).optional(),
+  password: withPasswordByteLimit(
+    z.string().min(8, "Password minimal 8 karakter."),
+  ).optional(),
   role: z.enum(["admin", "editor"]).optional(),
 });
 
@@ -87,6 +92,9 @@ router.put(
         if (field === "password") {
           values.push(await bcrypt.hash(value, BCRYPT_ROUNDS));
           updates.push(`password_hash = $${values.length}`);
+          // Sesi lama berakhir: token yang terbit sebelum waktu ini ditolak
+          // oleh requireAuth, termasuk bila password diganti oleh admin lain.
+          updates.push("password_changed_at = now()");
         } else {
           const column = field === "name" ? "name" : field;
           values.push(value);

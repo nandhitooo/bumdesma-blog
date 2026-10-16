@@ -74,12 +74,23 @@ export const serverDirPath = serverDir;
 
 // Dikumpulkan sekaligus (bukan satu per satu) supaya saat start semua masalah
 // konfigurasi terlihat dalam satu pesan, lalu server berhenti sebelum listen.
+// Nilai contoh di .env.example tidak boleh ikut terpakai: JWT_SECRET contoh
+// panjangnya tepat 32 karakter sehingga lolos batas panjang, padahal nilainya
+// publik dan bisa dipakai siapa pun untuk memalsukan token.
+export function isPlaceholderValue(value) {
+  return /GANTI_|CHANGE_?ME|USER:PASSWORD|NAMA_DATABASE/i.test(value);
+}
+
 function collectEnvProblems() {
   const problems = [];
 
   const databaseUrl = stringEnv("DATABASE_URL");
   if (!databaseUrl) {
     problems.push("DATABASE_URL belum diisi.");
+  } else if (isPlaceholderValue(databaseUrl)) {
+    problems.push(
+      "DATABASE_URL masih memakai nilai contoh dari .env.example, isi kredensial database yang sebenarnya.",
+    );
   } else if (!/^postgres(ql)?:\/\//i.test(databaseUrl)) {
     problems.push(
       "DATABASE_URL harus berupa URL postgresql:// (contoh: postgresql://user:password@localhost:5432/nama_database).",
@@ -89,6 +100,10 @@ function collectEnvProblems() {
   const jwtSecret = stringEnv("JWT_SECRET");
   if (!jwtSecret) {
     problems.push("JWT_SECRET belum diisi (buat dengan `openssl rand -hex 32`).");
+  } else if (isPlaceholderValue(jwtSecret)) {
+    problems.push(
+      "JWT_SECRET masih memakai nilai contoh dari .env.example. Buat nilai acak baru dengan `openssl rand -hex 32`.",
+    );
   } else if (jwtSecret.length < MIN_JWT_SECRET_LENGTH) {
     problems.push(
       `JWT_SECRET minimal ${MIN_JWT_SECRET_LENGTH} karakter, sekarang ${jwtSecret.length} karakter.`,
@@ -113,7 +128,21 @@ function collectEnvProblems() {
       // Browser tidak pernah mengirim trailing slash pada header Origin,
       // sehingga nilainya tidak akan pernah cocok saat perbandingan CORS.
       problems.push("CLIENT_ORIGIN tidak boleh diakhiri slash.");
+    } else if (env.isProduction && parsed.protocol !== "https:") {
+      // Cookie sesi memakai atribut Secure di produksi; origin http akan
+      // membuat login tidak pernah tersimpan di browser.
+      problems.push(
+        "CLIENT_ORIGIN harus https saat NODE_ENV=production (contoh: https://bumdesma.example.id).",
+      );
     }
+  }
+
+  // TRUST_PROXY=true mempercayai header X-Forwarded-For dari mana pun, sehingga
+  // klien bisa memalsukan IP-nya untuk menghindari rate limiter.
+  if (env.isProduction && stringEnv("TRUST_PROXY") === "true") {
+    problems.push(
+      "TRUST_PROXY=true tidak diizinkan saat NODE_ENV=production. Isi jumlah hop (contoh: 1) atau nama subnet (contoh: loopback).",
+    );
   }
 
   return problems;

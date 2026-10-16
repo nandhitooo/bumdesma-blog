@@ -94,6 +94,10 @@ const Contact = () => {
                   className="w-full h-full border-0"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
+                  // Sandbox: peta tetap berjalan, tetapi tidak boleh menavigasi
+                  // halaman induk, membuka popup tanpa izin, atau menjalankan
+                  // plugin/unduhan.
+                  sandbox="allow-scripts allow-same-origin allow-popups"
                   allowFullScreen
                 ></iframe>
               )}

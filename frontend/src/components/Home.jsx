@@ -16,7 +16,8 @@ const defaultHighlights = [
     categoryName: "Bisnis",
     coverImageUrl: kegiatan8,
     excerpt: "Langkah strategis pengembangan layanan keuangan mikro desa untuk mendukung permodalan dan penguatan usaha warga.",
-    publishedAt: "2024-08-30",
+    // Tanpa publishedAt: kartu ini bukan berita sungguhan, jadi tidak boleh
+    // menampilkan tanggal seolah-olah artikel terbit pada tanggal tersebut.
     slug: "",
   },
   {
@@ -25,7 +26,6 @@ const defaultHighlights = [
     categoryName: "Internal",
     coverImageUrl: kegiatan1,
     excerpt: "Pertanggungjawaban pengelolaan unit usaha desa dan perencanaan program kerja berkelanjutan.",
-    publishedAt: "2024-01-15",
     slug: "",
   },
   {
@@ -34,7 +34,6 @@ const defaultHighlights = [
     categoryName: "Event",
     coverImageUrl: kegiatan2,
     excerpt: "Mendorong promosi produk unggulan masyarakat desa Wilangan agar memiliki daya saing lebih luas.",
-    publishedAt: "2024-05-20",
     slug: "",
   },
 ];

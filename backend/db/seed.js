@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { BCRYPT_ROUNDS } from "../config/env.js";
+import { BCRYPT_ROUNDS, isPlaceholderValue } from "../config/env.js";
 import { pool } from "./pool.js";
 
 const ADMIN_NAME = "Administrator";
@@ -11,6 +11,14 @@ async function run() {
   if (!email || !password) {
     throw new Error(
       "ADMIN_EMAIL dan ADMIN_PASSWORD wajib diisi di backend/.env sebelum menjalankan seed.",
+    );
+  }
+
+  // Password contoh dari .env.example tidak boleh menjadi kredensial admin
+  // sungguhan: nilainya publik dan bisa dicoba siapa pun.
+  if (isPlaceholderValue(password)) {
+    throw new Error(
+      "ADMIN_PASSWORD masih memakai nilai contoh dari .env.example. Isi password admin yang kuat sebelum menjalankan seed.",
     );
   }
 

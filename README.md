@@ -169,8 +169,13 @@ Sesi login disimpan pada cookie `bumdesma_session` (httpOnly, `sameSite=lax`,
 
 ## 9. Ringkasan endpoint API
 
-Rate limit global: 300 permintaan / 15 menit per IP untuk seluruh `/api`.
-Endpoint login punya batas tambahan 10 percobaan / 15 menit per IP.
+Rate limit per IP untuk seluruh `/api`: 1000 permintaan baca (`GET`) / 15 menit dan
+100 perubahan data (`POST`, `PUT`, `PATCH`, `DELETE`) / 15 menit. Endpoint login
+punya batas tambahan 10 percobaan **gagal** / 15 menit per IP, dan unggah gambar
+dibatasi 30 berkas / 15 menit per pengguna. Setiap permintaan yang mengubah data
+dan membawa header `Origin` selain `CLIENT_ORIGIN` ditolak dengan status 403.
+Tanggapan `/api/auth/*` dan `/api/admin/*` selalu memakai `Cache-Control: no-store`.
+Sesi juga berakhir otomatis setelah password pengguna diubah.
 
 ### Publik (tanpa login)
 
@@ -194,7 +199,7 @@ Semua endpoint di bawah `/api/admin` memerlukan sesi login. Endpoint bertanda
 
 | Metode | Endpoint | Keterangan |
 | --- | --- | --- |
-| `GET` | `/api/admin/articles?status=all\|draft\|published` | Daftar artikel untuk panel. Balasan: `{ articles }`. |
+| `GET` | `/api/admin/articles?status=all\|draft\|published&limit=200` | Daftar artikel untuk panel, `limit` maks 500 (default 200). Balasan: `{ articles }`. |
 | `GET` | `/api/admin/articles/:id` | Detail artikel beserta `contentHtml` dan `status`. Balasan: `{ article }`. |
 | `POST` | `/api/admin/articles` | Membuat artikel. Balasan: `201 { id }`. |
 | `PUT` | `/api/admin/articles/:id` | Memperbarui artikel. Balasan: `{ id }`. |
@@ -240,3 +245,42 @@ Semua endpoint di bawah `/api/admin` memerlukan sesi login. Endpoint bertanda
   konten asli sebelum dipublikasikan.
 - `npm run lint` mencakup kedua workspace, dan `npm run build` harus lulus sebelum
   perubahan frontend dianggap selesai.
+- `npm test` menjalankan uji keamanan backend (`backend/test/security.test.js`)
+  terhadap server yang sedang berjalan. Uji memakai `API_URL` (default
+  `http://localhost:4000`) dan membutuhkan `ADMIN_EMAIL` + `ADMIN_PASSWORD` dari
+  `backend/.env` untuk membuat artikel serta pengguna editor sementara, yang
+  dihapus lagi setelah uji selesai. Tanpa kredensial tersebut, bagian uji yang
+  membutuhkannya dilewati dengan pesan yang jelas.
+
+## 11. Header keamanan untuk hosting frontend
+
+API mengirim header keamanannya sendiri lewat `helmet` (termasuk
+`X-Content-Type-Options: nosniff`, CSP bawaan, dan `Referrer-Policy: no-referrer`).
+Berkas gambar di `/uploads` dikirim ulang dengan `nosniff`, CSP `default-src 'none'`,
+dan cache 7 hari.
+
+Server yang menyajikan hasil `npm run build` (Nginx, Caddy, Vercel, dsb.) perlu
+menambahkan header berikut. Daftarnya mengikuti pihak ketiga yang benar-benar
+dipakai frontend: Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`),
+embed Google Maps (`www.google.com`), serta `/api` dan `/uploads` di origin yang sama.
+
+```nginx
+add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
+```
+
+Catatan:
+
+- `style-src` memakai `'unsafe-inline'` karena Swiper dan Framer Motion menulis
+  atribut `style` langsung di elemen.
+- `frame-src https://www.google.com` hanya diperlukan selama peta di bagian
+  Kontak dipakai (`mapsEmbedUrl`); peta itu juga dirender dengan atribut
+  `sandbox` sehingga tidak dapat menavigasi halaman induk.
+- `connect-src 'self'` sudah mencakup `/api` dan `/uploads` karena dilayani dari
+  origin yang sama. Bila API dipindah ke subdomain lain, tambahkan origin itu.
+- Halaman panel menyetel `<meta name="robots" content="noindex">` selama `/admin`
+  terbuka, dan `frame-ancestors 'none'` mencegah situs ini dibingkai situs lain.
+- Header di atas adalah konfigurasi server statis, bukan sesuatu yang dikirim
+  aplikasi Express; verifikasi ulang setiap kali ada pihak ketiga baru dipakai.

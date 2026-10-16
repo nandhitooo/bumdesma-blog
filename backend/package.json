@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "server": "nodemon --watch . index.js",
+    "test": "node --test \"test/**/*.test.js\"",
     "migrate": "node db/migrate.js",
     "seed": "node db/seed.js",
     "seed:articles": "node db/seed-articles.js"

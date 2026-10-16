@@ -3,9 +3,25 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import express from "express";
 import multer from "multer";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { uploadDir } from "../services/uploads.js";
 
 const router = express.Router();
+
+// Unggah gambar dibatasi per pengguna, bukan per IP: satu kantor bisa memakai
+// satu IP untuk beberapa pengelola sekaligus. requireAuth sudah dijalankan
+// sebelum router ini, jadi req.user tersedia.
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  keyGenerator: (req) =>
+    req.user ? `user:${req.user.id}` : ipKeyGenerator(req.ip),
+  message: {
+    message: "Terlalu banyak unggahan gambar. Coba lagi beberapa saat lagi.",
+  },
+});
 const mimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const multipart = multer({
   storage: multer.memoryStorage(),
@@ -45,7 +61,7 @@ function detectImage(buffer) {
   return null;
 }
 
-router.post("/", multipart.single("image"), async (req, res) => {
+router.post("/", uploadLimiter, multipart.single("image"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "Pilih file gambar untuk diunggah." });
   }
