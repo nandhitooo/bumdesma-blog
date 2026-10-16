@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import ArticleImage from "./ArticleImage";
 import kegiatan1 from "../assets/kegiatan/kegiatan1.jpg";
 import kegiatan2 from "../assets/kegiatan/kegiatan2.jpg";
 import kegiatan3 from "../assets/kegiatan/kegiatan3.jpg";
@@ -89,7 +90,7 @@ const Activity = () => {
     : fallbackItems.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <section className="py-16 sm:py-24 bg-white" id="activity">
+    <section className="py-16 sm:py-24 bg-white scroll-mt-18" id="activity">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="max-w-3xl mb-12">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
@@ -105,7 +106,7 @@ const Activity = () => {
 
         {/* Max 3 columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {currentItems.map((item) => {
+          {currentItems.map((item, index) => {
             const isArticle = usingArticles;
             const image = isArticle ? item.coverImageUrl : item.img;
             const title = isArticle ? item.title : item.text;
@@ -114,17 +115,18 @@ const Activity = () => {
 
             return (
               <article
-                key={isArticle ? item.id : item.text}
+                key={isArticle ? item.id : `${item.text}-${index}`}
                 className="group bg-white rounded-xl overflow-hidden border border-gray-200 hover:border-gray-300 transition-colors flex flex-col"
               >
                 <Link to={targetLink} className="flex-1 flex flex-col">
                   <div className="relative h-52 bg-gray-100 overflow-hidden">
-                    <img
+                    <ArticleImage
                       src={image}
                       alt={title}
-                      className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90"
+                      containerClassName="w-full h-full"
+                      className="transition-opacity duration-300 group-hover:opacity-90"
                     />
-                    <div className="absolute top-3 left-3">
+                    <div className="absolute top-3 left-3 z-10">
                       <span className="bg-white/95 text-brand-primary text-xs font-semibold px-2.5 py-1 rounded border border-gray-200">
                         {category}
                       </span>

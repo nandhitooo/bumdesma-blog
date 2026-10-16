@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import ArticleImage from "../components/ArticleImage";
 import { formatDate } from "../lib/date";
 
 function BlogList() {
@@ -116,11 +117,11 @@ function BlogList() {
 
         {/* Filter and Search Bar */}
         <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2" aria-label="Filter kategori">
+          <div className="flex flex-wrap items-center gap-2 max-w-full overflow-x-auto pb-1 md:pb-0" aria-label="Filter kategori">
             <button
               type="button"
               onClick={() => updateFilters({ category: "" })}
-              className={`px-3.5 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+              className={`min-h-[44px] px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer flex items-center ${
                 !category
                   ? "bg-brand-primary text-white"
                   : "bg-gray-100 hover:bg-gray-200 text-gray-700"
@@ -133,7 +134,7 @@ function BlogList() {
                 key={item.id}
                 type="button"
                 onClick={() => updateFilters({ category: item.slug })}
-                className={`px-3.5 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer ${
+                className={`min-h-[44px] px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer flex items-center ${
                   category === item.slug
                     ? "bg-brand-primary text-white"
                     : "bg-gray-100 hover:bg-gray-200 text-gray-700"
@@ -144,7 +145,7 @@ function BlogList() {
             ))}
           </div>
 
-          <form onSubmit={submitSearch} className="flex items-center gap-2">
+          <form onSubmit={submitSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
             <label className="sr-only" htmlFor="blog-search">
               Cari artikel
             </label>
@@ -154,11 +155,11 @@ function BlogList() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Cari artikel..."
-              className="w-full sm:w-56 px-3.5 py-2 text-sm bg-white border border-gray-300 rounded-lg outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-colors text-gray-900"
+              className="w-full sm:w-56 min-h-[44px] px-3.5 py-2 text-sm bg-white border border-gray-300 rounded-lg outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-colors text-gray-900"
             />
             <button
               type="submit"
-              className="bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer shrink-0"
+              className="min-h-[44px] bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer flex items-center justify-center shrink-0"
             >
               Cari
             </button>
@@ -185,19 +186,12 @@ function BlogList() {
                 className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors flex flex-col"
               >
                 <Link to={`/blog/${article.slug}`} className="flex-1 flex flex-col">
-                  {article.coverImageUrl ? (
-                    <div className="h-48 bg-gray-100 overflow-hidden">
-                      <img
-                        src={article.coverImageUrl}
-                        alt={article.title}
-                        className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90"
-                      />
-                    </div>
-                  ) : (
-                    <div className="h-48 bg-brand-light flex items-center justify-center text-brand-primary text-3xl">
-                      <i className="fa-regular fa-newspaper" aria-hidden="true"></i>
-                    </div>
-                  )}
+                  <ArticleImage
+                    src={article.coverImageUrl}
+                    alt={article.title}
+                    containerClassName="h-48 w-full bg-gray-100"
+                    className="transition-opacity duration-300 group-hover:opacity-90"
+                  />
 
                   <div className="p-5 flex-1 flex flex-col justify-between">
                     <div>
@@ -263,7 +257,7 @@ function BlogList() {
               type="button"
               disabled={pagination.page <= 1}
               onClick={() => updateFilters({ page: String(pagination.page - 1) })}
-              className="px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="min-h-[44px] px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center"
             >
               Sebelumnya
             </button>
@@ -274,7 +268,7 @@ function BlogList() {
               type="button"
               disabled={pagination.page >= pagination.totalPages}
               onClick={() => updateFilters({ page: String(pagination.page + 1) })}
-              className="px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="min-h-[44px] px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center"
             >
               Selanjutnya
             </button>

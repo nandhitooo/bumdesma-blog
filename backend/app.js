@@ -14,6 +14,9 @@ import articlesRoutes, {
 import categoriesRoutes, {
   adminRouter as adminCategoriesRoutes,
 } from "./routes/categories.js";
+import siteContentRoutes, {
+  adminRouter as adminSiteContentRoutes,
+} from "./routes/siteContent.js";
 import usersRoutes from "./routes/users.js";
 import uploadRoutes from "./routes/upload.js";
 import { requireAuth } from "./middleware/auth.js";
@@ -100,12 +103,14 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/articles", articlesRoutes);
 app.use("/api/categories", categoriesRoutes);
+app.use("/api/site-content", siteContentRoutes);
 // requireAuth dipasang untuk seluruh /api/admin, jadi router admin di bawahnya
 // tidak perlu memasangnya lagi. Router admin artikel tidak memakai requireAdmin
 // karena editor juga berhak mengelola artikel miliknya sendiri.
 app.use("/api/admin", requireAuth);
 app.use("/api/admin/articles", adminArticlesRoutes);
 app.use("/api/admin/categories", adminCategoriesRoutes);
+app.use("/api/admin/site-content", adminSiteContentRoutes);
 app.use("/api/admin/users", usersRoutes);
 app.use("/api/admin/upload", uploadRoutes);
 

@@ -17,6 +17,8 @@ Repositori ini adalah monorepo **npm workspaces** berisi dua aplikasi:
   dan paginasi, serta halaman detail per artikel.
 - **Modul CMS** (`/cms` dan `/admin`) — pengelolaan artikel, kategori, dan pengguna
   melalui panel admin, termasuk editor teks, unggah gambar, serta alur draf dan terbit.
+- Konten beranda dapat dikelola melalui API admin; panel yang dituju adalah
+  `/admin/content` (admin only), tetapi rute antarmuka frontend belum tersedia.
 - Semua konten artikel disimpan sebagai HTML yang sudah dibersihkan di backend
   (`backend/services/articles.js`) sebelum masuk database.
 
@@ -59,8 +61,10 @@ Repositori ini adalah monorepo **npm workspaces** berisi dua aplikasi:
    npm run seed:articles
    ```
 
-   Perintah ini idempotent (aman dijalankan berkali-kali) dan menolak berjalan
-   bila `NODE_ENV=production` kecuali ditambah flag `--force`. Karena npm memakai
+   Seeder menyalin foto kegiatan yang cocok ke `backend/uploads/` dan mengisi
+   cover artikel. Saat dijalankan ulang, seeder hanya melengkapi cover kosong
+   tanpa menimpa cover yang sudah dipilih editor. Perintah ini idempotent dan
+   menolak berjalan bila `NODE_ENV=production` kecuali ditambah flag `--force`. Karena npm memakai
    `--force` untuk dirinya sendiri, perintah pemaksanya adalah:
 
    ```bash
@@ -94,7 +98,7 @@ Semua perintah dijalankan dari root repositori:
 
 | Perintah | Fungsi |
 | --- | --- |
-| `npm run migrate` | Menerapkan migrasi SQL di `backend/migrations/` yang belum dijalankan. |
+| `npm run migrate` | Menerapkan migrasi SQL di `backend/migrations/` yang belum dijalankan, termasuk `002_site_content.sql`. |
 | `npm run seed` | Membuat user admin pertama dari `ADMIN_EMAIL` dan `ADMIN_PASSWORD`. |
 | `npm run seed:articles` | Mengisi 6 kategori dan 10 artikel contoh (8 terbit, 2 draf). Idempotent: aman dijalankan berulang kali. |
 | `npm run server` | Menjalankan API Express dengan `nodemon` di `http://localhost:4000`. |
@@ -137,9 +141,9 @@ Sesi login disimpan pada cookie `bumdesma_session` (httpOnly, `sameSite=lax`,
 │   ├── config/              # Pembacaan env var (config/env.js)
 │   ├── db/                  # Pool PostgreSQL, migrate.js, seed.js, seed-articles.js
 │   ├── middleware/          # auth.js, validate.js, errorHandler.js, requestLogger.js
-│   ├── migrations/          # File SQL bernomor (001_init.sql)
-│   ├── routes/              # articles.js, categories.js, users.js, auth.js, upload.js
-│   ├── services/            # articles.js (sanitasi + query bersama), uploads.js
+│   ├── migrations/          # File SQL bernomor (001_init.sql, 002_site_content.sql)
+│   ├── routes/              # articles.js, categories.js, siteContent.js, users.js, auth.js, upload.js
+│   ├── services/            # articles.js, siteContent.js, uploads.js
 │   ├── uploads/             # Gambar hasil unggah (tidak di-commit, hanya .gitkeep)
 │   ├── app.js               # Perakitan middleware dan route
 │   ├── index.js             # Titik masuk server, timeout, graceful shutdown
@@ -176,6 +180,7 @@ Endpoint login punya batas tambahan 10 percobaan / 15 menit per IP.
 | `GET` | `/api/articles` | Daftar artikel **terbit** saja. Query: `page`, `limit` (maks 50), `category` (slug), `q` (pencarian). Balasan: `{ articles, page, limit, total, totalPages }`. |
 | `GET` | `/api/articles/:slug` | Detail satu artikel terbit. Balasan: `{ article }`. |
 | `GET` | `/api/categories` | Daftar kategori. Balasan: `{ categories }`. |
+| `GET` | `/api/site-content` | Konten lengkap beranda, dengan defaults untuk bagian yang belum disimpan. Cache publik 30 detik. Balasan: `{ content: { hero, about, services, contact, footer } }`. |
 | `POST` | `/api/auth/login` | Masuk, menyetel cookie `bumdesma_session`. Balasan: `{ user }`. |
 | `POST` | `/api/auth/logout` | Menghapus cookie sesi (204). |
 | `GET` | `/api/auth/me` | Data pengguna yang sedang login (butuh cookie). |
@@ -199,6 +204,9 @@ Semua endpoint di bawah `/api/admin` memerlukan sesi login. Endpoint bertanda
 | `POST` | `/api/admin/categories` | Menambah kategori (**admin**). |
 | `PUT` | `/api/admin/categories/:id` | Mengubah kategori (**admin**). |
 | `DELETE` | `/api/admin/categories/:id` | Menghapus kategori (**admin**). |
+| `GET` | `/api/admin/site-content` | Konten beranda lengkap dan waktu pembaruan per key (**admin**). Balasan: `{ content, updatedAt }`; waktu bernilai `null` bila masih memakai default. |
+| `PUT` | `/api/admin/site-content/:key` | Menyimpan satu bagian beranda (`hero`, `about`, `services`, `contact`, atau `footer`) sebagai teks biasa tervalidasi (**admin**). Balasan: `{ key, content, updatedAt }`. |
+| `DELETE` | `/api/admin/site-content/:key` | Menghapus perubahan satu bagian dan mengembalikannya ke default (**admin**, 204). |
 | `GET` | `/api/admin/users` | Daftar pengguna (**admin**). |
 | `POST` | `/api/admin/users` | Menambah pengguna (**admin**). |
 | `PUT` | `/api/admin/users/:id` | Mengubah pengguna (**admin**). |
@@ -224,7 +232,8 @@ Semua endpoint di bawah `/api/admin` memerlukan sesi login. Endpoint bertanda
 **Pengembangan**
 
 - Migrasi yang sudah ada di `backend/migrations/` tidak boleh diubah; perubahan
-  skema selalu berupa file SQL baru dengan nomor berikutnya.
+  skema selalu berupa file SQL baru dengan nomor berikutnya. Konten beranda
+  disimpan oleh migrasi `002_site_content.sql`.
 - Semua query database memakai parameterized query (`$1`, `$2`, ...); nilai dari
   pengguna tidak pernah dirangkai ke dalam string SQL.
 - Data contoh dari `npm run seed:articles` hanya untuk pengembangan. Ganti dengan

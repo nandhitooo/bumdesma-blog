@@ -7,6 +7,7 @@ const navigation = [
   { to: "/admin/articles", label: "Artikel", icon: "newspaper" },
   { to: "/admin/categories", label: "Kategori", icon: "layer-group", adminOnly: true },
   { to: "/admin/users", label: "Pengguna", icon: "users", adminOnly: true },
+  { to: "/admin/content", label: "Konten Situs", icon: "sliders", adminOnly: true },
 ];
 
 function AdminLayout() {
@@ -66,7 +67,7 @@ function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 lg:flex">
+    <div className="admin-layout min-h-screen bg-gray-50 lg:flex">
       <aside className="bg-green-900 text-white lg:min-h-screen lg:w-72 lg:shrink-0">
         <div className="flex items-center justify-between gap-4 px-5 py-5 lg:block lg:px-7 lg:py-8">
           <Link to="/admin" className="text-lg font-extrabold leading-tight">

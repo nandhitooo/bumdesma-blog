@@ -9,7 +9,7 @@
 //   ingin lewat npm.
 //
 // Aman dijalankan berulang kali: kategori dan artikel memakai ON CONFLICT (slug)
-// DO NOTHING, jadi baris yang sudah ada dilewati, bukan diduplikasi.
+// DO UPDATE, sehingga cover yang belum ada dapat diisi tanpa menimpa pilihan editor.
 //
 // Isi artikel sengaja hanya berupa gambaran umum kegiatan. Tidak ada nama orang,
 // nominal, jumlah peserta, tanggal kejadian, atau kutipan yang dikarang. Angka
@@ -17,10 +17,19 @@
 // 2003-2014, dana Kecamatan Wilangan Rp 11.353.000.000, dan sertifikat badan
 // hukum AHU-00115.AH.01.35.Tahun 2022.
 import { cleanContent } from "../services/articles.js";
+import { uploadDir } from "../services/uploads.js";
+import { copyFile, mkdir } from "node:fs/promises";
+import { constants } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { pool } from "./pool.js";
 
 const FORCE = process.argv.includes("--force");
 const MAX_EXCERPT_LENGTH = 300;
+const photoDir = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../frontend/src/assets/kegiatan",
+);
 
 // Tag yang boleh dipakai di content_html; sisanya akan dibuang cleanContent.
 const ALLOWED_TAGS = new Set([
@@ -51,6 +60,7 @@ const ARTICLES = [
   {
     title: "Evaluasi Kinerja Tahunan BUMDesma Podo Rukun",
     slug: "evaluasi-kinerja-tahunan-bumdesma-podo-rukun",
+    photoIndex: 1,
     categorySlug: "internal",
     status: "published",
     publishedAt: "2026-09-28T08:00:00+07:00",
@@ -71,6 +81,7 @@ const ARTICLES = [
   {
     title: "Musyawarah Antar Desa Membahas Program BUMDesma",
     slug: "musyawarah-antar-desa-membahas-program-bumdesma",
+    photoIndex: 4,
     categorySlug: "internal",
     status: "published",
     publishedAt: "2026-09-14T09:30:00+07:00",
@@ -89,6 +100,7 @@ const ARTICLES = [
   {
     title: "Penyaluran Bantuan Sosial bagi Warga Desa",
     slug: "penyaluran-bantuan-sosial-bagi-warga-desa",
+    photoIndex: 5,
     categorySlug: "sosial",
     status: "published",
     publishedAt: "2026-08-30T08:00:00+07:00",
@@ -107,6 +119,7 @@ const ARTICLES = [
   {
     title: "Pembinaan Kelompok SPP dan UEP",
     slug: "pembinaan-kelompok-spp-dan-uep",
+    photoIndex: 6,
     categorySlug: "edukasi",
     status: "published",
     publishedAt: "2026-08-12T10:00:00+07:00",
@@ -125,6 +138,7 @@ const ARTICLES = [
   {
     title: "Bimtek Aplikasi Laporan Keuangan",
     slug: "bimtek-aplikasi-laporan-keuangan",
+    photoIndex: 9,
     categorySlug: "edukasi",
     status: "published",
     publishedAt: "2026-07-29T09:00:00+07:00",
@@ -144,6 +158,7 @@ const ARTICLES = [
   {
     title: "Bazar Produk Desa Mendorong Promosi Usaha Warga",
     slug: "bazar-produk-desa-mendorong-promosi-usaha-warga",
+    photoIndex: 2,
     categorySlug: "event",
     status: "published",
     publishedAt: "2026-07-11T09:00:00+07:00",
@@ -162,6 +177,7 @@ const ARTICLES = [
   {
     title: "Layanan Dana Bergulir Masyarakat",
     slug: "layanan-dana-bergulir-masyarakat",
+    photoIndex: 8,
     categorySlug: "bisnis",
     status: "published",
     publishedAt: "2026-06-24T08:30:00+07:00",
@@ -180,6 +196,7 @@ const ARTICLES = [
   {
     title: "Sejarah BUMDesma Podo Rukun dari PPK hingga PNPM",
     slug: "sejarah-bumdesma-podo-rukun-dari-ppk-hingga-pnpm",
+    photoIndex: 4,
     categorySlug: "internal",
     status: "published",
     publishedAt: "2026-06-05T09:00:00+07:00",
@@ -195,6 +212,7 @@ const ARTICLES = [
   {
     title: "Rencana Layanan Keagenan Bank di Kantor Pengelola",
     slug: "rencana-layanan-keagenan-bank-di-kantor-pengelola",
+    photoIndex: 8,
     categorySlug: "bisnis",
     status: "draft",
     publishedAt: null,
@@ -213,6 +231,7 @@ const ARTICLES = [
   {
     title: "Gerak Jalan Agustusan Warga Wilangan",
     slug: "gerak-jalan-agustusan-warga-wilangan",
+    photoIndex: 11,
     categorySlug: "gathering",
     status: "draft",
     publishedAt: null,
@@ -240,6 +259,9 @@ function assertArticlesAreValid() {
     if (article.status === "published" && !article.publishedAt) {
       throw new Error(`Artikel terbit "${article.slug}" wajib punya publishedAt.`);
     }
+    if (!Number.isInteger(article.photoIndex) || article.photoIndex < 1 || article.photoIndex > 12) {
+      throw new Error(`Foto kegiatan tidak valid untuk "${article.slug}".`);
+    }
 
     // Isi artikel harus 3-5 paragraf dan hanya memakai tag yang diizinkan. Tag di
     // luar daftar ini akan dibuang sanitize-html, jadi lebih baik ketahuan di sini.
@@ -262,6 +284,42 @@ function assertArticlesAreValid() {
       );
     }
   }
+}
+
+async function copyActivityPhotos() {
+  await mkdir(uploadDir, { recursive: true });
+  const coversBySlug = new Map();
+  const copiedPhotos = new Set();
+
+  for (const article of ARTICLES) {
+    const photoIndex = article.photoIndex;
+    const filename = `00000000-0000-4000-8000-${String(photoIndex).padStart(12, "0")}.jpg`;
+    const source = path.join(photoDir, `kegiatan${photoIndex}.jpg`);
+    const destination = path.join(uploadDir, filename);
+
+    if (!copiedPhotos.has(photoIndex)) {
+      try {
+        await copyFile(source, destination, constants.COPYFILE_EXCL);
+      } catch (error) {
+        if (error.code === "EEXIST") {
+          copiedPhotos.add(photoIndex);
+        } else if (error.code === "ENOENT") {
+          console.warn(
+            `Foto kegiatan tidak ditemukan untuk "${article.slug}": ${source}`,
+          );
+          coversBySlug.set(article.slug, null);
+          continue;
+        } else {
+          throw error;
+        }
+      }
+      copiedPhotos.add(photoIndex);
+    }
+
+    coversBySlug.set(article.slug, `/uploads/${filename}`);
+  }
+
+  return coversBySlug;
 }
 
 function assertAllowedToRun() {
@@ -329,29 +387,29 @@ async function ensureCategories(client) {
   return { idsBySlug: result, inserted, skipped };
 }
 
-async function insertArticles(client, author, categories) {
+async function insertArticles(client, author, categories, coversBySlug) {
   let inserted = 0;
-  let skipped = 0;
+  let updated = 0;
   let insertedPublished = 0;
   let insertedDraft = 0;
 
   for (const article of ARTICLES) {
     const publishedAt = article.publishedAt ? new Date(article.publishedAt) : null;
 
-    // cover_image_url sengaja NULL: berkas /uploads/<uuid> baru ada setelah
-    // diunggah lewat panel, jadi tidak ada gambar yang bisa dirujuk di sini.
     const { rows } = await client.query(
       `INSERT INTO articles
          (title, slug, excerpt, content_html, cover_image_url, category_id,
           author_id, status, published_at)
-       VALUES ($1, $2, $3, $4, NULL, $5, $6, $7, $8)
-       ON CONFLICT (slug) DO NOTHING
-       RETURNING id`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (slug) DO UPDATE
+       SET cover_image_url = COALESCE(articles.cover_image_url, EXCLUDED.cover_image_url)
+       RETURNING id, (xmax = 0) AS inserted`,
       [
         article.title,
         article.slug,
         article.excerpt,
         cleanContent(article.contentHtml),
+        coversBySlug.get(article.slug) ?? null,
         categories.idsBySlug.get(article.categorySlug),
         author.id,
         article.status,
@@ -359,22 +417,22 @@ async function insertArticles(client, author, categories) {
       ],
     );
 
-    if (!rows[0]) {
-      skipped += 1;
-      continue;
+    if (rows[0].inserted) {
+      inserted += 1;
+      if (article.status === "published") insertedPublished += 1;
+      else insertedDraft += 1;
+    } else {
+      updated += 1;
     }
-
-    inserted += 1;
-    if (article.status === "published") insertedPublished += 1;
-    else insertedDraft += 1;
   }
 
-  return { inserted, skipped, insertedPublished, insertedDraft };
+  return { inserted, updated, insertedPublished, insertedDraft };
 }
 
 async function run() {
   assertAllowedToRun();
   assertArticlesAreValid();
+  const coversBySlug = await copyActivityPhotos();
 
   const client = await pool.connect();
 
@@ -383,7 +441,12 @@ async function run() {
 
     const author = await resolveAuthor(client);
     const categories = await ensureCategories(client);
-    const articles = await insertArticles(client, author, categories);
+    const articles = await insertArticles(
+      client,
+      author,
+      categories,
+      coversBySlug,
+    );
 
     await client.query("COMMIT");
 
@@ -393,7 +456,7 @@ async function run() {
     );
     console.log(
       `Artikel : ${articles.inserted} dibuat (${articles.insertedPublished} terbit, ${articles.insertedDraft} draf), ` +
-        `${articles.skipped} dilewati (slug sudah ada).`,
+        `${articles.updated} diperiksa; cover lama tetap dipertahankan.`,
     );
 
     if (articles.inserted === 0) {

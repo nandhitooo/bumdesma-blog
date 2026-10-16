@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import ArticleImage from "../components/ArticleImage";
 import { formatDate } from "../lib/date";
 
 function BlogDetail() {
@@ -84,15 +85,14 @@ function BlogDetail() {
             )}
 
             {/* Cover Image */}
-            {article.coverImageUrl && (
-              <div className="mb-8 overflow-hidden rounded-xl border border-gray-200">
-                <img
-                  src={article.coverImageUrl}
-                  alt={article.title}
-                  className="w-full h-auto max-h-[440px] object-cover"
-                />
-              </div>
-            )}
+            <div className="mb-8 overflow-hidden rounded-xl border border-gray-200">
+              <ArticleImage
+                src={article.coverImageUrl}
+                alt={article.title}
+                containerClassName="w-full max-h-[440px] aspect-[16/9]"
+                iconSize="text-5xl"
+              />
+            </div>
 
             {/* Article Content */}
             <div

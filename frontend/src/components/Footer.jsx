@@ -2,9 +2,56 @@ import { Link } from "react-router-dom";
 import podoRukun from "../assets/podo-rukun.png";
 import bumdesmaNganjuk from "../assets/bumdesma-nganjuk.png";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import { useSiteContent } from "../lib/siteContent";
+import {
+  safeMailto,
+  safePhoneLink,
+  safeWaLink,
+  safeHttpsUrl,
+  isValidIcon,
+} from "../lib/siteContentUtils";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { footer, contact } = useSiteContent();
+
+  const socialLinks = [
+    {
+      name: "whatsapp",
+      href: contact.whatsapp ? safeWaLink(contact.whatsapp) : "",
+      label: "WhatsApp",
+      isSolid: false,
+      isBrand: true,
+    },
+    {
+      name: "envelope",
+      href: footer.email ? safeMailto(footer.email) : "",
+      label: "Email",
+      isSolid: true,
+      isBrand: false,
+    },
+    {
+      name: "facebook",
+      href: safeHttpsUrl(footer.social?.facebook),
+      label: "Facebook",
+      isSolid: false,
+      isBrand: true,
+    },
+    {
+      name: "instagram",
+      href: safeHttpsUrl(footer.social?.instagram),
+      label: "Instagram",
+      isSolid: false,
+      isBrand: true,
+    },
+    {
+      name: "youtube",
+      href: safeHttpsUrl(footer.social?.youtube),
+      label: "YouTube",
+      isSolid: false,
+      isBrand: true,
+    },
+  ].filter((item) => Boolean(item.href) && item.href !== "#" && isValidIcon(item.name));
 
   return (
     <footer className="bg-gray-900 text-gray-300 border-t border-gray-800">
@@ -29,25 +76,27 @@ const Footer = () => {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-gray-400 leading-relaxed mb-6">
-              BUMDESMA Podo Rukun LKD berkomitmen memajukan perekonomian desa melalui pengelolaan usaha yang profesional, transparan, dan inovatif demi kesejahteraan masyarakat Kecamatan Wilangan.
+              {footer.description}
             </p>
-            <div className="flex items-center gap-2.5">
-              {[
-                { name: "whatsapp", href: "https://wa.me/6285156162917", label: "WhatsApp" },
-                { name: "envelope", href: "mailto:bumdesmapodorukun@gmail.com", label: "Email", isSolid: true },
-                { name: "facebook", href: "#", label: "Facebook" },
-                { name: "instagram", href: "#", label: "Instagram" },
-              ].map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  aria-label={item.label}
-                  className="w-8 h-8 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white flex items-center justify-center transition-colors text-xs"
-                >
-                  <i className={`${item.isSolid ? "fa-solid" : "fa-brands"} fa-${item.name}`}></i>
-                </a>
-              ))}
-            </div>
+            {socialLinks.length > 0 && (
+              <div className="flex items-center gap-2.5">
+                {socialLinks.map((item) => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    aria-label={item.label}
+                    target={item.href.startsWith("http") ? "_blank" : undefined}
+                    rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                    className="w-8 h-8 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white flex items-center justify-center transition-colors text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                  >
+                    <i
+                      className={`${item.isBrand ? "fa-brands" : "fa-solid"} fa-${item.name}`}
+                      aria-hidden="true"
+                    ></i>
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Column 2: Tautan Halaman */}
@@ -57,24 +106,24 @@ const Footer = () => {
             </h3>
             <ul className="space-y-2.5 text-xs sm:text-sm">
               <li>
-                <a href="/#home" className="hover:text-white transition-colors">
+                <Link to="/#home" className="hover:text-white transition-colors">
                   Beranda
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#about" className="hover:text-white transition-colors">
+                <Link to="/#about" className="hover:text-white transition-colors">
                   Tentang Kami
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#services" className="hover:text-white transition-colors">
+                <Link to="/#services" className="hover:text-white transition-colors">
                   Layanan Usaha
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#activity" className="hover:text-white transition-colors">
+                <Link to="/#activity" className="hover:text-white transition-colors">
                   Kegiatan Terbaru
-                </a>
+                </Link>
               </li>
               <li>
                 <Link to="/blog" className="hover:text-white transition-colors">
@@ -82,9 +131,9 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="/#contact" className="hover:text-white transition-colors">
+                <Link to="/#contact" className="hover:text-white transition-colors">
                   Hubungi Kami
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -97,22 +146,36 @@ const Footer = () => {
             <ul className="space-y-3 text-xs sm:text-sm text-gray-400">
               <li className="flex items-start gap-2.5">
                 <i className="fa-solid fa-location-dot text-brand-primary mt-1 shrink-0" aria-hidden="true"></i>
-                <span>
-                  Jln. Makam Syekh Sulukhi, Dusun Wilangan RT 003 RW 001 Desa Wilangan, Kec. Wilangan, Kab. Nganjuk, Jawa Timur 64462
+                <span className="break-words">
+                  {footer.address}
                 </span>
               </li>
-              <li className="flex items-center gap-2.5">
-                <i className="fa-solid fa-phone text-brand-primary shrink-0" aria-hidden="true"></i>
-                <a href="tel:+6285156162917" className="hover:text-white transition-colors">
-                  +62 851-5616-2917
-                </a>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <i className="fa-solid fa-envelope text-brand-primary shrink-0" aria-hidden="true"></i>
-                <a href="mailto:bumdesmapodorukun@gmail.com" className="hover:text-white transition-colors">
-                  bumdesmapodorukun@gmail.com
-                </a>
-              </li>
+              {footer.phone && (
+                <li className="flex min-w-0 items-center gap-2.5">
+                  <i className="fa-solid fa-phone shrink-0 text-brand-primary" aria-hidden="true"></i>
+                  {safePhoneLink(footer.phone) ? (
+                    <a
+                      href={safePhoneLink(footer.phone)}
+                      className="min-w-0 break-words hover:text-white transition-colors"
+                    >
+                      {footer.phone}
+                    </a>
+                  ) : (
+                    <span className="min-w-0 break-words">{footer.phone}</span>
+                  )}
+                </li>
+              )}
+              {safeMailto(footer.email) && (
+                <li className="flex min-w-0 items-center gap-2.5">
+                  <i className="fa-solid fa-envelope shrink-0 text-brand-primary" aria-hidden="true"></i>
+                  <a
+                    href={safeMailto(footer.email)}
+                    className="min-w-0 break-words hover:text-white transition-colors"
+                  >
+                    {footer.email}
+                  </a>
+                </li>
+              )}
               <li className="pt-2 border-t border-gray-800 text-[11px] text-gray-500">
                 Badan Hukum: AHU-00115.AH.01.35.Tahun 2022
               </li>

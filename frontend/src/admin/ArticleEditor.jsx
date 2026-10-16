@@ -4,6 +4,7 @@ import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import StarterKit from "@tiptap/starter-kit";
 import { Link as RouterLink, useNavigate, useOutletContext, useParams } from "react-router-dom";
+import ArticleImage from "../components/ArticleImage";
 import { adminApi, uniqueSlug } from "./api";
 
 const emptyForm = {
@@ -205,7 +206,7 @@ function ArticleEditor() {
       aria-label={label}
       aria-pressed={active}
       onClick={action}
-      className={`h-10 min-w-10 rounded-lg px-3 font-bold ${
+      className={`min-h-[44px] min-w-[44px] rounded-lg px-3 font-bold flex items-center justify-center transition ${
         active ? "bg-green-100 text-green-800" : "text-gray-700 hover:bg-gray-100"
       }`}
     >
@@ -329,13 +330,14 @@ function ArticleEditor() {
 
           <div>
             <span className="mb-2 block font-bold text-gray-700">Gambar sampul</span>
-            {form.coverImageUrl && (
-              <img
-                src={form.coverImageUrl}
+            <div className="mb-3 w-full overflow-hidden rounded-2xl border border-gray-200">
+              <ArticleImage
+                src={form.coverImageUrl || null}
                 alt="Pratinjau gambar sampul"
-                className="mb-3 max-h-64 w-full rounded-2xl object-cover"
+                containerClassName="w-full aspect-[16/9]"
+                iconSize="text-5xl"
               />
-            )}
+            </div>
             <input
               ref={coverInput}
               type="file"
@@ -416,7 +418,7 @@ function ArticleEditor() {
             <button
               type="button"
               onClick={insertLink}
-              className="h-10 rounded-lg px-3 font-bold text-gray-700 hover:bg-gray-100"
+              className="min-h-[44px] rounded-lg px-3 font-bold text-gray-700 hover:bg-gray-100 flex items-center"
             >
               <i className="fa-solid fa-link mr-2" aria-hidden="true"></i>
               Tautan
@@ -433,7 +435,7 @@ function ArticleEditor() {
               type="button"
               onClick={() => inlineInput.current?.click()}
               disabled={inlineUploading}
-              className="h-10 rounded-lg px-3 font-bold text-gray-700 hover:bg-gray-100 disabled:opacity-60"
+              className="min-h-[44px] rounded-lg px-3 font-bold text-gray-700 hover:bg-gray-100 disabled:opacity-60 flex items-center"
             >
               <i className="fa-regular fa-image mr-2" aria-hidden="true"></i>
               {inlineUploading ? "Mengunggah..." : "Gambar"}
@@ -445,14 +447,14 @@ function ArticleEditor() {
         <div className="flex flex-wrap justify-end gap-3">
           <RouterLink
             to="/admin/articles"
-            className="rounded-xl bg-white px-5 py-3 font-bold text-gray-700 shadow-sm hover:bg-gray-100"
+            className="min-h-[44px] flex items-center rounded-xl bg-white px-5 py-3 font-bold text-gray-700 shadow-sm hover:bg-gray-100"
           >
             Batal
           </RouterLink>
           <button
             type="submit"
             disabled={saving || coverUploading || inlineUploading || !editor}
-            className="rounded-xl bg-green-700 px-6 py-3 font-bold text-white transition hover:bg-green-800 disabled:opacity-60"
+            className="min-h-[44px] flex items-center rounded-xl bg-green-700 px-6 py-3 font-bold text-white transition hover:bg-green-800 disabled:opacity-60 cursor-pointer"
           >
             {saving
               ? "Menyimpan..."

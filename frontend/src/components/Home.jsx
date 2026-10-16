@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import ArticleImage from "./ArticleImage";
+import { useSiteContent } from "../lib/siteContent";
+import { isValidIcon } from "../lib/siteContentUtils";
 import { formatDate } from "../lib/date";
 import kegiatan1 from "../assets/kegiatan/kegiatan1.jpg";
 import kegiatan2 from "../assets/kegiatan/kegiatan2.jpg";
@@ -37,6 +40,7 @@ const defaultHighlights = [
 ];
 
 const Home = () => {
+  const { hero } = useSiteContent();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -69,35 +73,61 @@ const Home = () => {
   const gridArticles = displayArticles.slice(1, 4);
 
   return (
-    <div id="home">
+    <div id="home" className="scroll-mt-18">
       {/* Hero Section */}
       <section className="bg-white py-16 sm:py-24 lg:py-28 border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-3xl">
             <span className="inline-block text-xs font-semibold tracking-wider text-brand-primary uppercase mb-4">
-              BUMDESMA Podo Rukun LKD • Wilangan, Nganjuk
+              {hero.subtitle}
             </span>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 leading-tight mb-6">
-              Penggerak Ekonomi & Kemandirian Desa Wilangan
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 leading-tight mb-6">
+              {hero.title}
             </h1>
             <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-              BUMDESMA Podo Rukun LKD berperan sebagai penggerak ekonomi desa melalui pengelolaan usaha bersama secara profesional, transparan, dan inovatif demi kesejahteraan masyarakat.
+              {hero.description}
             </p>
             <div>
               <a
                 href="#berita-terbaru"
-                className="inline-flex items-center gap-2 bg-brand-primary hover:bg-brand-dark text-white text-sm sm:text-base font-medium px-6 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+                className="inline-flex items-center gap-2 bg-brand-primary hover:bg-brand-dark text-white text-sm sm:text-base font-medium px-6 py-3 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
               >
-                <span>Lihat Berita Terbaru</span>
+                <span>{hero.buttonLabel || "Lihat Berita Terbaru"}</span>
                 <i className="fa-solid fa-arrow-down text-xs" aria-hidden="true"></i>
               </a>
             </div>
           </div>
+
+          {/* Hero Highlights */}
+          {Array.isArray(hero.highlights) && hero.highlights.length > 0 && (
+            <div className="mt-12 sm:mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-10 border-t border-gray-100">
+              {hero.highlights.map((item, index) => (
+                <div
+                  key={index}
+                  className="bg-gray-50 p-5 sm:p-6 rounded-xl border border-gray-200 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="w-10 h-10 bg-brand-light rounded-lg flex items-center justify-center text-brand-primary mb-4">
+                      {isValidIcon(item.icon) && (
+                        <i className={`fa-solid fa-${item.icon} text-base`} aria-hidden="true"></i>
+                      )}
+                    </div>
+                    <h3 className="text-base font-bold text-gray-900 mb-2">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
       {/* Berita Terbaru Section */}
-      <section id="berita-terbaru" className="bg-gray-50 py-16 sm:py-20">
+      <section id="berita-terbaru" className="bg-gray-50 py-16 sm:py-20 scroll-mt-18">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-gray-200 gap-4">
             <div>
@@ -128,10 +158,10 @@ const Home = () => {
                 <article className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors">
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
                     <div className="lg:col-span-7 h-64 sm:h-80 lg:h-auto bg-gray-100 overflow-hidden">
-                      <img
+                      <ArticleImage
                         src={featuredArticle.coverImageUrl}
                         alt={featuredArticle.title}
-                        className="w-full h-full object-cover"
+                        containerClassName="w-full h-full min-h-[260px]"
                       />
                     </div>
                     <div className="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between">
@@ -190,10 +220,10 @@ const Home = () => {
                       className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors flex flex-col"
                     >
                       <div className="h-44 bg-gray-100 overflow-hidden">
-                        <img
+                        <ArticleImage
                           src={item.coverImageUrl}
                           alt={item.title}
-                          className="w-full h-full object-cover"
+                          containerClassName="w-full h-full"
                         />
                       </div>
                       <div className="p-5 flex-1 flex flex-col justify-between">
