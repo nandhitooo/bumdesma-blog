@@ -6,7 +6,8 @@
   "scripts": {
     "server": "nodemon --watch . index.js",
     "migrate": "node db/migrate.js",
-    "seed": "node db/seed.js"
+    "seed": "node db/seed.js",
+    "seed:articles": "node db/seed-articles.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
