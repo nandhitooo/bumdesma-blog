@@ -31,3 +31,5 @@ backend/uploads/*
 *.sw?
 assets/**
 bumdesma-blog.xml
+/.venv/
+/graphify-out/
