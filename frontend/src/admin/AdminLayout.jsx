@@ -67,9 +67,9 @@ function AdminLayout() {
   }
 
   return (
-    <div className="admin-layout min-h-screen bg-gray-50 lg:flex">
-      <aside className="bg-green-900 text-white lg:min-h-screen lg:w-72 lg:shrink-0">
-        <div className="flex items-center justify-between gap-4 px-5 py-5 lg:block lg:px-7 lg:py-8">
+    <div className="admin-layout min-h-screen bg-gray-50 lg:flex lg:items-start">
+      <aside className="bg-green-900 text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-72 lg:shrink-0 lg:flex-col lg:overflow-y-auto">
+        <div className="flex items-center justify-between gap-4 px-5 py-5 lg:block lg:shrink-0 lg:px-7 lg:py-8">
           <Link to="/admin" className="text-lg font-extrabold leading-tight">
             BUMDESMA
             <span className="mt-1 block text-xs font-medium text-green-200">
@@ -82,7 +82,10 @@ function AdminLayout() {
           </div>
         </div>
 
-        <nav aria-label="Navigasi admin" className="overflow-x-auto px-3 pb-4 lg:px-4">
+        <nav
+          aria-label="Navigasi admin"
+          className="overflow-x-auto px-3 pb-4 lg:shrink-0 lg:px-4"
+        >
           <ul className="flex gap-2 lg:flex-col">
             {navigation
               .filter((item) => !item.adminOnly || user.role === "admin")
@@ -107,7 +110,7 @@ function AdminLayout() {
           </ul>
         </nav>
 
-        <div className="flex items-center justify-between border-t border-green-800 px-5 py-4 lg:mx-4 lg:mt-8 lg:px-0">
+        <div className="flex items-center justify-between border-t border-green-800 px-5 py-4 lg:mx-4 lg:mt-auto lg:shrink-0 lg:px-0">
           <Link to="/" className="text-sm font-semibold text-green-100 hover:text-white">
             Lihat situs
           </Link>

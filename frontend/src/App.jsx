@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import Header from "./components/Header";
+import ScrollToTop from "./components/ScrollToTop";
 import Home from "./components/Home";
 import About from "./components/About";
 import Service from "./components/Service";
@@ -37,6 +38,7 @@ const pageFallback = (
 function App() {
   return (
     <SiteContentProvider>
+      <ScrollToTop />
       <Routes>
         <Route
           path="/"
