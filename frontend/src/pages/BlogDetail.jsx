@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-
-const dateFormatter = new Intl.DateTimeFormat("id-ID", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
+import { formatDate } from "../lib/date";
 
 function BlogDetail() {
   const { slug } = useParams();
@@ -71,7 +66,7 @@ function BlogDetail() {
               {article.authorName && <span>Oleh {article.authorName}</span>}
               {article.publishedAt && (
                 <time dateTime={article.publishedAt}>
-                  {dateFormatter.format(new Date(article.publishedAt))}
+                  {formatDate(article.publishedAt)}
                 </time>
               )}
             </div>

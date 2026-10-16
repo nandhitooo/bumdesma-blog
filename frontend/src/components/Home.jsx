@@ -1,15 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import kegiatan1 from "../Assets/kegiatan/kegiatan1.jpg";
-import kegiatan2 from "../Assets/kegiatan/kegiatan2.jpg";
-import kegiatan8 from "../Assets/kegiatan/kegiatan8.jpg";
-
-const dateFormatter = new Intl.DateTimeFormat("id-ID", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
+import { formatDate } from "../lib/date";
+import kegiatan1 from "../assets/kegiatan/kegiatan1.jpg";
+import kegiatan2 from "../assets/kegiatan/kegiatan2.jpg";
+import kegiatan8 from "../assets/kegiatan/kegiatan8.jpg";
 
 const defaultHighlights = [
   {
@@ -147,7 +142,7 @@ const Home = () => {
                           </span>
                           {featuredArticle.publishedAt && (
                             <time dateTime={featuredArticle.publishedAt}>
-                              {dateFormatter.format(new Date(featuredArticle.publishedAt))}
+                              {formatDate(featuredArticle.publishedAt)}
                             </time>
                           )}
                         </div>
@@ -209,7 +204,7 @@ const Home = () => {
                             </span>
                             {item.publishedAt && (
                               <time dateTime={item.publishedAt}>
-                                {dateFormatter.format(new Date(item.publishedAt))}
+                                {formatDate(item.publishedAt)}
                               </time>
                             )}
                           </div>

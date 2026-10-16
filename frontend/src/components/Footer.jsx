@@ -1,7 +1,6 @@
-import React from "react";
 import { Link } from "react-router-dom";
-import podoRukun from "../Assets/podo-rukun.png";
-import bumdesmaNganjuk from "../Assets/bumdesma-nganjuk.png";
+import podoRukun from "../assets/podo-rukun.png";
+import bumdesmaNganjuk from "../assets/bumdesma-nganjuk.png";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 const Footer = () => {

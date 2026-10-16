@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import kegiatan1 from "../Assets/kegiatan/kegiatan1.jpg";
-import kegiatan2 from "../Assets/kegiatan/kegiatan2.jpg";
-import kegiatan3 from "../Assets/kegiatan/kegiatan3.jpg";
-import kegiatan4 from "../Assets/kegiatan/kegiatan4.jpg";
-import kegiatan5 from "../Assets/kegiatan/kegiatan5.jpg";
-import kegiatan6 from "../Assets/kegiatan/kegiatan6.jpg";
-import kegiatan7 from "../Assets/kegiatan/kegiatan7.jpg";
-import kegiatan8 from "../Assets/kegiatan/kegiatan8.jpg";
-import kegiatan9 from "../Assets/kegiatan/kegiatan9.jpg";
-import kegiatan10 from "../Assets/kegiatan/kegiatan10.jpg";
-import kegiatan11 from "../Assets/kegiatan/kegiatan11.jpg";
-import kegiatan12 from "../Assets/kegiatan/kegiatan12.jpg";
+import kegiatan1 from "../assets/kegiatan/kegiatan1.jpg";
+import kegiatan2 from "../assets/kegiatan/kegiatan2.jpg";
+import kegiatan3 from "../assets/kegiatan/kegiatan3.jpg";
+import kegiatan4 from "../assets/kegiatan/kegiatan4.jpg";
+import kegiatan5 from "../assets/kegiatan/kegiatan5.jpg";
+import kegiatan6 from "../assets/kegiatan/kegiatan6.jpg";
+import kegiatan7 from "../assets/kegiatan/kegiatan7.jpg";
+import kegiatan8 from "../assets/kegiatan/kegiatan8.jpg";
+import kegiatan9 from "../assets/kegiatan/kegiatan9.jpg";
+import kegiatan10 from "../assets/kegiatan/kegiatan10.jpg";
+import kegiatan11 from "../assets/kegiatan/kegiatan11.jpg";
+import kegiatan12 from "../assets/kegiatan/kegiatan12.jpg";
 
 const fallbackItems = [
   {

@@ -1,5 +1,4 @@
-import React from "react";
-import podorukun from "../Assets/podo-rukun.png";
+import podorukun from "../assets/podo-rukun.png";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 const About = () => {

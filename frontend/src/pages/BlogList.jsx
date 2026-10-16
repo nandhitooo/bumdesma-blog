@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-
-const dateFormatter = new Intl.DateTimeFormat("id-ID", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
+import { formatDate } from "../lib/date";
 
 function BlogList() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -214,7 +209,7 @@ function BlogList() {
                         )}
                         {article.publishedAt && (
                           <time dateTime={article.publishedAt}>
-                            {dateFormatter.format(new Date(article.publishedAt))}
+                            {formatDate(article.publishedAt)}
                           </time>
                         )}
                       </div>

@@ -1,16 +1,17 @@
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
-import Header from "./Components/Header";
-import Home from "./Components/Home";
-import About from "./Components/About";
-import Service from "./Components/Service";
-import Activity from "./Components/Activity";
-import Contact from "./Components/Contact";
-import Footer from "./Components/Footer";
+import Header from "./components/Header";
+import Home from "./components/Home";
+import About from "./components/About";
+import Service from "./components/Service";
+import Activity from "./components/Activity";
+import Contact from "./components/Contact";
+import Footer from "./components/Footer";
 import BlogList from "./pages/BlogList";
 import BlogDetail from "./pages/BlogDetail";
 import NotFound from "./pages/NotFound";
 
+const CmsLanding = lazy(() => import("./pages/CmsLanding"));
 const AdminLayout = lazy(() => import("./admin/AdminLayout"));
 const AdminLogin = lazy(() => import("./admin/Login"));
 const AdminDashboard = lazy(() => import("./admin/Dashboard"));
@@ -22,6 +23,12 @@ const AdminUsers = lazy(() => import("./admin/Users"));
 const adminFallback = (
   <main className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-600">
     Memuat panel...
+  </main>
+);
+
+const pageFallback = (
+  <main className="flex min-h-[60vh] items-center justify-center bg-white text-gray-600">
+    Memuat halaman...
   </main>
 );
 
@@ -60,6 +67,18 @@ function App() {
           <>
             <Header />
             <BlogDetail />
+            <Footer />
+          </>
+        }
+      />
+      <Route
+        path="/cms"
+        element={
+          <>
+            <Header />
+            <Suspense fallback={pageFallback}>
+              <CmsLanding />
+            </Suspense>
             <Footer />
           </>
         }

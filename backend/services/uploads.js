@@ -1,0 +1,68 @@
+import { unlink } from "node:fs/promises";
+import path from "node:path";
+import { serverDirPath } from "../config/env.js";
+import { pool } from "../db/pool.js";
+
+// Folder penyimpanan gambar unggahan. Dipakai juga oleh routes/upload.js supaya
+// lokasinya hanya ditentukan di satu tempat.
+export const uploadDir = path.join(serverDirPath, "uploads");
+
+// Hanya URL yang dibuat server sendiri yang boleh disentuh untuk dihapus.
+const UPLOAD_URL_PATTERN = /^\/uploads\/[0-9a-fA-F-]{1,64}\.(?:jpg|png|webp)$/;
+const UPLOAD_URL_IN_HTML_PATTERN = /\/uploads\/[0-9a-fA-F-]{1,64}\.(?:jpg|png|webp)/gi;
+
+export function isUploadUrl(value) {
+  return typeof value === "string" && UPLOAD_URL_PATTERN.test(value);
+}
+
+// Mengubah URL upload menjadi path absolut. Nama berkas diambil dengan
+// path.basename dan hasilnya harus tetap berada di dalam folder uploads,
+// sehingga nilai seperti "/uploads/../../backend/.env" tidak pernah lolos.
+export function resolveUploadPath(url) {
+  if (!isUploadUrl(url)) return null;
+
+  const filePath = path.resolve(uploadDir, path.basename(url));
+  const prefix = uploadDir.endsWith(path.sep) ? uploadDir : uploadDir + path.sep;
+  return filePath.startsWith(prefix) ? filePath : null;
+}
+
+// Semua gambar unggahan yang dirujuk di dalam HTML artikel (gambar inline).
+export function extractUploadUrls(html) {
+  if (typeof html !== "string") return [];
+
+  const urls = new Set();
+  for (const match of html.matchAll(UPLOAD_URL_IN_HTML_PATTERN)) {
+    urls.add(match[0]);
+  }
+  return [...urls];
+}
+
+// Menghapus berkas yang sudah tidak dirujuk artikel mana pun. Dipanggil dengan
+// daftar kandidat (gambar lama) sehingga berkas yang baru diunggah tetapi belum
+// tersimpan di artikel tidak pernah tersentuh. Kegagalan hapus tidak pernah
+// menggagalkan request; cukup dicatat.
+export async function deleteUnreferencedUploads(candidates) {
+  const unique = [...new Set(candidates.filter(isUploadUrl))];
+
+  for (const url of unique) {
+    const filePath = resolveUploadPath(url);
+    if (!filePath) continue;
+
+    try {
+      const { rowCount } = await pool.query(
+        `SELECT 1 FROM articles
+         WHERE cover_image_url = $1 OR content_html LIKE $2
+         LIMIT 1`,
+        [url, `%${url}%`],
+      );
+
+      if (rowCount > 0) continue;
+
+      await unlink(filePath);
+      console.log(`Berkas unggahan tidak lagi dirujuk, dihapus: ${url}`);
+    } catch (error) {
+      if (error.code === "ENOENT") continue;
+      console.error(`Gagal menghapus berkas unggahan ${url}:`, error.message);
+    }
+  }
+}

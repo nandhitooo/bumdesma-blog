@@ -1,10 +1,26 @@
 import express from "express";
-import sanitizeHtml from "sanitize-html";
 import { z } from "zod";
 import { pool } from "../db/pool.js";
 import { validate } from "../middleware/validate.js";
+import {
+  ARTICLE_DETAIL_COLUMNS,
+  ARTICLE_LIST_COLUMNS,
+  cleanContent,
+  escapeLike,
+  scopeToEditor,
+} from "../services/articles.js";
+import {
+  deleteUnreferencedUploads,
+  extractUploadUrls,
+} from "../services/uploads.js";
 
-const router = express.Router();
+// Dua router dipisah: publik (hanya baca artikel terbit) dan admin (CRUD).
+// Sebelumnya keduanya berbagi satu router sehingga route daftar publik
+// (`GET /`) menutup route daftar admin, dan filter `?status=` tidak pernah
+// dijalankan. Struktur ini mengikuti pola yang sudah dipakai routes/categories.js.
+const publicRouter = express.Router();
+const adminRouter = express.Router();
+
 const idSchema = z.object({ id: z.coerce.number().int().positive() });
 
 const publicQuerySchema = z.object({
@@ -12,6 +28,10 @@ const publicQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(9),
   category: z.string().trim().min(1).max(100).optional(),
   q: z.string().trim().max(200).optional(),
+});
+
+const adminListQuerySchema = z.object({
+  status: z.enum(["all", "draft", "published"]).default("all"),
 });
 
 const articleFields = {
@@ -50,46 +70,10 @@ const statusSchema = z.object({
   status: z.enum(["draft", "published"]),
 });
 
-const articleListColumns = `
-  a.id, a.title, a.slug, a.excerpt,
-  a.cover_image_url AS "coverImageUrl", a.category_id AS "categoryId",
-  c.name AS "categoryName", c.slug AS "categorySlug",
-  u.name AS "authorName", a.published_at AS "publishedAt",
-  a.created_at AS "createdAt", a.updated_at AS "updatedAt"
-`;
+/* ---------------------------------------------------------------- publik ---- */
 
-const articleDetailColumns = `
-  ${articleListColumns.trimEnd()},
-  a.content_html AS "contentHtml"
-`;
-
-const sanitizeOptions = {
-  allowedTags: [
-    "a", "blockquote", "br", "code", "em", "h1", "h2", "h3", "h4", "h5",
-    "h6", "hr", "img", "li", "ol", "p", "pre", "s", "strong", "u", "ul",
-  ],
-  allowedAttributes: {
-    a: ["href", "name", "target", "rel"],
-    img: ["src", "alt", "title", "width", "height"],
-  },
-  transformTags: {
-    a: sanitizeHtml.simpleTransform(
-      "a",
-      { rel: "noopener noreferrer" },
-      true,
-    ),
-  },
-};
-
-function cleanContent(html) {
-  return sanitizeHtml(html, sanitizeOptions);
-}
-
-function escapeLike(value) {
-  return value.replace(/[\\%_]/g, "\\$&");
-}
-
-router.get(
+// Daftar artikel terbit dengan paginasi, filter kategori, dan pencarian.
+publicRouter.get(
   "/",
   validate(publicQuerySchema, "query"),
   async (req, res) => {
@@ -116,7 +100,7 @@ router.get(
     );
     const offset = (page - 1) * limit;
     const articleResult = await pool.query(
-      `SELECT ${articleListColumns}
+      `SELECT ${ARTICLE_LIST_COLUMNS}
        FROM articles a
        LEFT JOIN categories c ON c.id = a.category_id
        LEFT JOIN users u ON u.id = a.author_id
@@ -137,40 +121,15 @@ router.get(
   },
 );
 
-router.get("/:slug", async (req, res) => {
-  if (req.baseUrl === "/api/admin/articles") {
-    const id = idSchema.safeParse(req.params.slug);
-    if (!id.success) {
-      return res.status(400).json({ message: "ID artikel tidak valid." });
-    }
-
-    const values = [id.data.id];
-    let where = "a.id = $1";
-    if (req.user.role === "editor") {
-      values.push(req.user.id);
-      where += " AND a.author_id = $2";
-    }
-    const { rows } = await pool.query(
-      `SELECT ${articleDetailColumns}, a.status, a.author_id AS "authorId"
-       FROM articles a
-       LEFT JOIN categories c ON c.id = a.category_id
-       LEFT JOIN users u ON u.id = a.author_id
-       WHERE ${where}`,
-      values,
-    );
-    if (!rows[0]) {
-      return res.status(404).json({ message: "Artikel tidak ditemukan." });
-    }
-    return res.json({ article: rows[0] });
-  }
-
+// Detail artikel terbit berdasarkan slug.
+publicRouter.get("/:slug", async (req, res) => {
   const slug = z.string().trim().min(1).max(220).safeParse(req.params.slug);
   if (!slug.success) {
     return res.status(400).json({ message: "Slug artikel tidak valid." });
   }
 
   const { rows } = await pool.query(
-    `SELECT ${articleDetailColumns}
+    `SELECT ${ARTICLE_DETAIL_COLUMNS}
      FROM articles a
      LEFT JOIN categories c ON c.id = a.category_id
      LEFT JOIN users u ON u.id = a.author_id
@@ -184,14 +143,16 @@ router.get("/:slug", async (req, res) => {
   return res.json({ article: rows[0] });
 });
 
-router.get(
+/* ----------------------------------------------------------------- admin ---- */
+
+// Router ini dipasang di /api/admin/articles, jadi requireAuth sudah dijalankan
+// oleh `app.use("/api/admin", requireAuth)` sebelum sampai ke sini.
+// Editor hanya boleh mengakses artikelnya sendiri (scopeToEditor).
+
+// Daftar artikel untuk panel admin, dengan filter status.
+adminRouter.get(
   "/",
-  validate(
-    z.object({
-      status: z.enum(["all", "draft", "published"]).default("all"),
-    }),
-    "query",
-  ),
+  validate(adminListQuerySchema, "query"),
   async (req, res) => {
     const { status } = req.validated.query;
     const values = [];
@@ -201,14 +162,11 @@ router.get(
       values.push(status);
       filters.push(`a.status = $${values.length}`);
     }
-    if (req.user.role === "editor") {
-      values.push(req.user.id);
-      filters.push(`a.author_id = $${values.length}`);
-    }
+    scopeToEditor(filters, values, req.user);
 
     const where = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
     const { rows } = await pool.query(
-      `SELECT ${articleListColumns}, a.status, a.author_id AS "authorId"
+      `SELECT ${ARTICLE_LIST_COLUMNS}, a.status, a.author_id AS "authorId"
        FROM articles a
        LEFT JOIN categories c ON c.id = a.category_id
        LEFT JOIN users u ON u.id = a.author_id
@@ -220,7 +178,31 @@ router.get(
   },
 );
 
-router.post(
+// Detail artikel untuk editor (berdasarkan id, bukan slug).
+adminRouter.get("/:id", async (req, res) => {
+  const id = idSchema.safeParse(req.params);
+  if (!id.success) {
+    return res.status(400).json({ message: "ID artikel tidak valid." });
+  }
+
+  const values = [id.data.id];
+  const filters = ["a.id = $1"];
+  scopeToEditor(filters, values, req.user);
+  const { rows } = await pool.query(
+    `SELECT ${ARTICLE_DETAIL_COLUMNS}, a.status, a.author_id AS "authorId"
+     FROM articles a
+     LEFT JOIN categories c ON c.id = a.category_id
+     LEFT JOIN users u ON u.id = a.author_id
+     WHERE ${filters.join(" AND ")}`,
+    values,
+  );
+  if (!rows[0]) {
+    return res.status(404).json({ message: "Artikel tidak ditemukan." });
+  }
+  return res.json({ article: rows[0] });
+});
+
+adminRouter.post(
   "/",
   validate(createArticleSchema),
   async (req, res) => {
@@ -257,7 +239,7 @@ router.post(
   },
 );
 
-router.put(
+adminRouter.put(
   "/:id",
   validate(idSchema, "params"),
   validate(updateArticleSchema),
@@ -295,26 +277,58 @@ router.put(
     }
     assignments.push("updated_at = now()");
     values.push(req.validated.params.id);
-    let where = `id = $${values.length}`;
-    if (req.user.role === "editor") {
-      values.push(req.user.id);
-      where += ` AND author_id = $${values.length}`;
-    }
+    const filters = [`id = $${values.length}`];
+    scopeToEditor(filters, values, req.user, "author_id");
+
+    // Nilai lama dibaca lebih dulu untuk mengetahui gambar mana yang mungkin
+    // tidak lagi dirujuk setelah artikel ini diperbarui. Query ini memakai
+    // daftar parameter sendiri: Postgres menolak parameter yang tidak dipakai
+    // di statement yang sama (error 42P18).
+    const previousValues = [req.validated.params.id];
+    const previousFilters = ["id = $1"];
+    scopeToEditor(previousFilters, previousValues, req.user, "author_id");
+    const previous = await pool.query(
+      `SELECT cover_image_url, content_html FROM articles
+       WHERE ${previousFilters.join(" AND ")}`,
+      previousValues,
+    );
 
     const { rows } = await pool.query(
       `UPDATE articles SET ${assignments.join(", ")}
-       WHERE ${where}
-       RETURNING id`,
+       WHERE ${filters.join(" AND ")}
+       RETURNING id, content_html`,
       values,
     );
     if (!rows[0]) {
       return res.status(404).json({ message: "Artikel tidak ditemukan." });
     }
+
+    const previousRow = previous.rows[0];
+    const removedCoverImages =
+      previousRow?.cover_image_url &&
+      previousRow.cover_image_url !== fields.coverImageUrl
+        ? [previousRow.cover_image_url]
+        : [];
+
+    const currentInlineImages = new Set(
+      extractUploadUrls(rows[0].content_html),
+    );
+    const removedInlineImages = extractUploadUrls(
+      previousRow?.content_html,
+    ).filter((url) => !currentInlineImages.has(url));
+
+    // Hanya berkas yang benar-benar sudah tidak dirujuk artikel mana pun yang
+    // dihapus; kegagalan hapus hanya dicatat, bukan menggagalkan request.
+    await deleteUnreferencedUploads([
+      ...removedCoverImages,
+      ...removedInlineImages,
+    ]);
+
     return res.json({ id: rows[0].id });
   },
 );
 
-router.patch(
+adminRouter.patch(
   "/:id/status",
   validate(idSchema, "params"),
   validate(statusSchema),
@@ -325,17 +339,14 @@ router.patch(
     }
 
     const values = [status === "published", req.validated.params.id];
-    let where = "id = $2";
-    if (req.user.role === "editor") {
-      values.push(req.user.id);
-      where += " AND author_id = $3";
-    }
+    const filters = ["id = $2"];
+    scopeToEditor(filters, values, req.user, "author_id");
     const { rows } = await pool.query(
       `UPDATE articles
        SET status = CASE WHEN $1 THEN 'published' ELSE 'draft' END,
            published_at = CASE WHEN $1 THEN COALESCE(published_at, now()) ELSE NULL END,
            updated_at = now()
-       WHERE ${where}
+       WHERE ${filters.join(" AND ")}
        RETURNING id`,
       values,
     );
@@ -346,25 +357,31 @@ router.patch(
   },
 );
 
-router.delete(
+adminRouter.delete(
   "/:id",
   validate(idSchema, "params"),
   async (req, res) => {
     const values = [req.validated.params.id];
-    let where = "id = $1";
-    if (req.user.role === "editor") {
-      values.push(req.user.id);
-      where += " AND author_id = $2";
-    }
-    const { rowCount } = await pool.query(
-      `DELETE FROM articles WHERE ${where}`,
+    const filters = ["id = $1"];
+    scopeToEditor(filters, values, req.user, "author_id");
+    const { rows } = await pool.query(
+      `DELETE FROM articles WHERE ${filters.join(" AND ")}
+       RETURNING cover_image_url, content_html`,
       values,
     );
-    if (!rowCount) {
+    if (!rows[0]) {
       return res.status(404).json({ message: "Artikel tidak ditemukan." });
     }
+
+    // Artikel sudah hilang, jadi gambarnya tidak mungkin dirujuk lagi.
+    await deleteUnreferencedUploads([
+      rows[0].cover_image_url,
+      ...extractUploadUrls(rows[0].content_html),
+    ]);
+
     return res.status(204).end();
   },
 );
 
-export default router;
+export { adminRouter };
+export default publicRouter;

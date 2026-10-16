@@ -3,10 +3,9 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import express from "express";
 import multer from "multer";
-import { serverDirPath } from "../config/env.js";
+import { uploadDir } from "../services/uploads.js";
 
 const router = express.Router();
-const uploadDir = path.join(serverDirPath, "uploads");
 const mimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const multipart = multer({
   storage: multer.memoryStorage(),
