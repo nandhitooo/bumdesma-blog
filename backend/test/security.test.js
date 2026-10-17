@@ -24,6 +24,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 const JWT_SECRET = process.env.JWT_SECRET || "";
 
 const ARTICLE_SLUG = "zz-uji-keamanan-xss";
+const FORMAT_SLUG = "zz-uji-format-teks";
 const XSS_PAYLOADS = [
   "<img src=x onerror=alert(1)>",
   '<a href="javascript:alert(1)">x</a>',
@@ -179,6 +180,7 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
   let editor = null;
   let editorCookie = "";
   let articleId = null;
+  let formatArticleId = null;
 
   // Endpoint admin memakai id numerik, jadi artikel uji dicari lewat daftar.
   async function findArticleIdBySlug(slug) {
@@ -226,6 +228,14 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
     const id = articleId ?? (await findArticleIdBySlug(ARTICLE_SLUG));
     if (id && adminCookie) {
       await request(`/api/admin/articles/${id}`, {
+        method: "DELETE",
+        cookie: adminCookie,
+      });
+    }
+
+    const formatId = formatArticleId ?? (await findArticleIdBySlug(FORMAT_SLUG));
+    if (formatId && adminCookie) {
+      await request(`/api/admin/articles/${formatId}`, {
         method: "DELETE",
         cookie: adminCookie,
       });
@@ -366,6 +376,81 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
     assert.doesNotMatch(html, /onerror/i, "atribut onerror harus hilang");
     assert.doesNotMatch(html, /javascript:/i, "skema javascript: harus hilang");
     assert.doesNotMatch(html, /evil\.example/i, "gambar dari domain luar harus dibuang");
+    assert.doesNotMatch(html, /<script/i, "tag script harus hilang");
+  });
+
+  it("format teks yang diizinkan bertahan dan gaya berbahaya dibuang", async () => {
+    const contentHtml = [
+      // Format yang dipakai toolbar editor: rata tengah, font, ukuran, warna.
+      '<p style="text-align: center"><span style=\'font-family: &quot;Times New Roman&quot;; font-size: 24px; color: #b91c1c\'>Teks berformat</span></p>',
+      '<p><mark style="background-color: #fef08a; color: inherit">Teks disorot</mark></p>',
+      '<h3 style="text-align: justify">Subjudul rata kanan kiri</h3>',
+      // Gaya yang harus dibuang seluruhnya.
+      '<p style="background:url(javascript:alert(1))">latar</p>',
+      '<p style="position:fixed">posisi</p>',
+      '<p><span style="font-family: Comic Sans MS">font asing</span></p>',
+      '<p><span style="font-size: 13px">ukuran asing</span></p>',
+      '<p style="color: red">warna nama</p>',
+      '<img src=x onerror=alert(1)>',
+      "<script>alert(1)</script>",
+    ].join("");
+
+    const payload = {
+      title: "Uji format teks",
+      slug: FORMAT_SLUG,
+      excerpt: "Uji format teks",
+      contentHtml,
+      status: "published",
+    };
+
+    let created = await request("/api/admin/articles", {
+      method: "POST",
+      cookie: adminCookie,
+      body: payload,
+    });
+    // Artikel bisa saja tertinggal dari jalannya uji sebelumnya; hapus dulu.
+    if (created.status === 409) {
+      const staleId = await findArticleIdBySlug(FORMAT_SLUG);
+      assert.ok(staleId, "artikel uji lama harus bisa ditemukan untuk dihapus");
+      await request(`/api/admin/articles/${staleId}`, {
+        method: "DELETE",
+        cookie: adminCookie,
+      });
+      created = await request("/api/admin/articles", {
+        method: "POST",
+        cookie: adminCookie,
+        body: payload,
+      });
+    }
+    assert.equal(created.status, 201, "gagal membuat artikel uji format teks");
+    formatArticleId = created.data.id;
+
+    const detail = await request(`/api/articles/${FORMAT_SLUG}`);
+    assert.equal(detail.status, 200);
+    const html = detail.data.article.contentHtml;
+
+    // (a) Format yang diizinkan tersimpan apa adanya.
+    assert.match(html, /text-align:\s*center/, "rata tengah harus bertahan");
+    assert.match(html, /text-align:\s*justify/, "rata kanan kiri harus bertahan");
+    assert.match(html, /Times New Roman/, "font yang diizinkan harus bertahan");
+    assert.match(html, /font-size:\s*24px/, "ukuran font harus bertahan");
+    assert.match(html, /color:\s*#b91c1c/i, "warna teks harus bertahan");
+    assert.match(html, /<mark/, "sorotan harus bertahan");
+    assert.match(html, /background-color:\s*#fef08a/i, "warna sorotan harus bertahan");
+    assert.match(html, /<span/, "span format harus bertahan");
+
+    // (b) Style berbahaya dibuang seluruhnya.
+    assert.doesNotMatch(html, /javascript:/i, "url javascript harus hilang");
+    assert.doesNotMatch(html, /position/i, "properti position harus hilang");
+    assert.doesNotMatch(html, /background\s*:/i, "properti background harus hilang");
+
+    // (c) Nilai di luar whitelist dibuang.
+    assert.doesNotMatch(html, /Comic Sans/i, "font di luar daftar harus hilang");
+    assert.doesNotMatch(html, /13px/i, "ukuran di luar daftar harus hilang");
+    assert.doesNotMatch(html, /color:\s*red/i, "nama warna CSS harus hilang");
+
+    // (d) Muatan berbahaya tetap dibuang.
+    assert.doesNotMatch(html, /onerror/i, "atribut onerror harus hilang");
     assert.doesNotMatch(html, /<script/i, "tag script harus hilang");
   });
 

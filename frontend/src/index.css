@@ -126,6 +126,15 @@
   text-decoration: underline;
 }
 
+/* Sorotan dari editor memakai <mark style="background-color: ...">. Sanitizer
+   backend hanya mengizinkan warna hex, jadi `color: inherit` yang ditulis
+   Tiptap dibuang; aturan ini menyamakan warna teks sorotan dengan teks di
+   sekitarnya agar tampilan editor dan halaman publik identik. */
+.article-content mark {
+  background-color: #fef08a;
+  color: inherit;
+}
+
 .article-content img {
   border-radius: 1rem;
   height: auto;

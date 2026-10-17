@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
+import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
+import TextAlign from "@tiptap/extension-text-align";
+import { Color, FontFamily, FontSize, TextStyle } from "@tiptap/extension-text-style";
 import StarterKit from "@tiptap/starter-kit";
 import { Link as RouterLink, useNavigate, useOutletContext, useParams } from "react-router-dom";
 import ArticleImage from "../components/ArticleImage";
+import EditorToolbar from "./EditorToolbar";
 import { adminApi, uniqueSlug } from "./api";
 
 const emptyForm = {
@@ -30,6 +34,25 @@ function isAllowedLink(value) {
   }
 }
 
+// Browser menormalkan warna hex menjadi rgb() saat atribut style diserialisasi,
+// jadi warnanya dikembalikan ke hex sebelum dikirim. Sanitizer backend hanya
+// menerima warna hex (#rgb / #rrggbb).
+const RGB_COLOR =
+  /rgba?\(\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*(?:[,/]\s*[\d.]+%?\s*)?\)/g;
+
+const toHexColor = (_match, red, green, blue) =>
+  `#${[red, green, blue]
+    .map((channel) => Number(channel).toString(16).padStart(2, "0"))
+    .join("")}`;
+
+function normalizeColorStyles(html) {
+  if (!html.includes("rgb")) return html;
+  return html.replace(
+    /style="([^"]*)"/g,
+    (_match, css) => `style="${css.replace(RGB_COLOR, toHexColor)}"`,
+  );
+}
+
 function ArticleEditor() {
   const { user } = useOutletContext();
   const { id } = useParams();
@@ -51,10 +74,21 @@ function ArticleEditor() {
 
   const editor = useEditor({
     immediatelyRender: false,
+    // Toolbar membaca isActive()/getAttributes() saat render, jadi komponen
+    // perlu dirender ulang setiap transaksi (ketikan dan perubahan seleksi).
+    shouldRerenderOnTransaction: true,
     extensions: [
+      // StarterKit v3 sudah membawa underline, strike, horizontal rule, dan
+      // undo/redo, jadi ekstensi itu tidak didaftarkan lagi di sini.
       StarterKit.configure({ link: false }),
       Link.configure({ openOnClick: false }),
       Image.configure({ allowBase64: false }),
+      TextStyle,
+      FontFamily,
+      FontSize,
+      Color,
+      Highlight.configure({ multicolor: true }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
     ],
     content: "",
     editorProps: {
@@ -230,7 +264,7 @@ function ArticleEditor() {
       title: form.title,
       slug: form.slug,
       excerpt: form.excerpt,
-      contentHtml: editor.getHTML(),
+      contentHtml: normalizeColorStyles(editor.getHTML()),
       coverImageUrl: form.coverImageUrl || null,
       categoryId: form.categoryId ? Number(form.categoryId) : null,
     };
@@ -258,22 +292,6 @@ function ArticleEditor() {
       setSaving(false);
     }
   };
-
-  const toolbarButton = (label, active, action, icon) => (
-    <button
-      key={label}
-      type="button"
-      title={label}
-      aria-label={label}
-      aria-pressed={active}
-      onClick={action}
-      className={`min-h-[44px] min-w-[44px] rounded-lg px-3 font-bold flex items-center justify-center transition ${
-        active ? "bg-green-100 text-green-800" : "text-gray-700 hover:bg-gray-100"
-      }`}
-    >
-      <i className={`fa-solid fa-${icon}`} aria-hidden="true"></i>
-    </button>
-  );
 
   if (loading) {
     return <p className="py-12 text-center text-gray-500">Memuat formulir...</p>;
@@ -433,75 +451,20 @@ function ArticleEditor() {
         </section>
 
         <section className="overflow-hidden rounded-3xl bg-white shadow-sm">
-          <div className="flex flex-wrap items-center gap-1 border-b border-gray-100 p-3">
-            {editor &&
-              toolbarButton(
-                "Tebal",
-                editor.isActive("bold"),
-                () => editor.chain().focus().toggleBold().run(),
-                "bold",
-              )}
-            {editor &&
-              toolbarButton(
-                "Miring",
-                editor.isActive("italic"),
-                () => editor.chain().focus().toggleItalic().run(),
-                "italic",
-              )}
-            {editor &&
-              toolbarButton(
-                "Judul",
-                editor.isActive("heading", { level: 2 }),
-                () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
-                "heading",
-              )}
-            {editor &&
-              toolbarButton(
-                "Daftar poin",
-                editor.isActive("bulletList"),
-                () => editor.chain().focus().toggleBulletList().run(),
-                "list-ul",
-              )}
-            {editor &&
-              toolbarButton(
-                "Daftar nomor",
-                editor.isActive("orderedList"),
-                () => editor.chain().focus().toggleOrderedList().run(),
-                "list-ol",
-              )}
-            {editor &&
-              toolbarButton(
-                "Kutipan",
-                editor.isActive("blockquote"),
-                () => editor.chain().focus().toggleBlockquote().run(),
-                "quote-left",
-              )}
-            <button
-              type="button"
-              onClick={insertLink}
-              className="min-h-[44px] rounded-lg px-3 font-bold text-gray-700 hover:bg-gray-100 flex items-center"
-            >
-              <i className="fa-solid fa-link mr-2" aria-hidden="true"></i>
-              Tautan
-            </button>
-            <input
-              ref={inlineInput}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={uploadInlineImage}
-              className="sr-only"
-              aria-label="Unggah gambar ke isi artikel"
-            />
-            <button
-              type="button"
-              onClick={() => inlineInput.current?.click()}
-              disabled={inlineUploading}
-              className="min-h-[44px] rounded-lg px-3 font-bold text-gray-700 hover:bg-gray-100 disabled:opacity-60 flex items-center"
-            >
-              <i className="fa-regular fa-image mr-2" aria-hidden="true"></i>
-              {inlineUploading ? "Mengunggah..." : "Gambar"}
-            </button>
-          </div>
+          <EditorToolbar
+            editor={editor}
+            onInsertLink={insertLink}
+            onPickImage={() => inlineInput.current?.click()}
+            imageUploading={inlineUploading}
+          />
+          <input
+            ref={inlineInput}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={uploadInlineImage}
+            className="sr-only"
+            aria-label="Unggah gambar ke isi artikel"
+          />
           <EditorContent editor={editor} />
         </section>
 
