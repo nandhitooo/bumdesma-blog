@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import ArticleImage from "../components/ArticleImage";
-import { formatDate } from "../lib/date";
+import ArticleView from "../components/ArticleView";
 
 function BlogDetail() {
   const { slug } = useParams();
@@ -57,48 +56,7 @@ function BlogDetail() {
               </Link>
             </div>
 
-            {/* Meta Line */}
-            <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-4">
-              {article.categoryName && (
-                <span className="bg-brand-light text-brand-primary font-semibold px-2.5 py-1 rounded">
-                  {article.categoryName}
-                </span>
-              )}
-              {article.authorName && <span>Oleh {article.authorName}</span>}
-              {article.publishedAt && (
-                <time dateTime={article.publishedAt}>
-                  {formatDate(article.publishedAt)}
-                </time>
-              )}
-            </div>
-
-            {/* Title */}
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900 leading-tight mb-6">
-              {article.title}
-            </h1>
-
-            {/* Excerpt */}
-            {article.excerpt && (
-              <p className="text-base sm:text-lg text-gray-600 leading-relaxed pl-4 border-l-2 border-brand-primary mb-8 italic">
-                {article.excerpt}
-              </p>
-            )}
-
-            {/* Cover Image */}
-            <div className="mb-8 overflow-hidden rounded-xl border border-gray-200">
-              <ArticleImage
-                src={article.coverImageUrl}
-                alt={article.title}
-                containerClassName="w-full max-h-[440px] aspect-[16/9]"
-                iconSize="text-5xl"
-              />
-            </div>
-
-            {/* Article Content */}
-            <div
-              className="article-content"
-              dangerouslySetInnerHTML={{ __html: article.contentHtml }}
-            />
+            <ArticleView article={article} />
 
             {/* Bottom Back Link */}
             <div className="mt-12 pt-6 border-t border-gray-200 flex justify-between items-center">

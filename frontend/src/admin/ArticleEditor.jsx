@@ -8,6 +8,7 @@ import { Color, FontFamily, FontSize, TextStyle } from "@tiptap/extension-text-s
 import StarterKit from "@tiptap/starter-kit";
 import { Link as RouterLink, useNavigate, useOutletContext, useParams } from "react-router-dom";
 import ArticleImage from "../components/ArticleImage";
+import ArticleView from "../components/ArticleView";
 import EditorToolbar from "./EditorToolbar";
 import { adminApi, uniqueSlug } from "./api";
 
@@ -71,6 +72,17 @@ function ArticleEditor() {
   // Cuplikan isi form saat terakhir dimuat/disimpan, dipakai untuk mendeteksi
   // perubahan yang belum disimpan.
   const initialSnapshot = useRef(null);
+  // Keadaan pratinjau sengaja dipisah dari form: membuka atau menutup pratinjau
+  // tidak boleh mengubah isi editor maupun cuplikan perubahan yang belum
+  // disimpan di atas.
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState("");
+  const [previewHtml, setPreviewHtml] = useState("");
+  const [previewPublishedAt, setPreviewPublishedAt] = useState("");
+  const [previewWidth, setPreviewWidth] = useState("desktop");
+  const previewButton = useRef(null);
+  const previewDialog = useRef(null);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -169,6 +181,56 @@ function ArticleEditor() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [editor, form]);
+
+  // Selama dialog terbuka: halaman tidak ikut ter-scroll, fokus pindah ke
+  // dialog, Escape menutupnya, dan fokus kembali ke tombol Pratinjau.
+  useEffect(() => {
+    if (!previewOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    // Nilai ref disimpan sekarang; saat cleanup, ref bisa sudah menunjuk node lain.
+    const trigger = previewButton.current;
+    document.body.style.overflow = "hidden";
+    previewDialog.current?.focus();
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setPreviewOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+      trigger?.focus();
+    };
+  }, [previewOpen]);
+
+  const openPreview = async () => {
+    if (!editor) return;
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    setPreviewError("");
+    setPreviewHtml("");
+    setPreviewPublishedAt(new Date().toISOString());
+    try {
+      // Browser menormalkan warna hex menjadi rgb() saat style diserialisasi,
+      // sedangkan sanitizer hanya menerima hex. Normalisasi yang sama dengan
+      // saat menyimpan dipakai di sini supaya pratinjau benar-benar sama dengan
+      // halaman publik.
+      const { contentHtml } = await adminApi("/api/admin/articles/preview", {
+        method: "POST",
+        body: JSON.stringify({
+          contentHtml: normalizeColorStyles(editor.getHTML()),
+        }),
+      });
+      setPreviewHtml(contentHtml || "");
+    } catch (previewFailure) {
+      setPreviewError(
+        previewFailure.status
+          ? previewFailure.message
+          : "Pratinjau gagal dimuat. Periksa koneksi, lalu coba lagi.",
+      );
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
 
   const setField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -296,6 +358,19 @@ function ArticleEditor() {
   if (loading) {
     return <p className="py-12 text-center text-gray-500">Memuat formulir...</p>;
   }
+
+  const previewCategory = categories.find(
+    (category) => String(category.id) === form.categoryId,
+  );
+  const previewArticle = {
+    title: form.title,
+    excerpt: form.excerpt,
+    categoryName: previewCategory?.name || "",
+    authorName: user.name,
+    publishedAt: previewPublishedAt,
+    coverImageUrl: form.coverImageUrl || null,
+    contentHtml: previewHtml,
+  };
 
   return (
     <section className="mx-auto max-w-4xl">
@@ -469,6 +544,17 @@ function ArticleEditor() {
         </section>
 
         <div className="flex flex-wrap justify-end gap-3">
+          <button
+            ref={previewButton}
+            type="button"
+            onClick={openPreview}
+            disabled={!editor}
+            aria-haspopup="dialog"
+            className="min-h-[44px] flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 transition hover:bg-gray-100 disabled:opacity-60"
+          >
+            <i className="fa-regular fa-eye" aria-hidden="true"></i>
+            Pratinjau
+          </button>
           <RouterLink
             to="/admin/articles"
             className="min-h-[44px] flex items-center rounded-xl bg-white px-5 py-3 font-bold text-gray-700 shadow-sm hover:bg-gray-100"
@@ -488,6 +574,93 @@ function ArticleEditor() {
           </button>
         </div>
       </form>
+
+      {previewOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/60 p-3 sm:p-6">
+          <div
+            ref={previewDialog}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="article-preview-title"
+            tabIndex={-1}
+            className="mx-auto w-full max-w-5xl rounded-3xl bg-white shadow-2xl outline-none"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-200 p-4 sm:p-5">
+              <div className="min-w-0">
+                <h2
+                  id="article-preview-title"
+                  className="text-lg font-extrabold text-gray-900"
+                >
+                  Pratinjau artikel
+                </h2>
+                <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">
+                  <i className="fa-solid fa-circle-info" aria-hidden="true"></i>
+                  Pratinjau, belum disimpan
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div
+                  role="group"
+                  aria-label="Lebar pratinjau"
+                  className="flex rounded-xl bg-gray-100 p-1"
+                >
+                  <button
+                    type="button"
+                    aria-pressed={previewWidth === "desktop"}
+                    onClick={() => setPreviewWidth("desktop")}
+                    className={`min-h-[44px] rounded-lg px-4 text-sm font-bold transition ${
+                      previewWidth === "desktop"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    Desktop
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={previewWidth === "ponsel"}
+                    onClick={() => setPreviewWidth("ponsel")}
+                    className={`min-h-[44px] rounded-lg px-4 text-sm font-bold transition ${
+                      previewWidth === "ponsel"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    Ponsel
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewOpen(false)}
+                  className="min-h-[44px] rounded-xl bg-green-700 px-5 py-3 font-bold text-white transition hover:bg-green-800"
+                >
+                  Tutup pratinjau
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-gray-100 p-4 sm:p-8">
+              <div
+                className={`mx-auto w-full rounded-2xl bg-white p-4 shadow-sm sm:p-6 ${
+                  previewWidth === "desktop" ? "max-w-[720px]" : "max-w-[390px]"
+                }`}
+              >
+                {previewLoading ? (
+                  <p className="py-16 text-center text-sm font-medium text-gray-500">
+                    Memuat pratinjau...
+                  </p>
+                ) : previewError ? (
+                  <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
+                    {previewError}
+                  </p>
+                ) : (
+                  <ArticleView article={previewArticle} showPlaceholders />
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

@@ -95,9 +95,18 @@ const writeLimiter = rateLimit({
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-app.use("/api", (req, res, next) =>
-  (SAFE_METHODS.has(req.method) ? readLimiter : writeLimiter)(req, res, next),
-);
+// Pratinjau artikel tidak menulis apa pun: ia hanya mengembalikan HTML yang
+// sudah dibersihkan. Penulis memakainya berkali-kali sambil menyunting, jadi
+// request ini dikecualikan dari writeLimiter bersama dan dijaga oleh limiter
+// per pengguna di routes/articles.js (60 per 15 menit). Pengecualiannya sempit:
+// hanya POST tepat pada path ini, dan hanya untuk router admin artikel.
+const PREVIEW_PATH = "/admin/articles/preview";
+
+app.use("/api", (req, res, next) => {
+  if (SAFE_METHODS.has(req.method)) return readLimiter(req, res, next);
+  if (req.method === "POST" && req.path === PREVIEW_PATH) return next();
+  return writeLimiter(req, res, next);
+});
 
 // Body parser menolak JSON yang tidak valid; errornya diubah menjadi 400 di
 // middleware/errorHandler.js.

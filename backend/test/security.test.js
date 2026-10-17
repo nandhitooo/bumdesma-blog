@@ -115,6 +115,14 @@ describe("Uji keamanan API", { skip: skipWhenApiDown }, () => {
     }
   });
 
+  it("pratinjau artikel menolak permintaan tanpa sesi (401)", async () => {
+    const result = await request("/api/admin/articles/preview", {
+      method: "POST",
+      body: { contentHtml: "<p>Uji pratinjau</p>" },
+    });
+    assert.equal(result.status, 401, "pratinjau harus 401 tanpa cookie");
+  });
+
   it("JSON rusak ditolak dengan 400", async () => {
     const result = await request("/api/auth/login", {
       method: "POST",
@@ -452,6 +460,48 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
     // (d) Muatan berbahaya tetap dibuang.
     assert.doesNotMatch(html, /onerror/i, "atribut onerror harus hilang");
     assert.doesNotMatch(html, /<script/i, "tag script harus hilang");
+  });
+
+  it("pratinjau mengembalikan HTML tersanitasi dan tidak menulis artikel", async () => {
+    // Jumlah artikel dicatat lebih dulu: pratinjau tidak boleh membuat/mengubah
+    // artikel apa pun, termasuk yang belum disimpan.
+    const before = await request("/api/admin/articles?limit=500", {
+      cookie: adminCookie,
+    });
+    assert.equal(before.status, 200);
+    const countBefore = before.data.articles.length;
+
+    const preview = await request("/api/admin/articles/preview", {
+      method: "POST",
+      cookie: adminCookie,
+      body: {
+        contentHtml: [
+          '<p><span style="font-size: 24px; color: #b91c1c">Teks pratinjau</span> <mark style="background-color: #fef08a">sorot</mark></p>',
+          '<p style="text-align: center">Rata tengah</p>',
+          "<img src=x onerror=alert(1)>",
+          "<script>alert(1)</script>",
+        ].join(""),
+      },
+    });
+
+    assert.equal(preview.status, 200, "pratinjau harus berhasil untuk sesi admin");
+    assert.match(preview.data.contentHtml, /Teks pratinjau/);
+    assert.match(preview.data.contentHtml, /font-size:\s*24px/);
+    assert.match(preview.data.contentHtml, /color:\s*#b91c1c/i);
+    assert.match(preview.data.contentHtml, /<mark/);
+    assert.match(preview.data.contentHtml, /text-align:\s*center/);
+    assert.doesNotMatch(preview.data.contentHtml, /onerror/i);
+    assert.doesNotMatch(preview.data.contentHtml, /<script/i);
+
+    const after = await request("/api/admin/articles?limit=500", {
+      cookie: adminCookie,
+    });
+    assert.equal(after.status, 200);
+    assert.equal(
+      after.data.articles.length,
+      countBefore,
+      "pratinjau tidak boleh menulis artikel baru",
+    );
   });
 
   it("daftar artikel admin dibatasi limit dan membatasi nilai berlebih (400)", async () => {

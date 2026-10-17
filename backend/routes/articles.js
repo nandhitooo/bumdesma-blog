@@ -1,5 +1,6 @@
 import express from "express";
 import { z } from "zod";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { pool } from "../db/pool.js";
 import { validate } from "../middleware/validate.js";
 import {
@@ -38,6 +39,22 @@ const adminListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(500).default(200),
 });
 
+// Pratinjau tidak menyentuh database, tetapi sanitasi HTML tetap bisa dipanggil
+// berkali-kali dalam satu artikel (penulis melihat hasil sambil mengetik).
+// Limiter terpisah per pengguna, mengikuti pola routes/upload.js, supaya
+// pratinjau tidak menghabiskan jatah writeLimiter bersama di app.js.
+const previewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  keyGenerator: (req) =>
+    req.user ? `user:${req.user.id}` : ipKeyGenerator(req.ip),
+  message: {
+    message: "Terlalu banyak pratinjau artikel. Coba lagi beberapa saat lagi.",
+  },
+});
+
 const articleFields = {
   title: z.string().trim().min(1, "Judul wajib diisi.").max(200),
   slug: z
@@ -70,6 +87,13 @@ const updateArticleSchema = z.object({
   contentHtml: articleFields.contentHtml.optional(),
   status: z.enum(["draft", "published"]).optional(),
 });
+// Isi yang dipratinjau divalidasi dengan aturan yang sama seperti penyimpanan,
+// supaya hasil pratinjau tidak bisa menerima masukan yang akan ditolak saat
+// artikel benar-benar disimpan.
+const previewSchema = z.object({
+  contentHtml: articleFields.contentHtml,
+});
+
 const statusSchema = z.object({
   status: z.enum(["draft", "published"]),
 });
@@ -180,6 +204,19 @@ adminRouter.get(
       [...values, limit],
     );
     return res.json({ articles: rows });
+  },
+);
+
+// Pratinjau isi artikel: memakai sanitizer yang sama dengan penyimpanan, tetapi
+// tidak pernah menulis ke database. Didaftarkan sebelum route "/:id" supaya
+// kata "preview" tidak pernah ditafsirkan sebagai id artikel.
+adminRouter.post(
+  "/preview",
+  previewLimiter,
+  validate(previewSchema),
+  (req, res) => {
+    const { contentHtml } = req.validated.body;
+    return res.json({ contentHtml: cleanContent(contentHtml) });
   },
 );
 
