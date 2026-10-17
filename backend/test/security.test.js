@@ -152,6 +152,14 @@ describe("Uji keamanan API", { skip: skipWhenApiDown }, () => {
     assert.match(result.data.message, /72/);
   });
 
+  it("ganti password menolak permintaan tanpa sesi (401)", async () => {
+    const result = await request("/api/auth/change-password", {
+      method: "POST",
+      body: { currentPassword: "apa-saja", newPassword: "PasswordBaru123" },
+    });
+    assert.equal(result.status, 401, "ganti password harus 401 tanpa cookie");
+  });
+
   it("/api/auth/me memakai Cache-Control: no-store", async () => {
     const result = await request("/api/auth/me");
     assert.equal(result.status, 401);
@@ -317,6 +325,80 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
     });
     assert.equal(result.status, 400);
     assert.match(result.data.message, /72/);
+  });
+
+  it("ganti password dengan password saat ini yang salah tetap 400, bukan 401", async () => {
+    const result = await request("/api/auth/change-password", {
+      method: "POST",
+      cookie: editorCookie,
+      body: {
+        currentPassword: "password-yang-salah-sekali",
+        newPassword: "PasswordBaru123",
+      },
+    });
+    // 400 penting: 401 akan membuat frontend mengira sesi berakhir lalu
+    // mengalihkan pengguna ke halaman login.
+    assert.equal(result.status, 400);
+    assert.equal(result.data.message, "Password saat ini salah.");
+  });
+
+  it("ganti password menolak password baru yang tidak valid (400)", async () => {
+    const cases = [
+      {
+        body: { currentPassword: editor.password, newPassword: "pendek7" },
+        pattern: /minimal 8 karakter/i,
+      },
+      {
+        body: { currentPassword: editor.password, newPassword: "a".repeat(73) },
+        pattern: /72 byte/i,
+      },
+      {
+        body: { currentPassword: editor.password, newPassword: editor.password },
+        pattern: /tidak boleh sama/i,
+      },
+    ];
+
+    for (const item of cases) {
+      const result = await request("/api/auth/change-password", {
+        method: "POST",
+        cookie: editorCookie,
+        body: item.body,
+      });
+      assert.equal(result.status, 400, `harus 400 untuk ${item.pattern}`);
+      assert.match(result.data.message, item.pattern);
+    }
+  });
+
+  it("ganti password berhasil dan hanya cookie baru yang berlaku", async () => {
+    const oldCookie = editorCookie;
+    const oldPassword = editor.password;
+    const newPassword = randomBytes(24).toString("base64url");
+
+    const result = await request("/api/auth/change-password", {
+      method: "POST",
+      cookie: oldCookie,
+      body: { currentPassword: oldPassword, newPassword },
+    });
+    assert.equal(result.status, 200, "ganti password harus berhasil");
+    assert.equal(result.data.message, "Password berhasil diubah.");
+    assert.doesNotMatch(
+      JSON.stringify(result.data),
+      /password_?hash|\$2[aby]\$/i,
+      "respons tidak boleh memuat password atau hash",
+    );
+
+    const freshCookie = sessionCookie(result.response);
+
+    const stale = await request("/api/auth/me", { cookie: oldCookie });
+    assert.equal(stale.status, 401, "cookie lama harus ditolak setelah password diubah");
+
+    const fresh = await request("/api/auth/me", { cookie: freshCookie });
+    assert.equal(fresh.status, 200, "cookie baru dari respons harus tetap berlaku");
+    assert.equal(fresh.data.user.id, editor.id);
+
+    // Sesi pengujian berikutnya memakai password dan cookie yang baru.
+    editor.password = newPassword;
+    editorCookie = freshCookie;
   });
 
   it("sesi lama berakhir setelah password diubah (401)", async () => {

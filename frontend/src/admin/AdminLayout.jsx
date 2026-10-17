@@ -8,6 +8,9 @@ const navigation = [
   { to: "/admin/categories", label: "Kategori", icon: "layer-group", adminOnly: true },
   { to: "/admin/users", label: "Pengguna", icon: "users", adminOnly: true },
   { to: "/admin/content", label: "Konten Situs", icon: "sliders", adminOnly: true },
+  // Terbuka untuk admin maupun editor: setiap pengguna boleh mengganti
+  // password-nya sendiri.
+  { to: "/admin/password", label: "Ganti Password", icon: "key" },
 ];
 
 function AdminLayout() {
