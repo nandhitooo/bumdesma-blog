@@ -19,6 +19,7 @@ import siteContentRoutes, {
 } from "./routes/siteContent.js";
 import usersRoutes from "./routes/users.js";
 import uploadRoutes from "./routes/upload.js";
+import backupRoutes from "./routes/backup.js";
 import { requireAuth } from "./middleware/auth.js";
 import { noStore, originCheck } from "./middleware/security.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
@@ -157,6 +158,7 @@ app.use("/api/admin/categories", adminCategoriesRoutes);
 app.use("/api/admin/site-content", adminSiteContentRoutes);
 app.use("/api/admin/users", usersRoutes);
 app.use("/api/admin/upload", uploadRoutes);
+app.use("/api/admin/backup", backupRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

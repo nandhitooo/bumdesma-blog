@@ -10,10 +10,16 @@
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { randomBytes, randomUUID } from "node:crypto";
+import { once } from "node:events";
+import { createWriteStream } from "node:fs";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { ZipArchive } from "archiver";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import yauzl from "yauzl";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(here, "../.env"), quiet: true });
@@ -78,6 +84,74 @@ async function login(email, password) {
     `login gagal untuk salah satu akun uji (status ${result.status})`,
   );
   return result;
+}
+
+/* ------------------------------------------------------- util backup ------- */
+
+// Membuat file zip dari daftar [namaEntri, isi] memakai archiver yang sama
+// dengan yang dipakai server. Folder sementara selalu dibersihkan.
+async function withBackupZip(entries, run) {
+  const dir = await mkdtemp(path.join(os.tmpdir(), "zz-uji-backup-"));
+  try {
+    const filePath = path.join(dir, "backup.zip");
+    const output = createWriteStream(filePath);
+    const closed = once(output, "close");
+    const archive = new ZipArchive({ zlib: { level: 9 } });
+    archive.pipe(output);
+    for (const [name, content] of entries) {
+      archive.append(content, { name });
+    }
+    await archive.finalize();
+    await closed;
+    return await run(filePath);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+}
+
+async function restoreBackup(cookie, password, zipPath) {
+  const form = new FormData();
+  form.append("password", password);
+  form.append(
+    "backup",
+    new Blob([await readFile(zipPath)], { type: "application/zip" }),
+    "backup.zip",
+  );
+
+  const response = await fetch(`${API_URL}/api/admin/backup/restore`, {
+    method: "POST",
+    headers: cookie ? { Cookie: cookie } : {},
+    body: form,
+    redirect: "manual",
+  });
+  const data = await response.json().catch(() => ({}));
+  return { status: response.status, data };
+}
+
+// data.json minimal yang lolos validasi server.
+function backupData(overrides = {}) {
+  return JSON.stringify({
+    formatVersion: 1,
+    createdAt: new Date().toISOString(),
+    categories: [{ name: "Kategori Uji Backup", slug: "zz-uji-backup" }],
+    articles: [],
+    siteContent: {},
+    counts: { categories: 1, articles: 0, siteContent: 0, files: 0 },
+    missingFiles: [],
+    ...overrides,
+  });
+}
+
+async function readZipDataJson(buffer) {
+  const zipfile = await yauzl.fromBufferPromise(buffer);
+  for await (const entry of zipfile.eachEntry()) {
+    if (entry.fileName !== "data.json") continue;
+    const stream = await zipfile.openReadStreamPromise(entry);
+    const chunks = [];
+    for await (const chunk of stream) chunks.push(chunk);
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  }
+  throw new Error("data.json tidak ditemukan di dalam backup");
 }
 
 /* ------------------------------------------------- ketersediaan server ------ */
@@ -158,6 +232,18 @@ describe("Uji keamanan API", { skip: skipWhenApiDown }, () => {
       body: { currentPassword: "apa-saja", newPassword: "PasswordBaru123" },
     });
     assert.equal(result.status, 401, "ganti password harus 401 tanpa cookie");
+  });
+
+  it("endpoint backup menolak permintaan tanpa sesi (401)", async () => {
+    const download = await request("/api/admin/backup/download");
+    assert.equal(download.status, 401, "unduh backup harus 401 tanpa cookie");
+
+    const restore = await request("/api/admin/backup/restore", {
+      method: "POST",
+      raw: true,
+      body: new FormData(),
+    });
+    assert.equal(restore.status, 401, "pulihkan backup harus 401 tanpa cookie");
   });
 
   it("/api/auth/me memakai Cache-Control: no-store", async () => {
@@ -296,6 +382,21 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
       const result = await request(pathname, { cookie: editorCookie });
       assert.equal(result.status, 403, `${pathname} harus 403 untuk editor`);
     }
+  });
+
+  it("editor menerima 403 pada endpoint backup", async () => {
+    const download = await request("/api/admin/backup/download", {
+      cookie: editorCookie,
+    });
+    assert.equal(download.status, 403, "unduh backup harus 403 untuk editor");
+
+    const restore = await request("/api/admin/backup/restore", {
+      method: "POST",
+      cookie: editorCookie,
+      raw: true,
+      body: new FormData(),
+    });
+    assert.equal(restore.status, 403, "pulihkan backup harus 403 untuk editor");
   });
 
   it("editor tidak dapat menerbitkan artikel (403)", async () => {
@@ -600,3 +701,231 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
     assert.equal(result.headers.get("cache-control"), "no-store");
   });
 });
+
+/* ------------------------------------------------------------ uji backup --- */
+
+// Limiter pemulihan dikunci per id pengguna (5 per 15 menit). Uji memakai admin
+// sementara supaya beberapa kali jalan dalam 15 menit tidak saling mengunci.
+describe("Uji backup dan pemulihan", { skip: skipWhenApiDown || (ADMIN_EMAIL && ADMIN_PASSWORD ? false : SKIP_WITHOUT_ADMIN) }, () => {
+  let adminCookie = "";
+  let backupCookie = "";
+  let backupAdminId = null;
+  let backupPassword = "";
+
+  before(async () => {
+    const adminLogin = await login(ADMIN_EMAIL, ADMIN_PASSWORD);
+    adminCookie = sessionCookie(adminLogin.response);
+
+    backupPassword = randomBytes(24).toString("base64url");
+    const created = await request("/api/admin/users", {
+      method: "POST",
+      cookie: adminCookie,
+      body: {
+        name: "Admin Uji Backup",
+        email: `zz-uji-backup-${randomUUID()}@localhost.test`,
+        password: backupPassword,
+        role: "admin",
+      },
+    });
+    assert.equal(created.status, 201, "gagal membuat admin sementara untuk uji backup");
+    backupAdminId = created.data.user.id;
+
+    const adminBackupLogin = await login(created.data.user.email, backupPassword);
+    backupCookie = sessionCookie(adminBackupLogin.response);
+  });
+
+  after(async () => {
+    if (backupAdminId && adminCookie) {
+      await request(`/api/admin/users/${backupAdminId}`, {
+        method: "DELETE",
+        cookie: adminCookie,
+      });
+    }
+  });
+
+  it("unduh backup mengembalikan zip yang tidak di-cache dan tanpa data pengguna", async () => {
+    const response = await fetch(`${API_URL}/api/admin/backup/download`, {
+      headers: { Cookie: backupCookie },
+    });
+
+    assert.equal(response.status, 200, "unduh backup harus 200 untuk admin");
+    assert.equal(response.headers.get("content-type"), "application/zip");
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    assert.match(
+      response.headers.get("content-disposition") || "",
+      /attachment; filename="bumdesma-backup-\d{8}-\d{6}\.zip"/,
+    );
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    assert.equal(
+      buffer.subarray(0, 2).toString("latin1"),
+      "PK",
+      "isi respons harus berupa arsip zip",
+    );
+
+    const data = await readZipDataJson(buffer);
+    assert.equal(data.formatVersion, 1);
+    assert.ok(Array.isArray(data.categories), "kategori harus berupa larik");
+    assert.ok(Array.isArray(data.articles), "artikel harus berupa larik");
+    assert.doesNotMatch(
+      JSON.stringify(data),
+      /password_?hash|\$2[aby]\$/i,
+      "backup tidak boleh memuat password atau hash",
+    );
+  });
+
+  it("pemulihan dengan password salah ditolak (400), bukan 401", async () => {
+    const result = await withBackupZip([["data.json", backupData()]], (zipPath) =>
+      restoreBackup(backupCookie, "password-yang-salah-sekali", zipPath),
+    );
+
+    // 401 akan membuat frontend mengira sesi berakhir lalu mengalihkan admin.
+    assert.equal(result.status, 400);
+    assert.equal(result.data.message, "Password salah.");
+  });
+
+  it("zip dengan nama entri yang menembus folder ditolak (400)", async () => {
+    const result = await withBackupZip(
+      [
+        ["data.json", backupData()],
+        ["uploads/../../evil.txt", "x"],
+      ],
+      (zipPath) => restoreBackup(backupCookie, backupPassword, zipPath),
+    );
+
+    assert.equal(result.status, 400, "entri bertraversal harus ditolak");
+    assert.match(result.data.message, /aman|valid|rusak/i);
+  });
+
+  it("gambar dengan nama .jpg tetapi isi bukan gambar ditolak (400)", async () => {
+    const result = await withBackupZip(
+      [
+        ["data.json", backupData()],
+        [
+          "uploads/0123456789abcdef0123456789abcdef.jpg",
+          Buffer.from("ini bukan gambar sama sekali"),
+        ],
+      ],
+      (zipPath) => restoreBackup(backupCookie, backupPassword, zipPath),
+    );
+
+    assert.equal(result.status, 400, "isi gambar palsu harus ditolak");
+    assert.match(result.data.message, /gambar/i);
+  });
+});
+
+/* --------------------------------------- uji destruktif (opt-in saja) ------ */
+
+const destructiveSkip =
+  process.env.ALLOW_DESTRUCTIVE_TESTS === "1"
+    ? false
+    : "Uji destruktif dilewati. Set ALLOW_DESTRUCTIVE_TESTS=1 dan jalankan hanya terhadap database percobaan.";
+
+// Pemulihan mengganti seluruh artikel, kategori, dan konten situs. Uji ini hanya
+// berjalan bila diminta secara eksplisit dan tidak boleh diarahkan ke database
+// produksi.
+describe(
+  "Uji destruktif backup (mengganti seluruh data)",
+  {
+    skip:
+      skipWhenApiDown ||
+      (ADMIN_EMAIL && ADMIN_PASSWORD ? destructiveSkip : SKIP_WITHOUT_ADMIN),
+  },
+  () => {
+    let adminCookie = "";
+    let backupCookie = "";
+    let backupAdminId = null;
+    let backupPassword = "";
+    let tempDir = "";
+
+    before(async () => {
+      const adminLogin = await login(ADMIN_EMAIL, ADMIN_PASSWORD);
+      adminCookie = sessionCookie(adminLogin.response);
+
+      backupPassword = randomBytes(24).toString("base64url");
+      const created = await request("/api/admin/users", {
+        method: "POST",
+        cookie: adminCookie,
+        body: {
+          name: "Admin Uji Restore",
+          email: `zz-uji-restore-${randomUUID()}@localhost.test`,
+          password: backupPassword,
+          role: "admin",
+        },
+      });
+      assert.equal(created.status, 201, "gagal membuat admin sementara untuk uji restore");
+      backupAdminId = created.data.user.id;
+
+      const restoreLogin = await login(created.data.user.email, backupPassword);
+      backupCookie = sessionCookie(restoreLogin.response);
+    });
+
+    after(async () => {
+      if (backupAdminId && adminCookie) {
+        await request(`/api/admin/users/${backupAdminId}`, {
+          method: "DELETE",
+          cookie: adminCookie,
+        });
+      }
+      if (tempDir) await rm(tempDir, { recursive: true, force: true });
+    });
+
+    it("round-trip memulihkan data dan HTML berbahaya ikut dibersihkan", async () => {
+      const download = await fetch(`${API_URL}/api/admin/backup/download`, {
+        headers: { Cookie: backupCookie },
+      });
+      assert.equal(download.status, 200);
+      const original = Buffer.from(await download.arrayBuffer());
+      const originalData = await readZipDataJson(original);
+
+      tempDir = await mkdtemp(path.join(os.tmpdir(), "zz-uji-restore-"));
+      const originalPath = path.join(tempDir, "original.zip");
+      await writeFile(originalPath, original);
+
+      // 1. Memulihkan backup yang baru diunduh mengembalikan jumlah yang sama.
+      const roundTrip = await restoreBackup(backupCookie, backupPassword, originalPath);
+      assert.equal(roundTrip.status, 200, JSON.stringify(roundTrip.data));
+      assert.equal(roundTrip.data.counts.categories, originalData.counts.categories);
+      assert.equal(roundTrip.data.counts.articles, originalData.counts.articles);
+      assert.equal(roundTrip.data.counts.siteContent, originalData.counts.siteContent);
+
+      // 2. Backup buatan dengan HTML berbahaya.
+      const xssSlug = "zz-uji-restore-xss";
+      const now = new Date().toISOString();
+      const crafted = backupData({
+        articles: [
+          {
+            title: "Uji Restore XSS",
+            slug: xssSlug,
+            excerpt: "Uji restore",
+            contentHtml:
+              '<p>Aman</p><script>alert(1)</script><img src=x onerror=alert(1)>',
+            coverImageUrl: null,
+            categorySlug: "zz-uji-backup",
+            status: "published",
+            publishedAt: now,
+            createdAt: now,
+            updatedAt: now,
+            authorEmail: null,
+          },
+        ],
+      });
+
+      await withBackupZip([["data.json", crafted]], async (zipPath) => {
+        const result = await restoreBackup(backupCookie, backupPassword, zipPath);
+        assert.equal(result.status, 200, JSON.stringify(result.data));
+      });
+
+      const detail = await request(`/api/articles/${xssSlug}`);
+      assert.equal(detail.status, 200, "artikel hasil restore harus bisa dibaca publik");
+      const html = detail.data.article.contentHtml;
+      assert.doesNotMatch(html, /<script/i, "tag script harus hilang");
+      assert.doesNotMatch(html, /onerror/i, "atribut onerror harus hilang");
+      assert.match(html, /Aman/, "konten aman harus tetap ada");
+
+      // 3. Kembalikan data semula dari backup awal.
+      const restored = await restoreBackup(backupCookie, backupPassword, originalPath);
+      assert.equal(restored.status, 200, JSON.stringify(restored.data));
+    });
+  },
+);

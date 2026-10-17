@@ -4,7 +4,7 @@ import path from "node:path";
 import express from "express";
 import multer from "multer";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
-import { uploadDir } from "../services/uploads.js";
+import { detectImage, uploadDir } from "../services/uploads.js";
 
 const router = express.Router();
 
@@ -35,31 +35,6 @@ const multipart = multer({
     return callback(null, true);
   },
 });
-
-function detectImage(buffer) {
-  if (
-    buffer.length >= 3 &&
-    buffer[0] === 0xff &&
-    buffer[1] === 0xd8 &&
-    buffer[2] === 0xff
-  ) {
-    return { mime: "image/jpeg", extension: "jpg" };
-  }
-  if (
-    buffer.length >= 8 &&
-    buffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
-  ) {
-    return { mime: "image/png", extension: "png" };
-  }
-  if (
-    buffer.length >= 12 &&
-    buffer.toString("ascii", 0, 4) === "RIFF" &&
-    buffer.toString("ascii", 8, 12) === "WEBP"
-  ) {
-    return { mime: "image/webp", extension: "webp" };
-  }
-  return null;
-}
 
 router.post("/", uploadLimiter, multipart.single("image"), async (req, res) => {
   if (!req.file) {

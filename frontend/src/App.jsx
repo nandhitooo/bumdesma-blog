@@ -24,6 +24,7 @@ const AdminCategories = lazy(() => import("./admin/Categories"));
 const AdminUsers = lazy(() => import("./admin/Users"));
 const AdminSiteContent = lazy(() => import("./admin/SiteContent"));
 const AdminChangePassword = lazy(() => import("./admin/ChangePassword"));
+const AdminBackup = lazy(() => import("./admin/Backup"));
 
 const adminFallback = (
   <main className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-600">
@@ -129,6 +130,7 @@ function App() {
             <Route path="users" element={<AdminUsers />} />
             <Route path="content" element={<AdminSiteContent />} />
             <Route path="password" element={<AdminChangePassword />} />
+            <Route path="backup" element={<AdminBackup />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
