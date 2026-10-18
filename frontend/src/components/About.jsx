@@ -8,7 +8,7 @@ const About = () => {
   const profileUrl = safeHttpsUrl(about.profileUrl);
 
   return (
-    <section className="py-16 sm:py-24 bg-white scroll-mt-18" id="about">
+    <section className="pt-8 sm:pt-10 lg:pt-12 pb-10 sm:pb-14 lg:pb-16 bg-white scroll-mt-18" id="about">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="max-w-3xl mb-12">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">

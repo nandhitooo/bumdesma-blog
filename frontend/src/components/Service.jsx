@@ -7,7 +7,7 @@ const Service = () => {
   const items = Array.isArray(services?.items) ? services.items : [];
 
   return (
-    <section className="py-16 sm:py-24 bg-gray-50 border-t border-gray-200 scroll-mt-18" id="services">
+    <section className="pt-8 sm:pt-10 lg:pt-12 pb-10 sm:pb-14 lg:pb-16 bg-gray-50 border-t border-gray-200 scroll-mt-18" id="services">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="max-w-3xl mb-12">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">

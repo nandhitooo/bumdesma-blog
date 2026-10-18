@@ -65,7 +65,7 @@ function CmsLanding() {
   return (
     <main>
       {/* Hero */}
-      <section className="bg-white py-16 sm:py-24 border-b border-gray-100">
+      <section className="bg-white pt-8 sm:pt-10 lg:pt-12 pb-16 sm:pb-24 border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-3xl">
             <span className="inline-block text-xs font-semibold tracking-wider text-brand-primary uppercase mb-4">
@@ -103,7 +103,7 @@ function CmsLanding() {
       </section>
 
       {/* Fitur */}
-      <section className="bg-gray-50 py-16 sm:py-20 border-b border-gray-100">
+      <section className="bg-gray-50 pt-8 sm:pt-10 lg:pt-12 pb-16 sm:pb-20 border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mb-12">
             <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
@@ -143,7 +143,7 @@ function CmsLanding() {
       </section>
 
       {/* Cara kerja */}
-      <section className="bg-white py-16 sm:py-20 border-b border-gray-100">
+      <section className="bg-white pt-8 sm:pt-10 lg:pt-12 pb-16 sm:pb-20 border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mb-12">
             <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
@@ -179,7 +179,7 @@ function CmsLanding() {
       </section>
 
       {/* Ajakan */}
-      <section className="bg-brand-primary py-14 sm:py-16">
+      <section className="bg-brand-primary pt-8 sm:pt-10 lg:pt-12 pb-14 sm:pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-7">
             <div className="max-w-2xl">

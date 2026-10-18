@@ -74,7 +74,7 @@ const Home = () => {
   return (
     <div id="home" className="scroll-mt-18">
       {/* Hero Section */}
-      <section className="bg-white py-16 sm:py-24 lg:py-28 border-b border-gray-100">
+      <section className="bg-white pt-8 sm:pt-10 lg:pt-12 pb-12 sm:pb-16 lg:pb-20 border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-3xl">
             <span className="inline-block text-xs font-semibold tracking-wider text-brand-primary uppercase mb-4">
@@ -126,7 +126,7 @@ const Home = () => {
       </section>
 
       {/* Berita Terbaru Section */}
-      <section id="berita-terbaru" className="bg-gray-50 py-16 sm:py-20 scroll-mt-18">
+      <section id="berita-terbaru" className="bg-gray-50 pt-8 sm:pt-10 lg:pt-12 pb-10 sm:pb-14 lg:pb-16 scroll-mt-18">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-gray-200 gap-4">
             <div>
