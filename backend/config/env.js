@@ -27,6 +27,16 @@ function stringEnv(name) {
 
 export const MIN_JWT_SECRET_LENGTH = 32;
 
+// CLIENT_ORIGIN boleh memuat lebih dari satu origin dipisah koma (mis. domain
+// utama dan versi www-nya). Bagian kosong dibuang supaya koma berlebih atau spasi
+// tidak menghasilkan origin hantu yang tidak pernah cocok.
+export function splitClientOrigins(raw) {
+  return String(raw ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
 export const env = {
   get nodeEnv() {
     return process.env.NODE_ENV || "development";
@@ -43,8 +53,16 @@ export const env = {
   get jwtSecret() {
     return requireEnv("JWT_SECRET");
   },
+  // Daftar origin yang boleh mengakses API dan mengirim permintaan yang mengubah
+  // data. CORS (app.js) dan originCheck (middleware/security.js) memakai daftar
+  // ini.
+  get clientOrigins() {
+    return splitClientOrigins(requireEnv("CLIENT_ORIGIN"));
+  },
+  // Origin pertama. Dipertahankan supaya pemakai yang butuh satu nilai (mis. log
+  // saat start di index.js) tidak perlu berubah.
   get clientOrigin() {
-    return requireEnv("CLIENT_ORIGIN");
+    return this.clientOrigins[0];
   },
   // Di belakang reverse proxy (nginx, Railway, dsb.) Express perlu tahu hop
   // pertama supaya IP asli klien dipakai rate limiter. Kosong = nonaktif.
@@ -110,30 +128,40 @@ function collectEnvProblems() {
     );
   }
 
-  const clientOrigin = stringEnv("CLIENT_ORIGIN");
-  if (!clientOrigin) {
+  // Setiap origin diperiksa dengan aturan yang sama seperti sebelum dukungan
+  // multi-origin. Bila hanya ada satu origin, pesan yang muncul persis seperti
+  // dulu; nilai yang bermasalah ditambahkan ke pesan hanya saat originnya lebih
+  // dari satu supaya pengelola tahu mana yang salah.
+  const clientOrigins = splitClientOrigins(stringEnv("CLIENT_ORIGIN"));
+  if (clientOrigins.length === 0) {
     problems.push("CLIENT_ORIGIN belum diisi (contoh: http://localhost:5173).");
   } else {
-    let parsed = null;
-    try {
-      parsed = new URL(clientOrigin);
-    } catch {
-      parsed = null;
-    }
-    if (!parsed || !["http:", "https:"].includes(parsed.protocol)) {
-      problems.push(
-        "CLIENT_ORIGIN harus URL http(s) lengkap tanpa slash di akhir (contoh: http://localhost:5173).",
-      );
-    } else if (clientOrigin.endsWith("/")) {
-      // Browser tidak pernah mengirim trailing slash pada header Origin,
-      // sehingga nilainya tidak akan pernah cocok saat perbandingan CORS.
-      problems.push("CLIENT_ORIGIN tidak boleh diakhiri slash.");
-    } else if (env.isProduction && parsed.protocol !== "https:") {
-      // Cookie sesi memakai atribut Secure di produksi; origin http akan
-      // membuat login tidak pernah tersimpan di browser.
-      problems.push(
-        "CLIENT_ORIGIN harus https saat NODE_ENV=production (contoh: https://bumdesma.example.id).",
-      );
+    for (const clientOrigin of clientOrigins) {
+      const label =
+        clientOrigins.length > 1
+          ? `CLIENT_ORIGIN "${clientOrigin}"`
+          : "CLIENT_ORIGIN";
+      let parsed = null;
+      try {
+        parsed = new URL(clientOrigin);
+      } catch {
+        parsed = null;
+      }
+      if (!parsed || !["http:", "https:"].includes(parsed.protocol)) {
+        problems.push(
+          `${label} harus URL http(s) lengkap tanpa slash di akhir (contoh: http://localhost:5173).`,
+        );
+      } else if (clientOrigin.endsWith("/")) {
+        // Browser tidak pernah mengirim trailing slash pada header Origin,
+        // sehingga nilainya tidak akan pernah cocok saat perbandingan CORS.
+        problems.push(`${label} tidak boleh diakhiri slash.`);
+      } else if (env.isProduction && parsed.protocol !== "https:") {
+        // Cookie sesi memakai atribut Secure di produksi; origin http akan
+        // membuat login tidak pernah tersimpan di browser.
+        problems.push(
+          `${label} harus https saat NODE_ENV=production (contoh: https://bumdesma.example.id).`,
+        );
+      }
     }
   }
 

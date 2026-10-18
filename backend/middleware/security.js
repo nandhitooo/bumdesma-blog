@@ -11,7 +11,9 @@ export function originCheck(req, res, next) {
   if (SAFE_METHODS.has(req.method)) return next();
 
   const origin = req.get("origin");
-  if (!origin || origin === env.clientOrigin) return next();
+  // env.clientOrigins memuat semua origin yang diizinkan (CLIENT_ORIGIN boleh
+  // berisi beberapa nilai dipisah koma).
+  if (!origin || env.clientOrigins.includes(origin)) return next();
 
   return res
     .status(403)

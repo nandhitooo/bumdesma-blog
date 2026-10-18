@@ -1,12 +1,28 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { pool } from "./pool.js";
+import pg from "pg";
+import { poolConfig } from "./pool.js";
 
 const migrationsDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../migrations",
 );
+
+// Pool khusus migrasi, bukan pool aplikasi dari db/pool.js. statement_timeout
+// dan query_timeout di poolConfig adalah batas untuk query aplikasi: migrasi
+// yang lebih lambat (mis. menambah kolom pada tabel besar) tidak boleh terkena.
+// `SET LOCAL statement_timeout = 0` hanya mematikan batas di sisi Postgres,
+// sedangkan query_timeout adalah batas sisi klien pg dan tetap berlaku — itulah
+// penyebab kegagalan "Query read timeout". Karena itu keduanya dibuang dari
+// salinan poolConfig; koneksinya dibatasi satu (max: 1) karena migrasi selalu
+// dijalankan berurutan.
+const {
+  statement_timeout: _statementTimeout,
+  query_timeout: _queryTimeout,
+  ...migrationPoolConfig
+} = poolConfig;
+const pool = new pg.Pool({ ...migrationPoolConfig, max: 1 });
 
 async function run() {
   await pool.query(`
@@ -36,9 +52,9 @@ async function run() {
 
     try {
       await client.query("BEGIN");
-      // Migrasi bisa memakan waktu lebih lama dari statement_timeout pool (10
-      // detik), misalnya saat menambah kolom pada tabel besar. Batas itu hanya
-      // relevan untuk query aplikasi, jadi dimatikan khusus transaksi migrasi.
+      // Batas statement_timeout dari sisi server tetap dimatikan untuk transaksi
+      // migrasi ini. Batas sisi klien (query_timeout) sudah tidak ada karena pool
+      // migrasi di atas tidak mewarisinya dari poolConfig.
       await client.query("SET LOCAL statement_timeout = 0");
       await client.query(sql);
       await client.query("INSERT INTO schema_migrations (name) VALUES ($1)", [

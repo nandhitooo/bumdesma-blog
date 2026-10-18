@@ -56,7 +56,9 @@ app.use(
   cors({
     origin(origin, callback) {
       // origin kosong = request non-browser (curl/server lain), diizinkan.
-      if (!origin || origin === env.clientOrigin) {
+      // env.clientOrigins memuat semua origin dari CLIENT_ORIGIN, yang boleh
+      // berisi beberapa nilai dipisah koma (mis. domain utama dan www-nya).
+      if (!origin || env.clientOrigins.includes(origin)) {
         return callback(null, true);
       }
       return callback(null, false);

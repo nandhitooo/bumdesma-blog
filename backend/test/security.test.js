@@ -31,6 +31,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "";
 
 const ARTICLE_SLUG = "zz-uji-keamanan-xss";
 const FORMAT_SLUG = "zz-uji-format-teks";
+const PARTIAL_SLUG = "zz-uji-put-parsial";
 const XSS_PAYLOADS = [
   "<img src=x onerror=alert(1)>",
   '<a href="javascript:alert(1)">x</a>',
@@ -283,6 +284,7 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
   let editorCookie = "";
   let articleId = null;
   let formatArticleId = null;
+  let partialArticleId = null;
 
   // Endpoint admin memakai id numerik, jadi artikel uji dicari lewat daftar.
   async function findArticleIdBySlug(slug) {
@@ -338,6 +340,14 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
     const formatId = formatArticleId ?? (await findArticleIdBySlug(FORMAT_SLUG));
     if (formatId && adminCookie) {
       await request(`/api/admin/articles/${formatId}`, {
+        method: "DELETE",
+        cookie: adminCookie,
+      });
+    }
+
+    const partialId = partialArticleId ?? (await findArticleIdBySlug(PARTIAL_SLUG));
+    if (partialId && adminCookie) {
+      await request(`/api/admin/articles/${partialId}`, {
         method: "DELETE",
         cookie: adminCookie,
       });
@@ -643,6 +653,103 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
     // (d) Muatan berbahaya tetap dibuang.
     assert.doesNotMatch(html, /onerror/i, "atribut onerror harus hilang");
     assert.doesNotMatch(html, /<script/i, "tag script harus hilang");
+  });
+
+  it("PUT parsial hanya mengubah field yang dikirim (excerpt dan isi tetap)", async () => {
+    const excerpt = "Ringkasan awal yang harus tetap ada.";
+    const contentHtml = "<p>Isi awal artikel.</p><p>Paragraf kedua.</p>";
+    const payload = {
+      title: "Uji PUT parsial",
+      slug: PARTIAL_SLUG,
+      excerpt,
+      contentHtml,
+      status: "published",
+    };
+
+    let created = await request("/api/admin/articles", {
+      method: "POST",
+      cookie: adminCookie,
+      body: payload,
+    });
+    // Artikel bisa saja tertinggal dari jalannya uji sebelumnya; hapus dulu.
+    if (created.status === 409) {
+      const staleId = await findArticleIdBySlug(PARTIAL_SLUG);
+      assert.ok(staleId, "artikel uji lama harus bisa ditemukan untuk dihapus");
+      await request(`/api/admin/articles/${staleId}`, {
+        method: "DELETE",
+        cookie: adminCookie,
+      });
+      created = await request("/api/admin/articles", {
+        method: "POST",
+        cookie: adminCookie,
+        body: payload,
+      });
+    }
+    assert.equal(created.status, 201, "gagal membuat artikel uji PUT parsial");
+    partialArticleId = created.data.id;
+
+    const before = await request(`/api/admin/articles/${partialArticleId}`, {
+      cookie: adminCookie,
+    });
+    assert.equal(before.status, 200);
+    assert.equal(before.data.article.excerpt, excerpt);
+    assert.match(before.data.article.contentHtml, /Paragraf kedua/);
+
+    // Hanya title yang dikirim: excerpt dan contentHtml harus dibiarkan apa
+    // adanya, bukan diisi "" oleh default skema validasi.
+    const updated = await request(`/api/admin/articles/${partialArticleId}`, {
+      method: "PUT",
+      cookie: adminCookie,
+      body: { title: "Judul baru" },
+    });
+    assert.equal(updated.status, 200, JSON.stringify(updated.data));
+
+    const detail = await request(`/api/admin/articles/${partialArticleId}`, {
+      cookie: adminCookie,
+    });
+    assert.equal(detail.status, 200);
+    assert.equal(detail.data.article.title, "Judul baru", "title harus ikut berubah");
+    assert.equal(
+      detail.data.article.excerpt,
+      excerpt,
+      "excerpt tidak boleh terhapus oleh PUT parsial",
+    );
+    assert.equal(
+      detail.data.article.contentHtml,
+      before.data.article.contentHtml,
+      "isi artikel tidak boleh terhapus oleh PUT parsial",
+    );
+
+    // UI editor (ArticleEditor.jsx) selalu mengirim semua field. Simpan penuh
+    // seperti itu harus tetap mengganti seluruh isi seperti sebelumnya.
+    const fullPayload = {
+      title: "Judul setelah simpan penuh",
+      slug: PARTIAL_SLUG,
+      excerpt: "Ringkasan baru dari editor.",
+      contentHtml: "<p>Isi baru dari editor.</p>",
+      coverImageUrl: null,
+      categoryId: null,
+      status: "published",
+    };
+    const full = await request(`/api/admin/articles/${partialArticleId}`, {
+      method: "PUT",
+      cookie: adminCookie,
+      body: fullPayload,
+    });
+    assert.equal(full.status, 200, JSON.stringify(full.data));
+
+    const afterSave = await request(`/api/admin/articles/${partialArticleId}`, {
+      cookie: adminCookie,
+    });
+    assert.equal(afterSave.status, 200);
+    assert.equal(afterSave.data.article.title, fullPayload.title);
+    assert.equal(afterSave.data.article.excerpt, fullPayload.excerpt);
+    assert.match(afterSave.data.article.contentHtml, /Isi baru dari editor/);
+    assert.doesNotMatch(
+      afterSave.data.article.contentHtml,
+      /Paragraf kedua/,
+      "simpan penuh dari editor harus menggantikan isi lama",
+    );
   });
 
   it("pratinjau mengembalikan HTML tersanitasi dan tidak menulis artikel", async () => {

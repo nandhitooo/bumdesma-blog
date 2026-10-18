@@ -83,8 +83,14 @@ const updateArticleSchema = z.object({
   ...articleFields,
   title: articleFields.title.optional(),
   slug: articleFields.slug.optional(),
-  excerpt: articleFields.excerpt.optional(),
-  contentHtml: articleFields.contentHtml.optional(),
+  // excerpt dan contentHtml TIDAK boleh mewarisi `.default("")` dari
+  // articleFields: di Zod 4, `.default("").optional()` tetap menghasilkan ""
+  // untuk field yang tidak dikirim, sehingga PUT parsial (mis. hanya mengubah
+  // judul) menghapus excerpt dan isi artikel — dan gambar inline-nya ikut
+  // dibersihkan dari disk lewat deleteUnreferencedUploads. Karena itu aturan
+  // keduanya ditulis ulang tanpa default.
+  excerpt: z.string().trim().max(1000).optional(),
+  contentHtml: z.string().max(1_000_000).optional(),
   status: z.enum(["draft", "published"]).optional(),
 });
 // Isi yang dipratinjau divalidasi dengan aturan yang sama seperti penyimpanan,
