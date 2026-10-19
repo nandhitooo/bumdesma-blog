@@ -9,6 +9,7 @@ const navigation = [
   { to: "/admin/documents", label: "Dokumen", icon: "file-lines", adminOnly: true },
   { to: "/admin/team", label: "Pengurus", icon: "people-group", adminOnly: true },
   { to: "/admin/service-details", label: "Detail Layanan", icon: "circle-info", adminOnly: true },
+  { to: "/admin/faqs", label: "FAQ", icon: "circle-question", adminOnly: true },
   { to: "/admin/categories", label: "Kategori", icon: "layer-group", adminOnly: true },
   { to: "/admin/users", label: "Pengguna", icon: "users", adminOnly: true },
   { to: "/admin/content", label: "Konten Situs", icon: "sliders", adminOnly: true },

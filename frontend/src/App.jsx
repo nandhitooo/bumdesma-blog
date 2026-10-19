@@ -16,6 +16,7 @@ import Transparency from "./pages/Transparency";
 import Team from "./pages/Team";
 import ServiceList from "./pages/ServiceList";
 import ServiceDetail from "./pages/ServiceDetail";
+import Faq from "./pages/Faq";
 import NotFound from "./pages/NotFound";
 import { SiteContentProvider } from "./lib/siteContent";
 
@@ -34,6 +35,7 @@ const AdminBackup = lazy(() => import("./admin/Backup"));
 const AdminDocuments = lazy(() => import("./admin/Documents"));
 const AdminTeam = lazy(() => import("./admin/Team"));
 const AdminServiceDetails = lazy(() => import("./admin/ServiceDetails"));
+const AdminFaqs = lazy(() => import("./admin/Faqs"));
 
 const adminFallback = (
   <main className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-600">
@@ -154,6 +156,16 @@ function App() {
             }
           />
           <Route
+            path="/faq"
+            element={
+              <>
+                <Header />
+                <Faq />
+                <Footer />
+              </>
+            }
+          />
+          <Route
             path="/cms"
             element={
               <>
@@ -192,6 +204,7 @@ function App() {
               path="service-details"
               element={<AdminServiceDetails />}
             />
+            <Route path="faqs" element={<AdminFaqs />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="content" element={<AdminSiteContent />} />
