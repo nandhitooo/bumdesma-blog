@@ -60,10 +60,10 @@ function AdminChangePassword() {
 
   const inputType = showPassword ? "text" : "password";
   const inputClass =
-    "w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700";
+    "min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700";
 
   return (
-    <section className="mx-auto max-w-3xl">
+    <section className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center px-4 py-8">
       <header className="mb-7">
         <p className="font-bold text-green-700">Pengaturan</p>
         <h1 className="mt-1 text-3xl font-extrabold text-gray-900">
@@ -125,7 +125,7 @@ function AdminChangePassword() {
             onChange={(event) => setField("newPassword", event.target.value)}
             className={inputClass}
           />
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-sm text-gray-500">
             Minimal 8 karakter. Jangan pakai password yang sama dengan layanan
             lain.
           </p>
@@ -150,11 +150,11 @@ function AdminChangePassword() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <button
             type="submit"
             disabled={saving}
-            className="rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60"
+            className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
           >
             {saving ? "Menyimpan..." : "Ganti password"}
           </button>
@@ -162,7 +162,7 @@ function AdminChangePassword() {
             type="button"
             aria-pressed={showPassword}
             onClick={() => setShowPassword((current) => !current)}
-            className="rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200"
+            className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
           >
             {showPassword ? "Sembunyikan password" : "Tampilkan password"}
           </button>

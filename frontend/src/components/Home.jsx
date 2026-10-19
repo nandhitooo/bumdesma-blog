@@ -74,13 +74,13 @@ const Home = () => {
   return (
     <div id="home" className="scroll-mt-18">
       {/* Hero Section */}
-      <section className="bg-white pt-8 sm:pt-10 lg:pt-12 pb-12 sm:pb-16 lg:pb-20 border-b border-gray-100">
+      <section className="bg-white py-10 sm:py-14 lg:py-16 border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-3xl">
             <span className="inline-block text-xs font-semibold tracking-wider text-brand-primary uppercase mb-4">
               {hero.subtitle}
             </span>
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 leading-tight mb-6">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900 leading-tight mb-6 break-words">
               {hero.title}
             </h1>
             <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
@@ -89,7 +89,7 @@ const Home = () => {
             <div>
               <a
                 href="#berita-terbaru"
-                className="inline-flex items-center gap-2 bg-brand-primary hover:bg-brand-dark text-white text-sm sm:text-base font-medium px-6 py-3 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+                className="inline-flex min-h-[44px] items-center gap-2 bg-brand-primary hover:bg-brand-dark text-white text-sm sm:text-base font-medium px-6 py-3 rounded-lg transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
               >
                 <span>{hero.buttonLabel || "Lihat Berita Terbaru"}</span>
                 <i className="fa-solid fa-arrow-down text-xs" aria-hidden="true"></i>
@@ -99,7 +99,7 @@ const Home = () => {
 
           {/* Hero Highlights */}
           {Array.isArray(hero.highlights) && hero.highlights.length > 0 && (
-            <div className="mt-12 sm:mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-10 border-t border-gray-100">
+            <div className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 pt-10 border-t border-gray-100">
               {hero.highlights.map((item, index) => (
                 <div
                   key={index}
@@ -111,10 +111,10 @@ const Home = () => {
                         <i className={`fa-solid fa-${item.icon} text-base`} aria-hidden="true"></i>
                       )}
                     </div>
-                    <h3 className="text-base font-bold text-gray-900 mb-2">
+                    <h3 className="text-base font-bold text-gray-900 mb-2 break-words">
                       {item.title}
                     </h3>
-                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                    <p className="text-sm text-gray-600 leading-relaxed break-words">
                       {item.desc}
                     </p>
                   </div>
@@ -126,11 +126,11 @@ const Home = () => {
       </section>
 
       {/* Berita Terbaru Section */}
-      <section id="berita-terbaru" className="bg-gray-50 pt-8 sm:pt-10 lg:pt-12 pb-10 sm:pb-14 lg:pb-16 scroll-mt-18">
+      <section id="berita-terbaru" className="bg-gray-50 py-10 sm:py-14 lg:py-16 scroll-mt-18">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-gray-200 gap-4">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight break-words">
                 Berita Terbaru
               </h2>
               <p className="text-sm text-gray-600 mt-1">
@@ -139,7 +139,7 @@ const Home = () => {
             </div>
             <Link
               to="/blog"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors"
+              className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors motion-reduce:transition-none"
             >
               <span>Lihat Semua Blog</span>
               <i className="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
@@ -154,7 +154,7 @@ const Home = () => {
             <div className="space-y-8">
               {/* Featured Article */}
               {featuredArticle && (
-                <article className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors">
+                <article className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors motion-reduce:transition-none">
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
                     <div className="lg:col-span-7 h-64 sm:h-80 lg:h-auto bg-gray-100 overflow-hidden">
                       <ArticleImage
@@ -163,7 +163,7 @@ const Home = () => {
                         containerClassName="w-full h-full min-h-[260px]"
                       />
                     </div>
-                    <div className="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between">
+                    <div className="lg:col-span-5 min-w-0 p-6 sm:p-8 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
                           <span className="bg-brand-light text-brand-primary font-semibold px-2.5 py-1 rounded">
@@ -175,31 +175,31 @@ const Home = () => {
                             </time>
                           )}
                         </div>
-                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 leading-snug mb-3">
+                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 leading-snug mb-3 break-words">
                           {featuredArticle.slug ? (
                             <Link
                               to={`/blog/${featuredArticle.slug}`}
-                              className="hover:text-brand-primary transition-colors"
+                              className="inline-flex min-h-[44px] items-center hover:text-brand-primary transition-colors motion-reduce:transition-none"
                             >
                               {featuredArticle.title}
                             </Link>
                           ) : (
                             <Link
                               to="/blog"
-                              className="hover:text-brand-primary transition-colors"
+                              className="inline-flex min-h-[44px] items-center hover:text-brand-primary transition-colors motion-reduce:transition-none"
                             >
                               {featuredArticle.title}
                             </Link>
                           )}
                         </h3>
-                        <p className="text-sm text-gray-600 leading-relaxed mb-6">
+                        <p className="text-sm text-gray-600 leading-relaxed mb-6 break-words">
                           {featuredArticle.excerpt}
                         </p>
                       </div>
                       <div>
                         <Link
                           to={featuredArticle.slug ? `/blog/${featuredArticle.slug}` : "/blog"}
-                          className="inline-flex items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors"
+                          className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors motion-reduce:transition-none"
                         >
                           <span>Baca artikel lengkap</span>
                           <i className="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
@@ -212,11 +212,11 @@ const Home = () => {
 
               {/* Small Article Grid (At most 3 columns) */}
               {gridArticles.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {gridArticles.map((item) => (
                     <article
                       key={item.id}
-                      className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors flex flex-col"
+                      className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors motion-reduce:transition-none flex flex-col"
                     >
                       <div className="h-44 bg-gray-100 overflow-hidden">
                         <ArticleImage
@@ -225,7 +225,7 @@ const Home = () => {
                           containerClassName="w-full h-full"
                         />
                       </div>
-                      <div className="p-5 flex-1 flex flex-col justify-between">
+                      <div className="min-w-0 p-5 flex-1 flex flex-col justify-between">
                         <div>
                           <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
                             <span className="bg-brand-light text-brand-primary font-semibold px-2 py-0.5 rounded">
@@ -237,21 +237,21 @@ const Home = () => {
                               </time>
                             )}
                           </div>
-                          <h4 className="text-base font-bold text-gray-900 leading-snug mb-2">
+                          <h4 className="text-base font-bold text-gray-900 leading-snug mb-2 break-words">
                             <Link
                               to={item.slug ? `/blog/${item.slug}` : "/blog"}
-                              className="hover:text-brand-primary transition-colors"
+                              className="inline-flex min-h-[44px] items-center hover:text-brand-primary transition-colors motion-reduce:transition-none"
                             >
                               {item.title}
                             </Link>
                           </h4>
-                          <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed mb-4">
+                          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed mb-4 break-words">
                             {item.excerpt}
                           </p>
                         </div>
                         <Link
                           to={item.slug ? `/blog/${item.slug}` : "/blog"}
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-primary hover:text-brand-dark transition-colors"
+                          className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors motion-reduce:transition-none"
                         >
                           <span>Baca selengkapnya</span>
                           <i className="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i>

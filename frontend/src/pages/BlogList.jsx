@@ -109,14 +109,14 @@ function BlogList() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12 sm:py-16">
+    <main className="min-h-dvh bg-gray-50 py-10 sm:py-14 lg:py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
         <div className="mb-10 max-w-2xl">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
             Kabar & Publikasi
           </span>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3 break-words">
             Blog BUMDESMA Podo Rukun
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
@@ -126,11 +126,11 @@ function BlogList() {
 
         {/* Filter and Search Bar */}
         <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2 max-w-full overflow-x-auto pb-1 md:pb-0" aria-label="Filter kategori">
+          <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2 overflow-x-auto pb-1 md:pb-0" aria-label="Filter kategori">
             <button
               type="button"
               onClick={() => updateFilters({ category: "" })}
-              className={`min-h-[44px] px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer flex items-center ${
+              className={`min-h-[44px] px-3.5 py-2 text-sm font-medium rounded-lg transition-colors motion-reduce:transition-none cursor-pointer flex items-center ${
                 !category
                   ? "bg-brand-primary text-white"
                   : "bg-gray-100 hover:bg-gray-200 text-gray-700"
@@ -143,7 +143,7 @@ function BlogList() {
                 key={item.id}
                 type="button"
                 onClick={() => updateFilters({ category: item.slug })}
-                className={`min-h-[44px] px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors cursor-pointer flex items-center ${
+                className={`min-h-[44px] px-3.5 py-2 text-sm font-medium rounded-lg transition-colors motion-reduce:transition-none cursor-pointer flex items-center ${
                   category === item.slug
                     ? "bg-brand-primary text-white"
                     : "bg-gray-100 hover:bg-gray-200 text-gray-700"
@@ -154,7 +154,7 @@ function BlogList() {
             ))}
           </div>
 
-          <form onSubmit={submitSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+          <form onSubmit={submitSearch} className="flex min-w-0 w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center md:w-auto">
             <label className="sr-only" htmlFor="blog-search">
               Cari artikel
             </label>
@@ -164,11 +164,11 @@ function BlogList() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Cari artikel..."
-              className="w-full sm:w-56 min-h-[44px] px-3.5 py-2 text-sm bg-white border border-gray-300 rounded-lg outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-colors text-gray-900"
+              className="w-full sm:w-56 min-h-[44px] px-3.5 py-2 text-sm bg-white border border-gray-300 rounded-lg outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-colors motion-reduce:transition-none text-gray-900"
             />
             <button
               type="submit"
-              className="min-h-[44px] bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer flex items-center justify-center shrink-0"
+              className="min-h-[44px] bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors motion-reduce:transition-none cursor-pointer flex items-center justify-center shrink-0"
             >
               Cari
             </button>
@@ -188,21 +188,21 @@ function BlogList() {
           </div>
         ) : articles.length ? (
           /* At most 3 columns */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {articles.map((article) => (
               <article
                 key={article.id}
-                className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors flex flex-col"
+                className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors motion-reduce:transition-none flex flex-col"
               >
                 <Link to={`/blog/${article.slug}`} className="flex-1 flex flex-col">
                   <ArticleImage
                     src={article.coverImageUrl}
                     alt={article.title}
                     containerClassName="h-48 w-full bg-gray-100"
-                    className="transition-opacity duration-300 group-hover:opacity-90"
+                    className="transition-opacity motion-reduce:transition-none duration-300 group-hover:opacity-90"
                   />
 
-                  <div className="p-5 flex-1 flex flex-col justify-between">
+                  <div className="min-w-0 p-5 flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center gap-2 text-xs text-gray-500 mb-2.5">
                         {article.categoryName && (
@@ -216,15 +216,15 @@ function BlogList() {
                           </time>
                         )}
                       </div>
-                      <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-brand-primary transition-colors leading-snug mb-2">
+                      <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-brand-primary transition-colors motion-reduce:transition-none leading-snug mb-2 break-words">
                         {article.title}
                       </h2>
-                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-3 leading-relaxed mb-4">
+                      <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed mb-4 break-words">
                         {article.excerpt}
                       </p>
                     </div>
 
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-primary">
+                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-primary">
                       <span>Baca selengkapnya</span>
                       <i className="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i>
                     </span>
@@ -234,7 +234,7 @@ function BlogList() {
             ))}
           </div>
         ) : (
-          <div className="bg-white border border-gray-200 rounded-xl p-12 text-center max-w-lg mx-auto">
+          <div className="mx-auto max-w-lg rounded-xl border border-gray-200 bg-white p-6 text-center sm:p-12">
             <h2 className="text-lg font-bold text-gray-900 mb-1">
               Belum ada artikel
             </h2>
@@ -248,7 +248,7 @@ function BlogList() {
                   setSearch("");
                   setSearchParams(new URLSearchParams());
                 }}
-                className="text-xs font-semibold text-brand-primary hover:text-brand-dark transition-colors"
+                className="inline-flex min-h-[44px] items-center justify-center text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors motion-reduce:transition-none"
               >
                 Reset Filter Pencarian
               </button>
@@ -266,7 +266,7 @@ function BlogList() {
               type="button"
               disabled={pagination.page <= 1}
               onClick={() => updateFilters({ page: String(pagination.page - 1) })}
-              className="min-h-[44px] px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center"
+              className="min-h-[44px] px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors motion-reduce:transition-none cursor-pointer flex items-center"
             >
               Sebelumnya
             </button>
@@ -277,7 +277,7 @@ function BlogList() {
               type="button"
               disabled={pagination.page >= pagination.totalPages}
               onClick={() => updateFilters({ page: String(pagination.page + 1) })}
-              className="min-h-[44px] px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center"
+              className="min-h-[44px] px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors motion-reduce:transition-none cursor-pointer flex items-center"
             >
               Selanjutnya
             </button>

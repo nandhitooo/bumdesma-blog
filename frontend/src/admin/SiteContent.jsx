@@ -179,7 +179,7 @@ export default function SiteContent() {
             to="/"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition shadow-sm"
+            className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-white border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition shadow-sm motion-reduce:transition-none sm:w-auto"
           >
             <span>Lihat situs</span>
             <i className="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
@@ -219,7 +219,7 @@ export default function SiteContent() {
           className="mt-6 space-y-5"
         >
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="hero-subtitle" className="block text-sm font-bold text-gray-700">
                 Sub-judul (Kop Kecil)
               </label>
@@ -231,12 +231,12 @@ export default function SiteContent() {
               maxLength={200}
               value={heroForm.subtitle || ""}
               onChange={(e) => setHeroForm({ ...heroForm, subtitle: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="hero-title" className="block text-sm font-bold text-gray-700">
                 Judul Utama
               </label>
@@ -248,12 +248,12 @@ export default function SiteContent() {
               maxLength={200}
               value={heroForm.title || ""}
               onChange={(e) => setHeroForm({ ...heroForm, title: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base font-semibold outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base font-semibold outline-none focus:border-green-700"
             />
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="hero-desc" className="block text-sm font-bold text-gray-700">
                 Deskripsi
               </label>
@@ -266,12 +266,12 @@ export default function SiteContent() {
               maxLength={1000}
               value={heroForm.description || ""}
               onChange={(e) => setHeroForm({ ...heroForm, description: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700 resize-y"
+              className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="hero-btn" className="block text-sm font-bold text-gray-700">
                 Teks Tombol Aksi
               </label>
@@ -283,13 +283,13 @@ export default function SiteContent() {
               maxLength={100}
               value={heroForm.buttonLabel || ""}
               onChange={(e) => setHeroForm({ ...heroForm, buttonLabel: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
           {/* Repeatable Highlights */}
           <div className="pt-4 border-t border-gray-100">
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm font-bold text-gray-800">
                   Sorotan Hero (Highlights: {heroForm.highlights?.length || 0} / 6)
@@ -311,7 +311,7 @@ export default function SiteContent() {
                     });
                   }
                 }}
-                className="rounded-lg bg-green-50 px-3 py-1.5 text-xs font-bold text-green-800 hover:bg-green-100 disabled:opacity-50 cursor-pointer"
+                className="min-h-[44px] shrink-0 cursor-pointer rounded-lg bg-green-50 px-4 py-2.5 text-sm font-bold text-green-800 hover:bg-green-100 disabled:opacity-50"
               >
                 + Tambah Sorotan
               </button>
@@ -337,7 +337,7 @@ export default function SiteContent() {
                           copy[index] = temp;
                           setHeroForm({ ...heroForm, highlights: copy });
                         }}
-                        className="p-1.5 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-30 cursor-pointer"
+                        className="flex h-11 w-11 items-center justify-center rounded hover:bg-gray-200 text-gray-600 disabled:opacity-30 cursor-pointer"
                       >
                         <i className="fa-solid fa-arrow-up text-xs"></i>
                       </button>
@@ -352,7 +352,7 @@ export default function SiteContent() {
                           copy[index] = temp;
                           setHeroForm({ ...heroForm, highlights: copy });
                         }}
-                        className="p-1.5 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-30 cursor-pointer"
+                        className="flex h-11 w-11 items-center justify-center rounded hover:bg-gray-200 text-gray-600 disabled:opacity-30 cursor-pointer"
                       >
                         <i className="fa-solid fa-arrow-down text-xs"></i>
                       </button>
@@ -364,15 +364,15 @@ export default function SiteContent() {
                           const copy = heroForm.highlights.filter((_, i) => i !== index);
                           setHeroForm({ ...heroForm, highlights: copy });
                         }}
-                        className="p-1.5 rounded hover:bg-red-100 text-red-600 disabled:opacity-30 cursor-pointer"
+                        className="flex h-11 w-11 items-center justify-center rounded hover:bg-red-100 text-red-600 disabled:opacity-30 cursor-pointer"
                       >
                         <i className="fa-solid fa-trash text-xs"></i>
                       </button>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                    <div className="sm:col-span-4">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    <div className="md:col-span-4">
                       <label
                         htmlFor={`hero-highlight-${index}-icon`}
                         className="block text-xs font-semibold text-gray-600 mb-1"
@@ -398,13 +398,13 @@ export default function SiteContent() {
                             setHeroForm({ ...heroForm, highlights: copy });
                           }}
                           placeholder="mis. calendar-check"
-                          className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:border-green-700"
+                          className="min-h-[44px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-base outline-none focus:border-green-700"
                         />
                       </div>
                     </div>
 
-                    <div className="sm:col-span-8">
-                      <div className="flex justify-between items-center mb-1">
+                    <div className="md:col-span-8">
+                      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
                         <label
                           htmlFor={`hero-highlight-${index}-title`}
                           className="block text-xs font-semibold text-gray-600"
@@ -423,13 +423,13 @@ export default function SiteContent() {
                           copy[index] = { ...copy[index], title: e.target.value };
                           setHeroForm({ ...heroForm, highlights: copy });
                         }}
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:border-green-700"
+                        className="min-h-[44px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-base outline-none focus:border-green-700"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <div className="flex justify-between items-center mb-1">
+                    <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
                       <label
                         htmlFor={`hero-highlight-${index}-desc`}
                         className="block text-xs font-semibold text-gray-600"
@@ -449,7 +449,7 @@ export default function SiteContent() {
                         copy[index] = { ...copy[index], desc: e.target.value };
                         setHeroForm({ ...heroForm, highlights: copy });
                       }}
-                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:border-green-700 resize-y"
+                      className="min-h-[44px] w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2 text-base outline-none focus:border-green-700"
                     />
                   </div>
                 </div>
@@ -470,19 +470,19 @@ export default function SiteContent() {
           )}
 
           {/* Form Actions */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
+          <div className="flex flex-col gap-3 pt-4 border-t border-gray-100 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <button
               type="button"
               disabled={status.hero.saving}
               onClick={() => handleReset("hero")}
-              className="rounded-xl px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+              className="min-h-[44px] w-full cursor-pointer rounded-xl px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-50 sm:w-auto"
             >
               Kembalikan ke bawaan
             </button>
             <button
               type="submit"
               disabled={status.hero.saving}
-              className="rounded-xl bg-green-700 px-6 py-2.5 text-xs font-bold text-white hover:bg-green-800 disabled:opacity-50 cursor-pointer"
+              className="min-h-[44px] w-full cursor-pointer rounded-xl bg-green-700 px-6 py-2.5 text-sm font-bold text-white hover:bg-green-800 disabled:opacity-50 sm:w-auto"
             >
               {status.hero.saving ? "Menyimpan..." : "Simpan Hero"}
             </button>
@@ -516,7 +516,7 @@ export default function SiteContent() {
           className="mt-6 space-y-5"
         >
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="about-heading" className="block text-sm font-bold text-gray-700">
                 Judul Utama Bagian
               </label>
@@ -528,12 +528,12 @@ export default function SiteContent() {
               maxLength={200}
               value={aboutForm.heading || ""}
               onChange={(e) => setAboutForm({ ...aboutForm, heading: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base font-semibold outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base font-semibold outline-none focus:border-green-700"
             />
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="about-location" className="block text-sm font-bold text-gray-700">
                 Lokasi / Sub-judul
               </label>
@@ -545,13 +545,13 @@ export default function SiteContent() {
               maxLength={300}
               value={aboutForm.location || ""}
               onChange={(e) => setAboutForm({ ...aboutForm, location: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
           {/* Repeatable Paragraphs */}
           <div className="pt-2">
-            <div className="flex items-center justify-between mb-3">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <div>
                 <label className="block text-sm font-bold text-gray-700">
                   Paragraf Tentang ({aboutForm.paragraphs?.length || 0} / 6)
@@ -570,7 +570,7 @@ export default function SiteContent() {
                     });
                   }
                 }}
-                className="rounded-lg bg-green-50 px-3 py-1.5 text-xs font-bold text-green-800 hover:bg-green-100 disabled:opacity-50 cursor-pointer"
+                className="min-h-[44px] shrink-0 cursor-pointer rounded-lg bg-green-50 px-4 py-2.5 text-sm font-bold text-green-800 hover:bg-green-100 disabled:opacity-50"
               >
                 + Tambah Paragraf
               </button>
@@ -599,7 +599,7 @@ export default function SiteContent() {
                           copy[index] = temp;
                           setAboutForm({ ...aboutForm, paragraphs: copy });
                         }}
-                        className="p-1 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-30 cursor-pointer ml-2"
+                        className="ml-2 flex h-11 w-11 items-center justify-center rounded hover:bg-gray-200 text-gray-600 disabled:opacity-30 cursor-pointer"
                       >
                         <i className="fa-solid fa-arrow-up text-xs"></i>
                       </button>
@@ -614,7 +614,7 @@ export default function SiteContent() {
                           copy[index] = temp;
                           setAboutForm({ ...aboutForm, paragraphs: copy });
                         }}
-                        className="p-1 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-30 cursor-pointer"
+                        className="flex h-11 w-11 items-center justify-center rounded hover:bg-gray-200 text-gray-600 disabled:opacity-30 cursor-pointer"
                       >
                         <i className="fa-solid fa-arrow-down text-xs"></i>
                       </button>
@@ -626,7 +626,7 @@ export default function SiteContent() {
                           const copy = aboutForm.paragraphs.filter((_, i) => i !== index);
                           setAboutForm({ ...aboutForm, paragraphs: copy });
                         }}
-                        className="p-1 rounded hover:bg-red-100 text-red-600 disabled:opacity-30 cursor-pointer"
+                        className="flex h-11 w-11 items-center justify-center rounded hover:bg-red-100 text-red-600 disabled:opacity-30 cursor-pointer"
                       >
                         <i className="fa-solid fa-trash text-xs"></i>
                       </button>
@@ -643,7 +643,7 @@ export default function SiteContent() {
                       copy[index] = e.target.value;
                       setAboutForm({ ...aboutForm, paragraphs: copy });
                     }}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:border-green-700 resize-y"
+                    className="min-h-[44px] w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2 text-base outline-none focus:border-green-700"
                   />
                 </div>
               ))}
@@ -651,7 +651,7 @@ export default function SiteContent() {
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="about-profile-url" className="block text-sm font-bold text-gray-700">
                 URL Dokumen Profil (Wajib HTTPS)
               </label>
@@ -665,7 +665,7 @@ export default function SiteContent() {
               value={aboutForm.profileUrl || ""}
               onChange={(e) => setAboutForm({ ...aboutForm, profileUrl: e.target.value })}
               placeholder="https://..."
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
@@ -681,19 +681,19 @@ export default function SiteContent() {
             </p>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
+          <div className="flex flex-col gap-3 pt-4 border-t border-gray-100 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <button
               type="button"
               disabled={status.about.saving}
               onClick={() => handleReset("about")}
-              className="rounded-xl px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+              className="min-h-[44px] w-full cursor-pointer rounded-xl px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-50 sm:w-auto"
             >
               Kembalikan ke bawaan
             </button>
             <button
               type="submit"
               disabled={status.about.saving}
-              className="rounded-xl bg-green-700 px-6 py-2.5 text-xs font-bold text-white hover:bg-green-800 disabled:opacity-50 cursor-pointer"
+              className="min-h-[44px] w-full cursor-pointer rounded-xl bg-green-700 px-6 py-2.5 text-sm font-bold text-white hover:bg-green-800 disabled:opacity-50 sm:w-auto"
             >
               {status.about.saving ? "Menyimpan..." : "Simpan Tentang"}
             </button>
@@ -726,7 +726,7 @@ export default function SiteContent() {
           }}
           className="mt-6 space-y-5"
         >
-          <div className="flex items-center justify-between mb-2">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <div>
               <span className="text-sm font-bold text-gray-800">
                 Daftar Layanan ({servicesForm.items?.length || 0} / 12)
@@ -748,7 +748,7 @@ export default function SiteContent() {
                   });
                 }
               }}
-              className="rounded-lg bg-green-50 px-3 py-1.5 text-xs font-bold text-green-800 hover:bg-green-100 disabled:opacity-50 cursor-pointer"
+              className="min-h-[44px] shrink-0 cursor-pointer rounded-lg bg-green-50 px-4 py-2.5 text-sm font-bold text-green-800 hover:bg-green-100 disabled:opacity-50"
             >
               + Tambah Layanan
             </button>
@@ -774,7 +774,7 @@ export default function SiteContent() {
                         copy[index] = temp;
                         setServicesForm({ ...servicesForm, items: copy });
                       }}
-                      className="p-1.5 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-30 cursor-pointer"
+                      className="flex h-11 w-11 items-center justify-center rounded hover:bg-gray-200 text-gray-600 disabled:opacity-30 cursor-pointer"
                     >
                       <i className="fa-solid fa-arrow-up text-xs"></i>
                     </button>
@@ -789,7 +789,7 @@ export default function SiteContent() {
                         copy[index] = temp;
                         setServicesForm({ ...servicesForm, items: copy });
                       }}
-                      className="p-1.5 rounded hover:bg-gray-200 text-gray-600 disabled:opacity-30 cursor-pointer"
+                      className="flex h-11 w-11 items-center justify-center rounded hover:bg-gray-200 text-gray-600 disabled:opacity-30 cursor-pointer"
                     >
                       <i className="fa-solid fa-arrow-down text-xs"></i>
                     </button>
@@ -801,15 +801,15 @@ export default function SiteContent() {
                         const copy = servicesForm.items.filter((_, i) => i !== index);
                         setServicesForm({ ...servicesForm, items: copy });
                       }}
-                      className="p-1.5 rounded hover:bg-red-100 text-red-600 disabled:opacity-30 cursor-pointer"
+                      className="flex h-11 w-11 items-center justify-center rounded hover:bg-red-100 text-red-600 disabled:opacity-30 cursor-pointer"
                     >
                       <i className="fa-solid fa-trash text-xs"></i>
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                  <div className="sm:col-span-4">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                  <div className="md:col-span-4">
                     <label
                       htmlFor={`service-${index}-icon`}
                       className="block text-xs font-semibold text-gray-600 mb-1"
@@ -835,13 +835,13 @@ export default function SiteContent() {
                           setServicesForm({ ...servicesForm, items: copy });
                         }}
                         placeholder="mis. coins"
-                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:border-green-700"
+                        className="min-h-[44px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-base outline-none focus:border-green-700"
                       />
                     </div>
                   </div>
 
-                  <div className="sm:col-span-8">
-                    <div className="flex justify-between items-center mb-1">
+                  <div className="md:col-span-8">
+                    <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
                       <label
                         htmlFor={`service-${index}-title`}
                         className="block text-xs font-semibold text-gray-600"
@@ -860,13 +860,13 @@ export default function SiteContent() {
                         copy[index] = { ...copy[index], title: e.target.value };
                         setServicesForm({ ...servicesForm, items: copy });
                       }}
-                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:border-green-700"
+                      className="min-h-[44px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-base outline-none focus:border-green-700"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-center mb-1">
+                  <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
                     <label
                       htmlFor={`service-${index}-desc`}
                       className="block text-xs font-semibold text-gray-600"
@@ -886,7 +886,7 @@ export default function SiteContent() {
                       copy[index] = { ...copy[index], desc: e.target.value };
                       setServicesForm({ ...servicesForm, items: copy });
                     }}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:border-green-700 resize-y"
+                    className="min-h-[44px] w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2 text-base outline-none focus:border-green-700"
                   />
                 </div>
               </div>
@@ -905,19 +905,19 @@ export default function SiteContent() {
             </p>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
+          <div className="flex flex-col gap-3 pt-4 border-t border-gray-100 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <button
               type="button"
               disabled={status.services.saving}
               onClick={() => handleReset("services")}
-              className="rounded-xl px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+              className="min-h-[44px] w-full cursor-pointer rounded-xl px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-50 sm:w-auto"
             >
               Kembalikan ke bawaan
             </button>
             <button
               type="submit"
               disabled={status.services.saving}
-              className="rounded-xl bg-green-700 px-6 py-2.5 text-xs font-bold text-white hover:bg-green-800 disabled:opacity-50 cursor-pointer"
+              className="min-h-[44px] w-full cursor-pointer rounded-xl bg-green-700 px-6 py-2.5 text-sm font-bold text-white hover:bg-green-800 disabled:opacity-50 sm:w-auto"
             >
               {status.services.saving ? "Menyimpan..." : "Simpan Layanan"}
             </button>
@@ -951,7 +951,7 @@ export default function SiteContent() {
           className="mt-6 space-y-5"
         >
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="contact-address" className="block text-sm font-bold text-gray-700">
                 Alamat Lengkap Kantor
               </label>
@@ -964,13 +964,13 @@ export default function SiteContent() {
               maxLength={500}
               value={contactForm.address || ""}
               onChange={(e) => setContactForm({ ...contactForm, address: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700 resize-y"
+              className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
-              <div className="flex justify-between items-center mb-1.5">
+              <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
                 <label htmlFor="contact-email" className="block text-sm font-bold text-gray-700">
                   Surat Elektronik (Email)
                 </label>
@@ -983,12 +983,12 @@ export default function SiteContent() {
                 maxLength={254}
                 value={contactForm.email || ""}
                 onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700"
+                className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-1.5">
+              <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
                 <label htmlFor="contact-whatsapp-display" className="block text-sm font-bold text-gray-700">
                   Tampilan Nomor WhatsApp
                 </label>
@@ -1001,13 +1001,13 @@ export default function SiteContent() {
                 value={contactForm.whatsappDisplay || ""}
                 onChange={(e) => setContactForm({ ...contactForm, whatsappDisplay: e.target.value })}
                 placeholder="+62 851-5616-2917"
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700"
+                className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="contact-whatsapp" className="block text-sm font-bold text-gray-700">
                 Nomor WhatsApp (Hanya 8–15 Digit Angka, mis. 6285156162917)
               </label>
@@ -1023,12 +1023,12 @@ export default function SiteContent() {
                 setContactForm({ ...contactForm, whatsapp: e.target.value.replace(/\D/g, "") })
               }
               placeholder="6285156162917"
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="contact-maps-link" className="block text-sm font-bold text-gray-700">
                 Tautan Google Maps (HTTPS URL)
               </label>
@@ -1042,12 +1042,12 @@ export default function SiteContent() {
               value={contactForm.mapsLink || ""}
               onChange={(e) => setContactForm({ ...contactForm, mapsLink: e.target.value })}
               placeholder="https://maps.app.goo.gl/..."
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="contact-maps-embed" className="block text-sm font-bold text-gray-700">
                 URL Embed Google Maps (Harus diawali https://www.google.com/maps/embed)
               </label>
@@ -1061,7 +1061,7 @@ export default function SiteContent() {
               value={contactForm.mapsEmbedUrl || ""}
               onChange={(e) => setContactForm({ ...contactForm, mapsEmbedUrl: e.target.value })}
               placeholder="https://www.google.com/maps/embed?..."
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
@@ -1077,19 +1077,19 @@ export default function SiteContent() {
             </p>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
+          <div className="flex flex-col gap-3 pt-4 border-t border-gray-100 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <button
               type="button"
               disabled={status.contact.saving}
               onClick={() => handleReset("contact")}
-              className="rounded-xl px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+              className="min-h-[44px] w-full cursor-pointer rounded-xl px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-50 sm:w-auto"
             >
               Kembalikan ke bawaan
             </button>
             <button
               type="submit"
               disabled={status.contact.saving}
-              className="rounded-xl bg-green-700 px-6 py-2.5 text-xs font-bold text-white hover:bg-green-800 disabled:opacity-50 cursor-pointer"
+              className="min-h-[44px] w-full cursor-pointer rounded-xl bg-green-700 px-6 py-2.5 text-sm font-bold text-white hover:bg-green-800 disabled:opacity-50 sm:w-auto"
             >
               {status.contact.saving ? "Menyimpan..." : "Simpan Kontak"}
             </button>
@@ -1123,7 +1123,7 @@ export default function SiteContent() {
           className="mt-6 space-y-5"
         >
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="footer-desc" className="block text-sm font-bold text-gray-700">
                 Deskripsi Singkat Footer
               </label>
@@ -1136,12 +1136,12 @@ export default function SiteContent() {
               maxLength={1000}
               value={footerForm.description || ""}
               onChange={(e) => setFooterForm({ ...footerForm, description: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700 resize-y"
+              className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="footer-address" className="block text-sm font-bold text-gray-700">
                 Alamat Ringkas
               </label>
@@ -1153,13 +1153,13 @@ export default function SiteContent() {
               maxLength={500}
               value={footerForm.address || ""}
               onChange={(e) => setFooterForm({ ...footerForm, address: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
-              <div className="flex justify-between items-center mb-1.5">
+              <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
                 <label htmlFor="footer-phone" className="block text-sm font-bold text-gray-700">
                   Nomor Telepon
                 </label>
@@ -1171,12 +1171,12 @@ export default function SiteContent() {
                 maxLength={40}
                 value={footerForm.phone || ""}
                 onChange={(e) => setFooterForm({ ...footerForm, phone: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700"
+                className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-1.5">
+              <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
                 <label htmlFor="footer-email" className="block text-sm font-bold text-gray-700">
                   Email
                 </label>
@@ -1189,7 +1189,7 @@ export default function SiteContent() {
                 maxLength={254}
                 value={footerForm.email || ""}
                 onChange={(e) => setFooterForm({ ...footerForm, email: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-green-700"
+                className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
           </div>
@@ -1217,7 +1217,7 @@ export default function SiteContent() {
                     })
                   }
                   placeholder="https://facebook.com/..."
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-xs outline-none focus:border-green-700"
+                  className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base outline-none focus:border-green-700"
                 />
               </div>
 
@@ -1237,7 +1237,7 @@ export default function SiteContent() {
                     })
                   }
                   placeholder="https://instagram.com/..."
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-xs outline-none focus:border-green-700"
+                  className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base outline-none focus:border-green-700"
                 />
               </div>
 
@@ -1257,7 +1257,7 @@ export default function SiteContent() {
                     })
                   }
                   placeholder="https://youtube.com/..."
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-xs outline-none focus:border-green-700"
+                  className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base outline-none focus:border-green-700"
                 />
               </div>
             </div>
@@ -1275,19 +1275,19 @@ export default function SiteContent() {
             </p>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
+          <div className="flex flex-col gap-3 pt-4 border-t border-gray-100 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <button
               type="button"
               disabled={status.footer.saving}
               onClick={() => handleReset("footer")}
-              className="rounded-xl px-4 py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-50 cursor-pointer"
+              className="min-h-[44px] w-full cursor-pointer rounded-xl px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-50 sm:w-auto"
             >
               Kembalikan ke bawaan
             </button>
             <button
               type="submit"
               disabled={status.footer.saving}
-              className="rounded-xl bg-green-700 px-6 py-2.5 text-xs font-bold text-white hover:bg-green-800 disabled:opacity-50 cursor-pointer"
+              className="min-h-[44px] w-full cursor-pointer rounded-xl bg-green-700 px-6 py-2.5 text-sm font-bold text-white hover:bg-green-800 disabled:opacity-50 sm:w-auto"
             >
               {status.footer.saving ? "Menyimpan..." : "Simpan Footer"}
             </button>

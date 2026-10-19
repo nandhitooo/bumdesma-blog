@@ -5,6 +5,11 @@ import { adminApi } from "./api";
 function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  // true setelah server menjawab bahwa akun ini memakai verifikasi dua langkah.
+  // Kolom kode baru ditampilkan setelah itu, sehingga pengguna tanpa 2FA tidak
+  // melihat langkah tambahan apa pun.
+  const [requiresTotp, setRequiresTotp] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
@@ -15,10 +20,16 @@ function AdminLogin() {
     setError("");
     setSubmitting(true);
     try {
-      await adminApi("/api/auth/login", {
+      const data = await adminApi("/api/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(
+          requiresTotp ? { email, password, code } : { email, password },
+        ),
       });
+      if (data?.requiresTotp) {
+        setRequiresTotp(true);
+        return;
+      }
       navigate(location.state?.from?.pathname || "/admin", { replace: true });
     } catch (loginError) {
       setError(loginError.message);
@@ -28,9 +39,12 @@ function AdminLogin() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-green-900 px-5 py-12">
-      <section className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl sm:p-10">
-        <Link to="/" className="text-sm font-bold text-green-700 hover:text-green-900">
+    <main className="flex min-h-dvh items-center justify-center bg-green-900 px-4 py-10 sm:px-6">
+      <section className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
+        <Link
+          to="/"
+          className="inline-flex min-h-[44px] items-center text-sm font-bold text-green-700 hover:text-green-900"
+        >
           <i className="fa-solid fa-arrow-left mr-2" aria-hidden="true"></i>
           Kembali ke situs
         </Link>
@@ -54,7 +68,7 @@ function AdminLogin() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
           <div>
@@ -68,9 +82,33 @@ function AdminLogin() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
+          {requiresTotp && (
+            <div>
+              <label htmlFor="login-code" className="mb-2 block font-bold text-gray-700">
+                Kode verifikasi
+              </label>
+              <input
+                id="login-code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                required
+                value={code}
+                onChange={(event) =>
+                  setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+                placeholder="123456"
+                className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base tracking-[0.4em] outline-none focus:border-green-700"
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                Masukkan 6 digit dari aplikasi authenticator Anda.
+              </p>
+            </div>
+          )}
           {error && (
             <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
               {error}
@@ -79,7 +117,7 @@ function AdminLogin() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white transition hover:bg-green-800 disabled:opacity-60"
+            className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 text-base font-bold text-white transition hover:bg-green-800 disabled:opacity-60"
           >
             {submitting ? "Memeriksa..." : "Masuk"}
           </button>

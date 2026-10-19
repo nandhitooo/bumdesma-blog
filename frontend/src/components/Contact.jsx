@@ -33,13 +33,13 @@ const Contact = () => {
   ];
 
   return (
-    <section className="pt-8 sm:pt-10 lg:pt-12 pb-10 sm:pb-14 lg:pb-16 bg-gray-50 border-t border-gray-200 scroll-mt-18" id="contact">
+    <section className="py-10 sm:py-14 lg:py-16 bg-gray-50 border-t border-gray-200 scroll-mt-18" id="contact">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="max-w-3xl mb-12">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
             Kontak & Lokasi
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3 break-words">
             Hubungi Kami
           </h2>
           <p className="text-sm sm:text-base text-gray-600">
@@ -53,7 +53,7 @@ const Contact = () => {
             {contactCards.map((info, index) => (
               <div
                 key={index}
-                className="bg-white p-5 sm:p-6 rounded-xl border border-gray-200 flex items-start gap-4 hover:border-gray-300 transition-colors"
+                className="min-w-0 bg-white p-5 sm:p-6 rounded-xl border border-gray-200 flex items-start gap-4 hover:border-gray-300 transition-colors motion-reduce:transition-none"
               >
                 <div className="w-10 h-10 bg-brand-light rounded-lg flex items-center justify-center text-brand-primary shrink-0 mt-0.5">
                   <i
@@ -62,10 +62,10 @@ const Contact = () => {
                   ></i>
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-base font-bold text-gray-900 mb-1">
+                  <h3 className="text-base font-bold text-gray-900 mb-1 break-words">
                     {info.title}
                   </h3>
-                  <p                   className="mb-3 break-words text-sm leading-relaxed text-gray-600">
+                  <p className="mb-3 break-words text-sm leading-relaxed text-gray-600">
                     {info.content}
                   </p>
                   {info.link && (
@@ -73,7 +73,7 @@ const Contact = () => {
                       href={info.link}
                       target={info.link.startsWith("https://") ? "_blank" : undefined}
                       rel={info.link.startsWith("https://") ? "noopener noreferrer" : undefined}
-                      className="inline-flex min-h-[44px] items-center gap-1.5 rounded text-xs font-semibold text-brand-primary transition-colors hover:text-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                      className="inline-flex min-h-[44px] items-center gap-1.5 rounded text-sm font-semibold text-brand-primary transition-colors motion-reduce:transition-none hover:text-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
                     >
                       <span>{info.linkText}</span>
                       <i className="fa-solid fa-arrow-up-right-from-square text-[10px]" aria-hidden="true"></i>
@@ -86,12 +86,12 @@ const Contact = () => {
 
           {/* Map Column */}
           <div className="lg:col-span-7">
-            <div className="w-full h-[280px] sm:h-[340px] lg:h-[420px] bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="w-full overflow-hidden rounded-xl border border-gray-200 bg-white">
               {safeHttpsUrl(contact.mapsEmbedUrl).startsWith("https://www.google.com/maps/embed") && (
                 <iframe
                   title="Lokasi Kantor BUMDESMA Podo Rukun"
                   src={safeHttpsUrl(contact.mapsEmbedUrl)}
-                  className="w-full h-full border-0"
+                  className="w-full aspect-[4/3] sm:aspect-video border-0"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   // Sandbox: peta tetap berjalan, tetapi tidak boleh menavigasi

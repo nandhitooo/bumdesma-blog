@@ -88,13 +88,13 @@ function Gallery() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12 sm:py-16">
+    <main className="min-h-dvh bg-gray-50 py-10 sm:py-14 lg:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mb-10 max-w-2xl">
           <span className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
             Dokumentasi
           </span>
-          <h1 className="mt-2 mb-3 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl lg:text-4xl">
+          <h1 className="mt-2 mb-3 text-2xl font-bold tracking-tight text-gray-900 break-words sm:text-3xl lg:text-4xl">
             Galeri BUMDESMA Podo Rukun
           </h1>
           <p className="text-sm text-gray-600 sm:text-base">
@@ -117,7 +117,7 @@ function Gallery() {
             Memuat galeri...
           </p>
         ) : items.length ? (
-          <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((item, index) => (
               <li key={item.id}>
                 <button
@@ -131,20 +131,21 @@ function Gallery() {
                       ? `Buka foto: ${item.caption}`
                       : "Buka foto galeri"
                   }
-                  className="group block w-full overflow-hidden rounded-xl border border-gray-200 bg-white text-left transition-colors hover:border-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+                  className="group block w-full overflow-hidden rounded-xl border border-gray-200 bg-white text-left transition-colors motion-reduce:transition-none hover:border-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
                 >
                   <span className="block aspect-[4/3] overflow-hidden bg-gray-100">
                     <img
                       src={item.imageUrl}
                       alt={item.caption || "Foto kegiatan BUMDESMA"}
                       loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                      decoding="async"
+                      className="h-full w-full object-cover transition-transform motion-reduce:transition-none duration-300 motion-reduce:transition-none motion-reduce:transform-none group-hover:scale-[1.02]"
                     />
                   </span>
                   {(item.caption || item.eventDate) && (
                     <span className="block p-4">
                       {item.caption && (
-                        <span className="block text-sm font-semibold text-gray-900">
+                        <span className="block break-words text-sm font-semibold text-gray-900">
                           {item.caption}
                         </span>
                       )}
@@ -163,7 +164,7 @@ function Gallery() {
             ))}
           </ul>
         ) : (
-          <div className="mx-auto max-w-lg rounded-xl border border-gray-200 bg-white p-12 text-center">
+          <div className="mx-auto max-w-lg rounded-xl border border-gray-200 bg-white p-6 text-center sm:p-12">
             <h2 className="mb-1 text-lg font-bold text-gray-900">
               Belum ada foto
             </h2>
@@ -177,7 +178,7 @@ function Gallery() {
 
       {isOpen && activeItem && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/80 p-4"
+          className="fixed inset-0 z-50 flex max-h-dvh items-center justify-center overflow-y-auto bg-gray-900/80 p-4"
           onClick={() => setActiveIndex(null)}
         >
           <div
@@ -187,12 +188,12 @@ function Gallery() {
             aria-label="Pratinjau foto galeri"
             tabIndex={-1}
             onClick={(event) => event.stopPropagation()}
-            className="relative w-full max-w-4xl rounded-2xl bg-white p-4 shadow-2xl outline-none sm:p-6"
+            className="relative max-h-dvh w-full max-w-4xl overflow-y-auto rounded-2xl bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl outline-none sm:p-6 sm:pb-[max(1.5rem,env(safe-area-inset-bottom))]"
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 {activeItem.caption && (
-                  <p className="font-bold text-gray-900">
+                  <p className="break-words font-bold text-gray-900">
                     {activeItem.caption}
                   </p>
                 )}
@@ -206,7 +207,7 @@ function Gallery() {
                 type="button"
                 onClick={() => setActiveIndex(null)}
                 aria-label="Tutup pratinjau"
-                className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-700 transition hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-700 transition motion-reduce:transition-none hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
               >
                 <i className="fa-solid fa-xmark" aria-hidden="true"></i>
               </button>
@@ -216,39 +217,36 @@ function Gallery() {
               <img
                 src={activeItem.imageUrl}
                 alt={activeItem.caption || "Foto kegiatan BUMDESMA"}
-                className="max-h-[70vh] w-full rounded-xl bg-gray-100 object-contain"
+                decoding="async"
+                className="mx-auto max-h-[80dvh] max-w-full rounded-xl bg-gray-100 object-contain"
               />
-              {items.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={showPrevious}
-                    aria-label="Foto sebelumnya"
-                    className="absolute left-2 top-1/2 flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
-                  >
-                    <i
-                      className="fa-solid fa-chevron-left"
-                      aria-hidden="true"
-                    ></i>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={showNext}
-                    aria-label="Foto berikutnya"
-                    className="absolute right-2 top-1/2 flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
-                  >
-                    <i
-                      className="fa-solid fa-chevron-right"
-                      aria-hidden="true"
-                    ></i>
-                  </button>
-                </>
-              )}
             </div>
 
-            <p className="mt-3 text-center text-xs font-semibold text-gray-500">
-              {activeIndex + 1} / {items.length}
-            </p>
+            <div className="mt-3 flex items-center justify-center gap-3">
+              {items.length > 1 && (
+                <button
+                  type="button"
+                  onClick={showPrevious}
+                  aria-label="Foto sebelumnya"
+                  className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full bg-gray-100 text-gray-800 transition motion-reduce:transition-none hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                >
+                  <i className="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                </button>
+              )}
+              <p className="text-sm font-semibold text-gray-500">
+                {activeIndex + 1} / {items.length}
+              </p>
+              {items.length > 1 && (
+                <button
+                  type="button"
+                  onClick={showNext}
+                  aria-label="Foto berikutnya"
+                  className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full bg-gray-100 text-gray-800 transition motion-reduce:transition-none hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                >
+                  <i className="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

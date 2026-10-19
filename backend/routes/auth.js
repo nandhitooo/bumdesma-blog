@@ -14,6 +14,13 @@ import {
 } from "../middleware/auth.js";
 import { logAudit } from "../services/audit.js";
 import { withPasswordByteLimit } from "../services/passwords.js";
+import {
+  buildOtpauthUrl,
+  decryptSecret,
+  encryptSecret,
+  generateSecret,
+  verifyCode,
+} from "../services/totp.js";
 
 const router = express.Router();
 
@@ -32,7 +39,35 @@ const loginSchema = z.object({
   password: withPasswordByteLimit(
     z.string({ error: "Password wajib diisi." }).min(1, "Password wajib diisi."),
   ),
+  // Kode TOTP tidak divalidasi bentuknya di sini: kode yang salah (termasuk
+  // bukan 6 digit) harus dijawab 401 dari alur verifikasi, bukan 400 validasi.
+  code: z.string().optional(),
 });
+
+const totpCodeSchema = z.object({
+  code: z
+    .string({ error: "Kode verifikasi wajib diisi." })
+    .trim()
+    .min(1, "Kode verifikasi wajib diisi."),
+});
+
+const disableTotpSchema = z.object({
+  password: withPasswordByteLimit(
+    z.string({ error: "Password wajib diisi." }).min(1, "Password wajib diisi."),
+  ),
+  code: z
+    .string({ error: "Kode verifikasi wajib diisi." })
+    .trim()
+    .min(1, "Kode verifikasi wajib diisi."),
+});
+
+// bigint dari Postgres dikembalikan pg sebagai string; otplib membutuhkan
+// number untuk afterTimeStep. Nilai kosong berarti belum ada langkah tersimpan.
+function toTimeStep(value) {
+  if (value === null || value === undefined) return null;
+  const step = Number(value);
+  return Number.isSafeInteger(step) ? step : null;
+}
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -84,9 +119,11 @@ router.post("/login", loginLimiter, async (req, res, next) => {
       return res.status(400).json({ message: parsed.error.issues[0].message });
     }
 
-    const { email, password } = parsed.data;
+    const { email, password, code } = parsed.data;
     const { rows } = await pool.query(
-      "SELECT id, name, email, password_hash, role, created_at FROM users WHERE email = $1",
+      `SELECT id, name, email, password_hash, role, created_at,
+              totp_enabled, totp_secret, totp_last_step
+       FROM users WHERE email = $1`,
       [email],
     );
 
@@ -100,6 +137,31 @@ router.post("/login", loginLimiter, async (req, res, next) => {
 
     if (!passwordMatches) {
       return res.status(401).json({ message: "Email atau password salah." });
+    }
+
+    // Pengguna dengan 2FA belum mendapat cookie sebelum kode diverifikasi.
+    // Respons pertama (tanpa code) hanya memberi tahu frontend agar menampilkan
+    // kolom kode; limiter login tetap menghitung percobaan kode yang salah
+    // karena respons 401 tidak di-skip.
+    if (user.totp_enabled) {
+      if (!code) {
+        return res.json({ requiresTotp: true });
+      }
+
+      const { ok, step } = await verifyCode(
+        decryptSecret(user.totp_secret),
+        code,
+        { afterStep: toTimeStep(user.totp_last_step) },
+      );
+      if (!ok) {
+        return res.status(401).json({ message: "Kode verifikasi salah." });
+      }
+
+      // Langkah kode disimpan supaya kode yang sama tidak bisa dipakai ulang.
+      await pool.query("UPDATE users SET totp_last_step = $1 WHERE id = $2", [
+        step,
+        user.id,
+      ]);
     }
 
     res.cookie(AUTH_COOKIE, signToken(user), cookieOptions());
@@ -117,8 +179,23 @@ router.post("/logout", (req, res) => {
   return res.status(204).end();
 });
 
-router.get("/me", requireAuth, (req, res) => {
-  res.json({ user: publicUser(req.user) });
+router.get("/me", requireAuth, async (req, res, next) => {
+  try {
+    // requireAuth tidak memuat kolom TOTP, jadi statusnya dibaca di sini.
+    // publicUser sengaja tidak pernah memuat totp_secret.
+    const { rows } = await pool.query(
+      "SELECT totp_enabled FROM users WHERE id = $1",
+      [req.user.id],
+    );
+    return res.json({
+      user: {
+        ...publicUser(req.user),
+        totpEnabled: Boolean(rows[0]?.totp_enabled),
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 // Setiap pengguna yang sudah login boleh mengganti password-nya sendiri.
@@ -174,6 +251,167 @@ router.post(
       res.cookie(AUTH_COOKIE, signToken(req.user), cookieOptions());
       await logAudit(req, "password-change", "user", req.user.id);
       return res.json({ message: "Password berhasil diubah." });
+    } catch (error) {
+      return next(error);
+    }
+  },
+);
+
+/* ------------------------------------------------------------------ 2FA --- */
+
+// Mulai pengaturan 2FA: secret baru dibuat dan disimpan terenkripsi, tetapi
+// totp_enabled tetap false sampai pengguna membuktikan aplikasi authenticator
+// sudah menerima secret tersebut lewat /2fa/enable.
+router.post(
+  "/2fa/setup",
+  requireAuth,
+  changePasswordLimiter,
+  async (req, res, next) => {
+    try {
+      const { rows } = await pool.query(
+        "SELECT totp_enabled FROM users WHERE id = $1",
+        [req.user.id],
+      );
+      if (!rows[0]) {
+        return res.status(401).json({ message: "Akun tidak ditemukan." });
+      }
+      if (rows[0].totp_enabled) {
+        return res.status(400).json({
+          message: "Verifikasi dua langkah sudah aktif.",
+        });
+      }
+
+      const secret = generateSecret();
+      // Setup ulang sebelum diaktifkan mengganti secret lama dan mengosongkan
+      // langkah terakhir, supaya secret yang batal dipakai tidak tertinggal.
+      await pool.query(
+        `UPDATE users
+         SET totp_secret = $1, totp_enabled = false, totp_last_step = NULL
+         WHERE id = $2`,
+        [encryptSecret(secret), req.user.id],
+      );
+      await logAudit(req, "totp-setup", "user", req.user.id);
+
+      return res.json({
+        secret,
+        otpauthUrl: buildOtpauthUrl(req.user.email, secret),
+      });
+    } catch (error) {
+      return next(error);
+    }
+  },
+);
+
+router.post(
+  "/2fa/enable",
+  requireAuth,
+  changePasswordLimiter,
+  async (req, res, next) => {
+    try {
+      const parsed = totpCodeSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.issues[0].message });
+      }
+
+      const { rows } = await pool.query(
+        "SELECT totp_enabled, totp_secret FROM users WHERE id = $1",
+        [req.user.id],
+      );
+      const user = rows[0];
+      if (!user) {
+        return res.status(401).json({ message: "Akun tidak ditemukan." });
+      }
+      if (user.totp_enabled) {
+        return res.status(400).json({
+          message: "Verifikasi dua langkah sudah aktif.",
+        });
+      }
+      if (!user.totp_secret) {
+        return res.status(400).json({
+          message: "Mulai pengaturan verifikasi dua langkah terlebih dahulu.",
+        });
+      }
+
+      const { ok, step } = await verifyCode(
+        decryptSecret(user.totp_secret),
+        parsed.data.code,
+      );
+      if (!ok) {
+        return res.status(400).json({ message: "Kode verifikasi salah." });
+      }
+
+      await pool.query(
+        "UPDATE users SET totp_enabled = true, totp_last_step = $1 WHERE id = $2",
+        [step, req.user.id],
+      );
+      await logAudit(req, "totp-enable", "user", req.user.id);
+
+      return res.json({
+        message: "Verifikasi dua langkah berhasil diaktifkan.",
+        totpEnabled: true,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  },
+);
+
+// Kegagalan password atau kode sengaja 400, bukan 401: frontend memperlakukan
+// 401 sebagai sesi kedaluwarsa dan mengalihkan pengguna ke halaman login.
+router.post(
+  "/2fa/disable",
+  requireAuth,
+  changePasswordLimiter,
+  async (req, res, next) => {
+    try {
+      const parsed = disableTotpSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.issues[0].message });
+      }
+
+      const { rows } = await pool.query(
+        `SELECT password_hash, totp_enabled, totp_secret
+         FROM users WHERE id = $1`,
+        [req.user.id],
+      );
+      const user = rows[0];
+      if (!user) {
+        return res.status(401).json({ message: "Akun tidak ditemukan." });
+      }
+      if (!user.totp_enabled || !user.totp_secret) {
+        return res.status(400).json({
+          message: "Verifikasi dua langkah belum aktif.",
+        });
+      }
+
+      const passwordMatches = await bcrypt.compare(
+        parsed.data.password,
+        user.password_hash,
+      );
+      if (!passwordMatches) {
+        return res.status(400).json({ message: "Password salah." });
+      }
+
+      const { ok } = await verifyCode(
+        decryptSecret(user.totp_secret),
+        parsed.data.code,
+      );
+      if (!ok) {
+        return res.status(400).json({ message: "Kode verifikasi salah." });
+      }
+
+      await pool.query(
+        `UPDATE users
+         SET totp_enabled = false, totp_secret = NULL, totp_last_step = NULL
+         WHERE id = $1`,
+        [req.user.id],
+      );
+      await logAudit(req, "totp-disable", "user", req.user.id);
+
+      return res.json({
+        message: "Verifikasi dua langkah berhasil dinonaktifkan.",
+        totpEnabled: false,
+      });
     } catch (error) {
       return next(error);
     }

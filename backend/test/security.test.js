@@ -871,9 +871,22 @@ describe("Uji backup dan pemulihan", { skip: skipWhenApiDown || (ADMIN_EMAIL && 
     );
 
     const data = await readZipDataJson(buffer);
-    assert.equal(data.formatVersion, 1);
+    assert.equal(data.formatVersion, 2);
     assert.ok(Array.isArray(data.categories), "kategori harus berupa larik");
     assert.ok(Array.isArray(data.articles), "artikel harus berupa larik");
+    assert.ok(Array.isArray(data.gallery), "galeri harus berupa larik");
+    assert.ok(Array.isArray(data.team), "pengurus harus berupa larik");
+    assert.ok(Array.isArray(data.documents), "dokumen harus berupa larik");
+    assert.ok(
+      Array.isArray(data.serviceDetails),
+      "detail layanan harus berupa larik",
+    );
+    assert.ok(Array.isArray(data.faqs), "FAQ harus berupa larik");
+    assert.equal(data.counts.gallery, data.gallery.length);
+    assert.equal(data.counts.team, data.team.length);
+    assert.equal(data.counts.documents, data.documents.length);
+    assert.equal(data.counts.serviceDetails, data.serviceDetails.length);
+    assert.equal(data.counts.faqs, data.faqs.length);
     assert.doesNotMatch(
       JSON.stringify(data),
       /password_?hash|\$2[aby]\$/i,
@@ -889,6 +902,33 @@ describe("Uji backup dan pemulihan", { skip: skipWhenApiDown || (ADMIN_EMAIL && 
     // 401 akan membuat frontend mengira sesi berakhir lalu mengalihkan admin.
     assert.equal(result.status, 400);
     assert.equal(result.data.message, "Password salah.");
+  });
+
+  it("data v2 dengan tautan dokumen http ditolak (400)", async () => {
+    // Validasi berjalan sebelum snapshot dan transaksi, jadi data situs tidak
+    // tersentuh oleh percobaan ini.
+    const result = await withBackupZip(
+      [
+        [
+          "data.json",
+          backupData({
+            formatVersion: 2,
+            documents: [
+              {
+                title: "Laporan Uji",
+                year: 2025,
+                description: "",
+                url: "http://contoh.id/laporan.pdf",
+              },
+            ],
+          }),
+        ],
+      ],
+      (zipPath) => restoreBackup(backupCookie, backupPassword, zipPath),
+    );
+
+    assert.equal(result.status, 400);
+    assert.match(result.data.message, /format backup/i);
   });
 
   it("zip dengan nama entri yang menembus folder ditolak (400)", async () => {

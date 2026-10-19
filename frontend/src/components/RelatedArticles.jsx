@@ -40,19 +40,19 @@ function RelatedArticles({ slug }) {
       >
         Artikel Terkait
       </h2>
-      <ul className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
         {articles.map((article) => (
           <li key={article.id}>
-            <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-colors hover:border-gray-300">
+            <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-colors motion-reduce:transition-none hover:border-gray-300">
               <Link to={`/blog/${article.slug}`} className="flex h-full flex-col">
                 <ArticleImage
                   src={article.coverImageUrl}
                   alt={article.title}
                   containerClassName="h-36 w-full bg-gray-100"
-                  className="transition-opacity duration-300 group-hover:opacity-90"
+                  className="transition-opacity motion-reduce:transition-none duration-300 group-hover:opacity-90"
                 />
-                <div className="flex flex-1 flex-col p-4">
-                  <h3 className="text-sm font-bold leading-snug text-gray-900 transition-colors group-hover:text-brand-primary">
+                <div className="flex min-w-0 flex-1 flex-col p-4">
+                  <h3 className="text-sm font-bold leading-snug text-gray-900 transition-colors motion-reduce:transition-none group-hover:text-brand-primary break-words">
                     {article.title}
                   </h3>
                   {article.publishedAt && (

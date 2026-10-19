@@ -173,7 +173,7 @@ function AdminGallery() {
           <button
             type="button"
             onClick={() => setNotice("")}
-            className="rounded-lg px-3 py-1 text-sm font-bold text-green-800 transition hover:bg-green-100"
+            className="min-h-[44px] rounded-lg px-3 py-1 text-sm font-bold text-green-800 transition hover:bg-green-100 motion-reduce:transition-none"
           >
             Tutup
           </button>
@@ -188,9 +188,9 @@ function AdminGallery() {
 
       <form
         onSubmit={submit}
-        className="mb-7 grid gap-5 rounded-3xl bg-white p-5 shadow-sm sm:grid-cols-2 sm:p-7"
+        className="mb-7 grid grid-cols-1 gap-5 rounded-3xl bg-white p-5 shadow-sm md:grid-cols-2 sm:p-7"
       >
-        <div className="sm:col-span-2">
+        <div className="md:col-span-2">
           <span className="mb-2 block font-bold text-gray-700">Gambar</span>
           <div className="mb-3 aspect-[4/3] w-full max-w-sm overflow-hidden rounded-2xl border border-gray-200 bg-gray-100">
             {form.imageUrl ? (
@@ -198,6 +198,7 @@ function AdminGallery() {
                 src={form.imageUrl}
                 alt="Pratinjau gambar galeri"
                 className="h-full w-full object-cover"
+                decoding="async"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-4xl text-green-700">
@@ -218,7 +219,7 @@ function AdminGallery() {
               type="button"
               onClick={() => fileInput.current?.click()}
               disabled={uploading}
-              className="rounded-xl bg-green-50 px-4 py-3 font-bold text-green-800 hover:bg-green-100 disabled:opacity-60"
+              className="min-h-[44px] w-full rounded-xl bg-green-50 px-4 py-3 font-bold text-green-800 hover:bg-green-100 disabled:opacity-60 sm:w-auto"
             >
               {uploading ? "Mengunggah..." : "Pilih gambar"}
             </button>
@@ -226,7 +227,7 @@ function AdminGallery() {
               <button
                 type="button"
                 onClick={() => setForm((current) => ({ ...current, imageUrl: "" }))}
-                className="rounded-xl px-4 py-3 font-bold text-red-700 hover:bg-red-50"
+                className="min-h-[44px] w-full rounded-xl px-4 py-3 font-bold text-red-700 hover:bg-red-50 sm:w-auto"
               >
                 Hapus pilihan
               </button>
@@ -251,7 +252,7 @@ function AdminGallery() {
             onChange={(event) =>
               setForm((current) => ({ ...current, caption: event.target.value }))
             }
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700"
+            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
           />
         </div>
 
@@ -272,15 +273,15 @@ function AdminGallery() {
                 eventDate: event.target.value,
               }))
             }
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700"
+            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
           />
         </div>
 
-        <div className="sm:col-span-2">
+        <div className="md:col-span-2">
           <button
             type="submit"
             disabled={saving || uploading}
-            className="rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60"
+            className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
           >
             {saving ? "Menyimpan..." : "Tambah foto"}
           </button>
@@ -291,7 +292,7 @@ function AdminGallery() {
         {loading ? (
           <p className="p-10 text-center text-gray-500">Memuat galeri...</p>
         ) : items.length ? (
-          <ul className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
+          <ul className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:gap-6 sm:p-6">
             {items.map((item) => (
               <li
                 key={item.id}
@@ -302,6 +303,7 @@ function AdminGallery() {
                     src={item.imageUrl}
                     alt={item.caption || "Foto galeri"}
                     loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover"
                   />
                 </div>
@@ -325,7 +327,7 @@ function AdminGallery() {
                               caption: event.target.value,
                             }))
                           }
-                          className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-green-700"
+                          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-3 py-2 text-base outline-none focus:border-green-700"
                         />
                       </div>
                       <div>
@@ -345,21 +347,21 @@ function AdminGallery() {
                               eventDate: event.target.value,
                             }))
                           }
-                          className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-green-700"
+                          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-3 py-2 text-base outline-none focus:border-green-700"
                         />
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="submit"
                           disabled={savingId === item.id}
-                          className="rounded-lg bg-green-700 px-4 py-2 text-sm font-bold text-white hover:bg-green-800 disabled:opacity-60"
+                          className="min-h-[44px] w-full rounded-lg bg-green-700 px-4 py-2 text-sm font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
                         >
                           {savingId === item.id ? "Menyimpan..." : "Simpan"}
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditingId(null)}
-                          className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200"
+                          className="min-h-[44px] w-full rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
                         >
                           Batal
                         </button>
@@ -367,7 +369,7 @@ function AdminGallery() {
                     </form>
                   ) : (
                     <>
-                      <p className="font-bold text-gray-900">
+                      <p className="break-words font-bold text-gray-900">
                         {item.caption || "Tanpa keterangan"}
                       </p>
                       <p className="mt-1 text-sm text-gray-500">
@@ -379,14 +381,14 @@ function AdminGallery() {
                         <button
                           type="button"
                           onClick={() => startEdit(item)}
-                          className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200"
+                          className="min-h-[44px] w-full rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
                         >
                           Ubah
                         </button>
                         <button
                           type="button"
                           onClick={() => deleteItem(item)}
-                          className="rounded-lg bg-red-50 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-100"
+                          className="min-h-[44px] w-full rounded-lg bg-red-50 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-100 sm:w-auto"
                         >
                           Hapus
                         </button>

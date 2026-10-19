@@ -491,7 +491,7 @@ function ArticleEditor() {
               maxLength={200}
               value={form.title}
               onChange={(event) => updateTitle(event.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-lg outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-lg outline-none focus:border-green-700"
             />
           </div>
 
@@ -509,7 +509,7 @@ function ArticleEditor() {
                 setSlugEdited(true);
                 setField("slug", event.target.value.toLowerCase().replace(/\s+/g, "-"));
               }}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
             <p className="mt-2 text-xs text-gray-500">
               Gunakan huruf kecil, angka, dan tanda hubung. Slug dibuat otomatis dari judul.
@@ -526,11 +526,11 @@ function ArticleEditor() {
               maxLength={1000}
               value={form.excerpt}
               onChange={(event) => setField("excerpt", event.target.value)}
-              className="w-full resize-y rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700"
+              className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
               <label htmlFor="article-category" className="mb-2 block font-bold text-gray-700">
                 Kategori
@@ -539,7 +539,7 @@ function ArticleEditor() {
                 id="article-category"
                 value={form.categoryId}
                 onChange={(event) => setField("categoryId", event.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-green-700"
+                className="min-h-[44px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base outline-none focus:border-green-700"
               >
                 <option value="">Tanpa kategori</option>
                 {categories.map((category) => (
@@ -559,7 +559,7 @@ function ArticleEditor() {
                   id="article-status"
                   value={form.status}
                   onChange={(event) => setField("status", event.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 outline-none focus:border-green-700"
+                  className="min-h-[44px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base outline-none focus:border-green-700"
                 >
                   <option value="draft">Draf</option>
                   <option value="published">Terbit</option>
@@ -577,7 +577,7 @@ function ArticleEditor() {
                 type="datetime-local"
                 value={form.publishedAt}
                 onChange={(event) => setField("publishedAt", event.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700"
+                className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
               <p className="mt-2 text-xs text-gray-500">
                 Kosongkan untuk memakai waktu sekarang saat artikel diterbitkan.
@@ -608,7 +608,7 @@ function ArticleEditor() {
                 type="button"
                 onClick={() => coverInput.current?.click()}
                 disabled={coverUploading}
-                className="rounded-xl bg-green-50 px-4 py-3 font-bold text-green-800 hover:bg-green-100 disabled:opacity-60"
+                className="min-h-[44px] w-full rounded-xl bg-green-50 px-4 py-3 font-bold text-green-800 hover:bg-green-100 disabled:opacity-60 sm:w-auto"
               >
                 {coverUploading ? "Mengunggah..." : "Pilih gambar"}
               </button>
@@ -616,7 +616,7 @@ function ArticleEditor() {
                 <button
                   type="button"
                   onClick={() => setField("coverImageUrl", "")}
-                  className="rounded-xl px-4 py-3 font-bold text-red-700 hover:bg-red-50"
+                  className="min-h-[44px] w-full rounded-xl px-4 py-3 font-bold text-red-700 hover:bg-red-50 sm:w-auto"
                 >
                   Hapus sampul
                 </button>
@@ -646,14 +646,14 @@ function ArticleEditor() {
           <EditorContent editor={editor} />
         </section>
 
-        <div className="flex flex-wrap justify-end gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
           {id && (
             <button
               ref={historyButton}
               type="button"
               onClick={openHistory}
               aria-haspopup="dialog"
-              className="min-h-[44px] flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 transition hover:bg-gray-100"
+              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 transition hover:bg-gray-100 motion-reduce:transition-none sm:w-auto"
             >
               <i className="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
               Riwayat revisi
@@ -665,21 +665,21 @@ function ArticleEditor() {
             onClick={openPreview}
             disabled={!editor}
             aria-haspopup="dialog"
-            className="min-h-[44px] flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 transition hover:bg-gray-100 disabled:opacity-60"
+            className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 transition hover:bg-gray-100 disabled:opacity-60 motion-reduce:transition-none sm:w-auto"
           >
             <i className="fa-regular fa-eye" aria-hidden="true"></i>
             Pratinjau
           </button>
           <RouterLink
             to="/admin/articles"
-            className="min-h-[44px] flex items-center rounded-xl bg-white px-5 py-3 font-bold text-gray-700 shadow-sm hover:bg-gray-100"
+            className="flex min-h-[44px] w-full items-center justify-center rounded-xl bg-white px-5 py-3 font-bold text-gray-700 shadow-sm hover:bg-gray-100 sm:w-auto"
           >
             Batal
           </RouterLink>
           <button
             type="submit"
             disabled={saving || coverUploading || inlineUploading || !editor}
-            className="min-h-[44px] flex items-center rounded-xl bg-green-700 px-6 py-3 font-bold text-white transition hover:bg-green-800 disabled:opacity-60 cursor-pointer"
+            className="flex min-h-[44px] w-full cursor-pointer items-center justify-center rounded-xl bg-green-700 px-6 py-3 font-bold text-white transition hover:bg-green-800 disabled:opacity-60 motion-reduce:transition-none sm:w-auto"
           >
             {saving
               ? "Menyimpan..."
@@ -691,16 +691,16 @@ function ArticleEditor() {
       </form>
 
       {previewOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/60 p-3 sm:p-6">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-gray-900/60 p-4 sm:p-6">
           <div
             ref={previewDialog}
             role="dialog"
             aria-modal="true"
             aria-labelledby="article-preview-title"
             tabIndex={-1}
-            className="mx-auto w-full max-w-5xl rounded-3xl bg-white shadow-2xl outline-none"
+            className="mx-auto max-h-[90dvh] w-full max-w-5xl overflow-y-auto overflow-x-hidden overscroll-contain rounded-3xl bg-white shadow-2xl outline-none"
           >
-            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-200 p-4 sm:p-5">
+            <div className="sticky top-0 z-10 flex flex-wrap items-start justify-between gap-3 border-b border-gray-200 bg-white p-4 sm:p-5">
               <div className="min-w-0">
                 <h2
                   id="article-preview-title"
@@ -778,16 +778,16 @@ function ArticleEditor() {
       )}
 
       {historyOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/60 p-3 sm:p-6">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-gray-900/60 p-4 sm:p-6">
           <div
             ref={historyDialog}
             role="dialog"
             aria-modal="true"
             aria-labelledby="article-history-title"
             tabIndex={-1}
-            className="mx-auto w-full max-w-2xl rounded-3xl bg-white shadow-2xl outline-none"
+            className="mx-auto max-h-[90dvh] w-full max-w-2xl overflow-y-auto overscroll-contain rounded-3xl bg-white shadow-2xl outline-none"
           >
-            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-200 p-4 sm:p-5">
+            <div className="sticky top-0 z-10 flex flex-wrap items-start justify-between gap-3 border-b border-gray-200 bg-white p-4 sm:p-5">
               <div>
                 <h2
                   id="article-history-title"

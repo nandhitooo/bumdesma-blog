@@ -18,7 +18,8 @@
     "migrate": "npm run migrate --workspace backend",
     "seed": "npm run seed --workspace backend",
     "seed:articles": "npm run seed:articles --workspace backend",
-    "reset-password": "npm run reset-password --workspace backend"
+    "reset-password": "npm run reset-password --workspace backend",
+    "disable-2fa": "npm run disable-2fa --workspace backend"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
