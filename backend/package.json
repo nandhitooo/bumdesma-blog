@@ -8,7 +8,8 @@
     "test": "node --test \"test/**/*.test.js\"",
     "migrate": "node db/migrate.js",
     "seed": "node db/seed.js",
-    "seed:articles": "node db/seed-articles.js"
+    "seed:articles": "node db/seed-articles.js",
+    "reset-password": "node db/reset-password.js"
   },
   "dependencies": {
     "archiver": "^8.0.0",
