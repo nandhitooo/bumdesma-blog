@@ -16,7 +16,10 @@ const UPLOAD_URL_IN_HTML_PATTERN = /\/uploads\/[0-9a-fA-F-]{1,64}\.(?:jpg|png|we
 // masukan pengguna, sehingga nama tabel/kolom aman disisipkan ke query. Tanpa
 // pemeriksaan ini, gambar yang masih dipakai galeri bisa terhapus saat artikel
 // yang memakai gambar yang sama diperbarui.
-const EXTRA_REFERENCES = [{ table: "gallery_items", column: "image_url" }];
+const EXTRA_REFERENCES = [
+  { table: "gallery_items", column: "image_url" },
+  { table: "team_members", column: "photo_url" },
+];
 
 export function isUploadUrl(value) {
   return typeof value === "string" && UPLOAD_URL_PATTERN.test(value);

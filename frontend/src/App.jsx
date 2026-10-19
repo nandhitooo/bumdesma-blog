@@ -13,6 +13,7 @@ import BlogList from "./pages/BlogList";
 import BlogDetail from "./pages/BlogDetail";
 import Gallery from "./pages/Gallery";
 import Transparency from "./pages/Transparency";
+import Team from "./pages/Team";
 import NotFound from "./pages/NotFound";
 import { SiteContentProvider } from "./lib/siteContent";
 
@@ -29,6 +30,7 @@ const AdminSiteContent = lazy(() => import("./admin/SiteContent"));
 const AdminChangePassword = lazy(() => import("./admin/ChangePassword"));
 const AdminBackup = lazy(() => import("./admin/Backup"));
 const AdminDocuments = lazy(() => import("./admin/Documents"));
+const AdminTeam = lazy(() => import("./admin/Team"));
 
 const adminFallback = (
   <main className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-600">
@@ -119,6 +121,16 @@ function App() {
             }
           />
           <Route
+            path="/pengurus"
+            element={
+              <>
+                <Header />
+                <Team />
+                <Footer />
+              </>
+            }
+          />
+          <Route
             path="/cms"
             element={
               <>
@@ -152,6 +164,7 @@ function App() {
             <Route path="articles/:id/edit" element={<AdminArticleEditor />} />
             <Route path="gallery" element={<AdminGallery />} />
             <Route path="documents" element={<AdminDocuments />} />
+            <Route path="team" element={<AdminTeam />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="content" element={<AdminSiteContent />} />
