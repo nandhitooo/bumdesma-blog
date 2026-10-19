@@ -19,6 +19,7 @@ const emptyForm = {
   categoryId: "",
   coverImageUrl: "",
   status: "draft",
+  publishedAt: "",
 };
 
 // Sejalan dengan allowedSchemes di backend (services/articles.js): tautan relatif
@@ -52,6 +53,19 @@ function normalizeColorStyles(html) {
     /style="([^"]*)"/g,
     (_match, css) => `style="${css.replace(RGB_COLOR, toHexColor)}"`,
   );
+}
+
+const padDatePart = (value) => String(value).padStart(2, "0");
+
+// input datetime-local memakai waktu lokal tanpa zona waktu. Nilai ISO dari
+// server (UTC) harus diubah ke komponen waktu lokal, bukan dipotong mentah.
+function toDateTimeLocal(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(
+    date.getDate(),
+  )}T${padDatePart(date.getHours())}:${padDatePart(date.getMinutes())}`;
 }
 
 function ArticleEditor() {
@@ -137,6 +151,7 @@ function ArticleEditor() {
             categoryId: article.categoryId ? String(article.categoryId) : "",
             coverImageUrl: article.coverImageUrl || "",
             status: article.status,
+            publishedAt: toDateTimeLocal(article.publishedAt),
           };
           setForm(loadedForm);
           setSlugEdited(true);
@@ -330,7 +345,12 @@ function ArticleEditor() {
       coverImageUrl: form.coverImageUrl || null,
       categoryId: form.categoryId ? Number(form.categoryId) : null,
     };
-    if (user.role === "admin") payload.status = form.status;
+    if (user.role === "admin") {
+      payload.status = form.status;
+      if (form.status === "published" && form.publishedAt) {
+        payload.publishedAt = new Date(form.publishedAt).toISOString();
+      }
+    }
 
     try {
       if (id) {
@@ -349,7 +369,12 @@ function ArticleEditor() {
         state: { notice: id ? "Artikel berhasil diperbarui." : "Artikel berhasil dibuat." },
       });
     } catch (saveError) {
-      setError(saveError.message);
+      if (saveError.status === 409) {
+        setError("Slug sudah dipakai artikel lain. Ubah slug lalu simpan lagi.");
+        setSlugEdited(true);
+      } else {
+        setError(saveError.message);
+      }
     } finally {
       setSaving(false);
     }
@@ -481,6 +506,23 @@ function ArticleEditor() {
               </div>
             )}
           </div>
+          {user.role === "admin" && form.status === "published" && (
+            <div>
+              <label htmlFor="article-published-at" className="mb-2 block font-bold text-gray-700">
+                Tanggal terbit (opsional)
+              </label>
+              <input
+                id="article-published-at"
+                type="datetime-local"
+                value={form.publishedAt}
+                onChange={(event) => setField("publishedAt", event.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700"
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                Kosongkan untuk memakai waktu sekarang saat artikel diterbitkan.
+              </p>
+            </div>
+          )}
 
           <div>
             <span className="mb-2 block font-bold text-gray-700">Gambar sampul</span>

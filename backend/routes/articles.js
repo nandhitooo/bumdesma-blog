@@ -78,6 +78,7 @@ const articleFields = {
 const createArticleSchema = z.object({
   ...articleFields,
   status: z.enum(["draft", "published"]).optional(),
+  publishedAt: z.iso.datetime({ offset: true }).nullable().optional(),
 });
 const updateArticleSchema = z.object({
   ...articleFields,
@@ -92,6 +93,7 @@ const updateArticleSchema = z.object({
   excerpt: z.string().trim().max(1000).optional(),
   contentHtml: z.string().max(1_000_000).optional(),
   status: z.enum(["draft", "published"]).optional(),
+  publishedAt: z.iso.datetime({ offset: true }).nullable().optional(),
 });
 // Isi yang dipratinjau divalidasi dengan aturan yang sama seperti penyimpanan,
 // supaya hasil pratinjau tidak bisa menerima masukan yang akan ditolak saat
@@ -262,7 +264,11 @@ adminRouter.post(
       coverImageUrl,
       categoryId,
       status = "draft",
+      publishedAt,
     } = req.validated.body;
+    if (req.user.role === "editor" && publishedAt !== undefined) {
+      return res.status(403).json({ message: "Editor tidak dapat mengatur tanggal terbit." });
+    }
     if (req.user.role === "editor" && status === "published") {
       return res.status(403).json({ message: "Editor tidak dapat menerbitkan artikel." });
     }
@@ -270,7 +276,7 @@ adminRouter.post(
       `INSERT INTO articles
         (title, slug, excerpt, content_html, cover_image_url, category_id, author_id, status, published_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
-         CASE WHEN $8 = 'published' THEN now() ELSE NULL END)
+         CASE WHEN $8 = 'published' THEN COALESCE($9::timestamptz, now()) ELSE NULL END)
        RETURNING id`,
       [
         title,
@@ -281,6 +287,7 @@ adminRouter.post(
         categoryId ?? null,
         req.user.id,
         status,
+        publishedAt ?? null,
       ],
     );
     return res.status(201).json({ id: rows[0].id });
@@ -306,6 +313,8 @@ adminRouter.put(
     };
 
     for (const [field, value] of Object.entries(fields)) {
+      // Tanggal terbit diurus query terpisah di bawah; jangan dianggap kolom.
+      if (field === "publishedAt") continue;
       if (field === "contentHtml") {
         values.push(cleanContent(value));
       } else {
@@ -314,6 +323,9 @@ adminRouter.put(
       assignments.push(`${columnNames[field]} = $${values.length}`);
     }
 
+    if (req.user.role === "editor" && fields.publishedAt !== undefined) {
+      return res.status(403).json({ message: "Editor tidak dapat mengatur tanggal terbit." });
+    }
     if (req.user.role === "editor" && fields.status === "published") {
       return res.status(403).json({ message: "Editor tidak dapat menerbitkan artikel." });
     }
@@ -351,8 +363,21 @@ adminRouter.put(
       return res.status(404).json({ message: "Artikel tidak ditemukan." });
     }
 
+    // Tanggal terbit hanya berlaku untuk artikel terbit; dikirim terpisah agar
+    // PUT parsial yang tidak menyertakannya tidak mengubah published_at.
+    if (typeof fields.publishedAt === "string") {
+      const publishedValues = [fields.publishedAt, req.validated.params.id];
+      const publishedFilters = ["id = $2", "status = 'published'"];
+      scopeToEditor(publishedFilters, publishedValues, req.user, "author_id");
+      await pool.query(
+        `UPDATE articles SET published_at = $1::timestamptz WHERE ${publishedFilters.join(" AND ")}`,
+        publishedValues,
+      );
+    }
+
     const previousRow = previous.rows[0];
     const removedCoverImages =
+      "coverImageUrl" in fields &&
       previousRow?.cover_image_url &&
       previousRow.cover_image_url !== fields.coverImageUrl
         ? [previousRow.cover_image_url]

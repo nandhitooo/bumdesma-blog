@@ -15,7 +15,7 @@ function statusFor(err) {
     Number(err.status || err.statusCode) ||
     (err.code === "LIMIT_FILE_SIZE"
       ? 413
-      : err.code?.startsWith("LIMIT_")
+      : typeof err.code === "string" && err.code.startsWith("LIMIT_")
         ? 400
         : err.code === "23505"
           ? 409
@@ -32,7 +32,9 @@ function messageFor(err, status) {
   if (err.code === "23505") return "Data sudah digunakan.";
   if (err.code === "23503" || err.code === "23514") return "Data terkait tidak valid.";
   if (err.code === "LIMIT_FILE_SIZE") return "Ukuran file maksimal 2 MB.";
-  if (err.code?.startsWith("LIMIT_")) return "Permintaan unggah tidak valid.";
+  if (typeof err.code === "string" && err.code.startsWith("LIMIT_")) {
+    return "Permintaan unggah tidak valid.";
+  }
   if (status >= 500) return "Terjadi kesalahan pada server.";
   return err.message || "Permintaan tidak valid.";
 }
