@@ -39,7 +39,7 @@ function BlogDetail() {
   }, [slug]);
 
   return (
-    <main className="min-h-screen bg-white py-12 sm:py-16">
+    <main className="min-h-dvh bg-white py-10 sm:py-14 lg:py-16">
       <div className="max-w-[720px] mx-auto px-4 sm:px-6">
         {loading ? (
           <div className="py-20 text-center text-sm font-medium text-gray-500">
@@ -51,7 +51,7 @@ function BlogDetail() {
             <div className="mb-6">
               <Link
                 to="/blog"
-                className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors"
+                className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors motion-reduce:transition-none"
               >
                 <i className="fa-solid fa-arrow-left text-xs" aria-hidden="true"></i>
                 <span>Kembali ke Blog</span>
@@ -64,10 +64,10 @@ function BlogDetail() {
             <RelatedArticles slug={article.slug} />
 
             {/* Bottom Back Link */}
-            <div className="mt-12 pt-6 border-t border-gray-200 flex justify-between items-center">
+            <div className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 pt-6">
               <Link
                 to="/blog"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors"
+                className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors motion-reduce:transition-none"
               >
                 <i className="fa-solid fa-arrow-left text-xs" aria-hidden="true"></i>
                 <span>Kembali ke Daftar Blog</span>
@@ -76,15 +76,15 @@ function BlogDetail() {
           </article>
         ) : (
           <div className="border border-gray-200 rounded-xl p-10 text-center">
-            <h1 className="text-xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2 break-words">
               Artikel tidak ditemukan
             </h1>
-            <p role="alert" className="text-sm text-gray-600 mb-6">
+            <p role="alert" className="text-sm text-gray-600 mb-6 break-words">
               {error || "Artikel ini tidak tersedia atau belum dipublikasikan."}
             </p>
             <Link
               to="/blog"
-              className="inline-flex bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+              className="inline-flex min-h-[44px] items-center justify-center bg-brand-primary px-5 py-2.5 text-sm font-medium text-white transition-colors motion-reduce:transition-none hover:bg-brand-dark"
             >
               Kembali ke Blog
             </Link>

@@ -35,13 +35,13 @@ function Team() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12 sm:py-16">
+    <main className="min-h-dvh bg-gray-50 py-10 sm:py-14 lg:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mb-10 max-w-2xl">
           <span className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
             Struktur Organisasi
           </span>
-          <h1 className="mt-2 mb-3 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl lg:text-4xl">
+          <h1 className="mt-2 mb-3 text-2xl font-bold tracking-tight text-gray-900 break-words sm:text-3xl lg:text-4xl">
             Pengurus BUMDESMA Podo Rukun
           </h1>
           <p className="text-sm text-gray-600 sm:text-base">
@@ -64,26 +64,26 @@ function Team() {
             Memuat pengurus...
           </p>
         ) : members.length ? (
-          <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {members.map((member) => (
               <li
                 key={member.id}
-                className="overflow-hidden rounded-xl border border-gray-200 bg-white"
+                className="min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white"
               >
                 <ArticleImage
                   src={member.photoUrl}
                   alt={member.photoUrl ? `Foto ${member.name}` : ""}
                   aspectRatio="aspect-[4/5]"
                 />
-                <div className="p-5">
-                  <h2 className="text-base font-bold text-gray-900">
+                <div className="min-w-0 p-5">
+                  <h2 className="text-base font-bold text-gray-900 break-words">
                     {member.name}
                   </h2>
-                  <p className="mt-1 text-sm font-semibold text-brand-primary">
+                  <p className="mt-1 text-sm font-semibold text-brand-primary break-words">
                     {member.position}
                   </p>
                   {member.termLabel && (
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-sm text-gray-500 break-words">
                       Masa bakti {member.termLabel}
                     </p>
                   )}
@@ -92,7 +92,7 @@ function Team() {
             ))}
           </ul>
         ) : (
-          <div className="mx-auto max-w-lg rounded-xl border border-gray-200 bg-white p-12 text-center">
+          <div className="mx-auto max-w-lg rounded-xl border border-gray-200 bg-white p-6 text-center sm:p-12">
             <h2 className="mb-1 text-lg font-bold text-gray-900">
               Belum ada data pengurus
             </h2>

@@ -8,6 +8,7 @@ export default function ArticleImage({
   containerClassName = "",
   aspectRatio = "aspect-[16/9]",
   iconSize = "text-3xl",
+  loading = "lazy",
 }) {
   const [errorSrc, setErrorSrc] = useState(null);
 
@@ -21,7 +22,8 @@ export default function ArticleImage({
         <img
           src={src}
           alt={alt}
-          loading="lazy"
+          loading={loading}
+          decoding="async"
           onError={() => setErrorSrc(src)}
           className={`w-full h-full object-cover ${className}`}
         />

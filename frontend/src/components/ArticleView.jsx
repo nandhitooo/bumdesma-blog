@@ -52,7 +52,7 @@ function ArticleView({ article, showPlaceholders = false }) {
       </div>
 
       {/* Title */}
-      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900 leading-tight mb-6">
+      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900 leading-tight mb-6 break-words">
         {hasTitle ? (
           title
         ) : showPlaceholders ? (
@@ -62,7 +62,7 @@ function ArticleView({ article, showPlaceholders = false }) {
 
       {/* Excerpt */}
       {hasExcerpt ? (
-        <p className="text-base sm:text-lg text-gray-600 leading-relaxed pl-4 border-l-2 border-brand-primary mb-8 italic">
+        <p className="text-base sm:text-lg text-gray-600 leading-relaxed pl-4 border-l-2 border-brand-primary mb-8 italic break-words">
           {excerpt}
         </p>
       ) : (
@@ -80,13 +80,14 @@ function ArticleView({ article, showPlaceholders = false }) {
           alt={title || ""}
           containerClassName="w-full max-h-[440px] aspect-[16/9]"
           iconSize="text-5xl"
+          loading="eager"
         />
       </div>
 
       {/* Article Content */}
       {hasContent ? (
         <div
-          className="article-content"
+          className="article-content max-w-prose break-words [&_code]:break-words [&_iframe]:aspect-video [&_iframe]:w-full [&_img]:h-auto [&_img]:max-w-full [&_p]:break-words [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_video]:aspect-video [&_video]:w-full"
           dangerouslySetInnerHTML={{ __html: contentHtml }}
         />
       ) : showPlaceholders ? (
@@ -94,7 +95,7 @@ function ArticleView({ article, showPlaceholders = false }) {
           Isi artikel belum diisi
         </p>
       ) : (
-        <div className="article-content" />
+        <div className="article-content max-w-prose" />
       )}
     </>
   );

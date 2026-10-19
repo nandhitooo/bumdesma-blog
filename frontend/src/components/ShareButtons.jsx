@@ -50,7 +50,7 @@ function ShareButtons({ title, slug }) {
   };
 
   const buttonClass =
-    "inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2";
+    "inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors motion-reduce:transition-none hover:border-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2";
 
   return (
     <section className="mt-12 border-t border-gray-200 pt-8" aria-labelledby="bagikan-judul">
@@ -81,7 +81,7 @@ function ShareButtons({ title, slug }) {
           <span>Salin tautan</span>
         </button>
       </div>
-      <p aria-live="polite" className="mt-3 text-xs font-semibold text-brand-primary">
+      <p aria-live="polite" className="mt-3 text-sm font-semibold text-brand-primary">
         {copied ? "Tautan disalin" : ""}
       </p>
     </section>

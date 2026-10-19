@@ -55,7 +55,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-gray-900 text-gray-300 border-t border-gray-800">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 lg:py-16">
         {/* At most 3 columns */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-12 mb-12">
           {/* Column 1: Brand & Info */}
@@ -64,18 +64,22 @@ const Footer = () => {
               <img
                 src={bumdesmaNganjuk}
                 alt="BUMDESMA Nganjuk"
-                className="h-8 w-auto brightness-95"
+                className="h-8 w-8 object-contain brightness-95"
+                loading="lazy"
+                decoding="async"
               />
               <img
                 src={podoRukun}
                 alt="Podo Rukun"
-                className="h-8 w-auto brightness-95"
+                className="h-8 w-8 object-contain brightness-95"
+                loading="lazy"
+                decoding="async"
               />
-              <span className="text-lg font-bold text-white tracking-tight">
+              <span className="min-w-0 break-words text-lg font-bold text-white tracking-tight">
                 BUMDESMA
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-gray-400 leading-relaxed mb-6">
+            <p className="text-sm text-gray-400 leading-relaxed mb-6 break-words">
               {footer.description}
             </p>
             {socialLinks.length > 0 && (
@@ -87,7 +91,7 @@ const Footer = () => {
                     aria-label={item.label}
                     target={item.href.startsWith("http") ? "_blank" : undefined}
                     rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                    className="w-8 h-8 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white flex items-center justify-center transition-colors text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+                    className="flex h-11 w-11 items-center justify-center rounded bg-gray-800 text-xs text-gray-300 transition-colors motion-reduce:transition-none hover:bg-gray-700 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
                   >
                     <i
                       className={`${item.isBrand ? "fa-brands" : "fa-solid"} fa-${item.name}`}
@@ -104,39 +108,39 @@ const Footer = () => {
             <h3 className="text-sm font-semibold text-white tracking-wider uppercase mb-4">
               Navigasi Halaman
             </h3>
-            <ul className="space-y-2.5 text-xs sm:text-sm">
+            <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/#home" className="hover:text-white transition-colors">
+                <Link to="/#home" className="inline-flex min-h-[44px] min-w-[44px] items-center hover:text-white transition-colors motion-reduce:transition-none">
                   Beranda
                 </Link>
               </li>
               <li>
-                <Link to="/#about" className="hover:text-white transition-colors">
+                <Link to="/#about" className="inline-flex min-h-[44px] min-w-[44px] items-center hover:text-white transition-colors motion-reduce:transition-none">
                   Tentang Kami
                 </Link>
               </li>
               <li>
-                <Link to="/#services" className="hover:text-white transition-colors">
+                <Link to="/#services" className="inline-flex min-h-[44px] min-w-[44px] items-center hover:text-white transition-colors motion-reduce:transition-none">
                   Layanan Usaha
                 </Link>
               </li>
               <li>
-                <Link to="/#activity" className="hover:text-white transition-colors">
+                <Link to="/#activity" className="inline-flex min-h-[44px] min-w-[44px] items-center hover:text-white transition-colors motion-reduce:transition-none">
                   Kegiatan Terbaru
                 </Link>
               </li>
               <li>
-                <Link to="/blog" className="hover:text-white transition-colors">
+                <Link to="/blog" className="inline-flex min-h-[44px] min-w-[44px] items-center hover:text-white transition-colors motion-reduce:transition-none">
                   Blog & Artikel
                 </Link>
               </li>
               <li>
-                <Link to="/faq" className="hover:text-white transition-colors">
+                <Link to="/faq" className="inline-flex min-h-[44px] min-w-[44px] items-center hover:text-white transition-colors motion-reduce:transition-none">
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link to="/#contact" className="hover:text-white transition-colors">
+                <Link to="/#contact" className="inline-flex min-h-[44px] min-w-[44px] items-center hover:text-white transition-colors motion-reduce:transition-none">
                   Hubungi Kami
                 </Link>
               </li>
@@ -148,10 +152,10 @@ const Footer = () => {
             <h3 className="text-sm font-semibold text-white tracking-wider uppercase mb-4">
               Kontak Kantor
             </h3>
-            <ul className="space-y-3 text-xs sm:text-sm text-gray-400">
-              <li className="flex items-start gap-2.5">
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li className="flex min-w-0 items-start gap-2.5">
                 <i className="fa-solid fa-location-dot text-brand-primary mt-1 shrink-0" aria-hidden="true"></i>
-                <span className="break-words">
+                <span className="min-w-0 break-words">
                   {footer.address}
                 </span>
               </li>
@@ -161,7 +165,7 @@ const Footer = () => {
                   {safePhoneLink(footer.phone) ? (
                     <a
                       href={safePhoneLink(footer.phone)}
-                      className="min-w-0 break-words hover:text-white transition-colors"
+                      className="inline-flex min-h-[44px] min-w-0 items-center break-words hover:text-white transition-colors motion-reduce:transition-none"
                     >
                       {footer.phone}
                     </a>
@@ -175,13 +179,13 @@ const Footer = () => {
                   <i className="fa-solid fa-envelope shrink-0 text-brand-primary" aria-hidden="true"></i>
                   <a
                     href={safeMailto(footer.email)}
-                    className="min-w-0 break-words hover:text-white transition-colors"
+                    className="inline-flex min-h-[44px] min-w-0 items-center break-words hover:text-white transition-colors motion-reduce:transition-none"
                   >
                     {footer.email}
                   </a>
                 </li>
               )}
-              <li className="pt-2 border-t border-gray-800 text-[11px] text-gray-500">
+              <li className="pt-2 border-t border-gray-800 text-sm text-gray-500">
                 Badan Hukum: AHU-00115.AH.01.35.Tahun 2022
               </li>
             </ul>
@@ -189,9 +193,9 @@ const Footer = () => {
         </div>
 
         {/* Sub-footer */}
-        <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-500">
+        <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-sm text-gray-500">
           <p>© {currentYear} BUMDesma PODO RUKUN LKD. Hak Cipta Dilindungi.</p>
-          <p className="text-[11px]">Kecamatan Wilangan, Kabupaten Nganjuk</p>
+          <p className="text-sm">Kecamatan Wilangan, Kabupaten Nganjuk</p>
         </div>
       </div>
     </footer>

@@ -8,13 +8,13 @@ const About = () => {
   const profileUrl = safeHttpsUrl(about.profileUrl);
 
   return (
-    <section className="pt-8 sm:pt-10 lg:pt-12 pb-10 sm:pb-14 lg:pb-16 bg-white scroll-mt-18" id="about">
+    <section className="py-10 sm:py-14 lg:py-16 bg-white scroll-mt-18" id="about">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="max-w-3xl mb-12">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
             Tentang BUMDESMA
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3 break-words">
             {about.heading}
           </h2>
           <p className="text-sm sm:text-base text-gray-600">
@@ -29,20 +29,22 @@ const About = () => {
               <img
                 src={podorukun}
                 alt="Logo BUMDESMA Podo Rukun"
-                className="w-48 sm:w-56 h-auto object-contain"
+                className="aspect-square w-48 object-contain sm:w-56"
+                loading="lazy"
+                decoding="async"
               />
             </div>
           </div>
 
           {/* Copy Column */}
-          <div className="lg:col-span-8 space-y-5 text-sm sm:text-base text-gray-700 leading-relaxed">
+          <div className="lg:col-span-8 min-w-0 space-y-5 break-words text-sm sm:text-base text-gray-700 leading-relaxed">
             {Array.isArray(about.paragraphs) &&
               about.paragraphs.map((para, index) => (
                 <p
                   key={index}
                   className={
                     index === about.paragraphs.length - 1
-                      ? "text-xs sm:text-sm text-gray-500"
+                      ? "text-sm text-gray-500"
                       : ""
                   }
                 >
@@ -56,7 +58,7 @@ const About = () => {
                   href={profileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2.5 bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+                  className="inline-flex min-h-[44px] items-center gap-2.5 bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
                 >
                   <span>Unduh Dokumen Profil Resmi</span>
                   <i className="fa-solid fa-file-pdf text-xs" aria-hidden="true"></i>
