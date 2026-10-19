@@ -91,7 +91,7 @@ router.get("/sitemap.xml", seoLimiter, async (req, res) => {
   const { rows } = await pool.query(
     `SELECT slug, updated_at
      FROM articles
-     WHERE status = 'published'
+     WHERE status = 'published' AND published_at <= now()
      ORDER BY updated_at DESC
      LIMIT $1`,
     [SITEMAP_LIMIT],
@@ -128,10 +128,12 @@ router.get("/sitemap.xml", seoLimiter, async (req, res) => {
 router.get("/feed.xml", seoLimiter, async (req, res) => {
   // Artikel terbit selalu punya published_at, tetapi COALESCE menjaga data lama
   // yang belum sempat diisi tetap punya tanggal yang valid di feed.
+  // Artikel yang masih terjadwal belum masuk feed: pembaca tidak boleh
+  // menemukan tautan yang belum bisa dibuka.
   const { rows } = await pool.query(
     `SELECT title, slug, excerpt, COALESCE(published_at, created_at) AS published_at
      FROM articles
-     WHERE status = 'published'
+     WHERE status = 'published' AND published_at <= now()
      ORDER BY published_at DESC NULLS LAST, created_at DESC
      LIMIT $1`,
     [FEED_LIMIT],
@@ -184,10 +186,12 @@ router.get("/share/:slug", seoLimiter, async (req, res) => {
       );
   }
 
+  // Pratinjau tautan untuk artikel terjadwal harus 404 sampai jam terbitnya,
+  // supaya judul dan ringkasannya tidak bocor lebih awal.
   const { rows } = await pool.query(
     `SELECT title, slug, excerpt, cover_image_url
      FROM articles
-     WHERE slug = $1 AND status = 'published'`,
+     WHERE slug = $1 AND status = 'published' AND published_at <= now()`,
     [slug],
   );
   const article = rows[0];

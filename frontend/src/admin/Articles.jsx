@@ -7,6 +7,17 @@ import {
 } from "react-router-dom";
 import { adminApi, dateFormatter } from "./api";
 
+// Artikel berstatus terbit yang tanggal terbitnya masih di masa depan belum
+// tampil di situs publik, jadi daftar admin menandainya sebagai "Terjadwal"
+// supaya tidak terlihat seperti artikel yang sudah bisa dibaca.
+function isScheduled(article) {
+  return (
+    article.status === "published" &&
+    Boolean(article.publishedAt) &&
+    new Date(article.publishedAt).getTime() > Date.now()
+  );
+}
+
 function AdminArticles() {
   const { user } = useOutletContext();
   const location = useLocation();
@@ -154,12 +165,26 @@ function AdminArticles() {
                       <span
                         className={`rounded-full px-3 py-1 font-bold ${
                           article.status === "published"
-                            ? "bg-green-50 text-green-700"
+                            ? isScheduled(article)
+                              ? "bg-blue-50 text-blue-700"
+                              : "bg-green-50 text-green-700"
                             : "bg-amber-50 text-amber-700"
                         }`}
                       >
-                        {article.status === "published" ? "Terbit" : "Draf"}
+                        {article.status === "published"
+                          ? isScheduled(article)
+                            ? "Terjadwal"
+                            : "Terbit"
+                          : "Draf"}
                       </span>
+                      {isScheduled(article) && (
+                        <time
+                          dateTime={article.publishedAt}
+                          className="font-semibold text-blue-700"
+                        >
+                          Terbit {dateFormatter.format(new Date(article.publishedAt))}
+                        </time>
+                      )}
                       {article.categoryName && <span>{article.categoryName}</span>}
                       {user.role === "admin" && article.authorName && (
                         <span>Oleh {article.authorName}</span>

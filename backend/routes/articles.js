@@ -114,7 +114,9 @@ publicRouter.get(
   validate(publicQuerySchema, "query"),
   async (req, res) => {
     const { page, limit, category, q } = req.validated.query;
-    const filters = ["a.status = 'published'"];
+    // Artikel terbit dengan tanggal terbit di masa depan belum boleh tampil:
+    // status 'published' saja tidak cukup, jam terbitnya ikut menentukan.
+    const filters = ["a.status = 'published'", "a.published_at <= now()"];
     const values = [];
 
     if (category) {
@@ -166,8 +168,11 @@ publicRouter.get("/:slug/related", async (req, res) => {
     return res.status(400).json({ message: "Slug artikel tidak valid." });
   }
 
+  // Artikel asal yang masih terjadwal belum punya halaman publik, jadi slug-nya
+  // diperlakukan sama seperti artikel yang tidak ada.
   const source = await pool.query(
-    "SELECT id, category_id FROM articles WHERE slug = $1 AND status = 'published'",
+    `SELECT id, category_id FROM articles
+     WHERE slug = $1 AND status = 'published' AND published_at <= now()`,
     [slug.data],
   );
   const article = source.rows[0];
@@ -184,7 +189,8 @@ publicRouter.get("/:slug/related", async (req, res) => {
        FROM articles a
        LEFT JOIN categories c ON c.id = a.category_id
        LEFT JOIN users u ON u.id = a.author_id
-       WHERE a.status = 'published' AND a.category_id = $1 AND a.id <> $2
+       WHERE a.status = 'published' AND a.published_at <= now()
+         AND a.category_id = $1 AND a.id <> $2
        ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
        LIMIT 3`,
       [article.category_id, article.id],
@@ -200,7 +206,8 @@ publicRouter.get("/:slug/related", async (req, res) => {
        FROM articles a
        LEFT JOIN categories c ON c.id = a.category_id
        LEFT JOIN users u ON u.id = a.author_id
-       WHERE a.status = 'published' AND NOT (a.id = ANY($1::int[]))
+       WHERE a.status = 'published' AND a.published_at <= now()
+         AND NOT (a.id = ANY($1::int[]))
        ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
        LIMIT $2`,
       [excludedIds, 3 - articles.length],
@@ -223,7 +230,7 @@ publicRouter.get("/:slug", async (req, res) => {
      FROM articles a
      LEFT JOIN categories c ON c.id = a.category_id
      LEFT JOIN users u ON u.id = a.author_id
-     WHERE a.slug = $1 AND a.status = 'published'`,
+     WHERE a.slug = $1 AND a.status = 'published' AND a.published_at <= now()`,
     [slug.data],
   );
   if (!rows[0]) {
