@@ -1,20 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import podoRukun from "../assets/podo-rukun.png";
 import bumdesmaNganjuk from "../assets/bumdesma-nganjuk.png";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 const NAV_ITEMS = [
-  { id: "home", label: "Beranda", to: "/#home", icon: "house" },
-  { id: "about", label: "Tentang", to: "/#about", icon: "circle-info" },
-  { id: "services", label: "Layanan", to: "/#services", icon: "gear" },
-  { id: "activity", label: "Kegiatan", to: "/#activity", icon: "calendar" },
-  { id: "contact", label: "Kontak", to: "/#contact", icon: "phone" },
-  { id: "blog", label: "Blog", to: "/blog", icon: "newspaper" },
-  { id: "gallery", label: "Galeri", to: "/galeri", icon: "images" },
-  { id: "transparency", label: "Transparansi", to: "/transparansi", icon: "file-lines" },
-  { id: "team", label: "Pengurus", to: "/pengurus", icon: "people-group" },
+  { id: "home", label: "Beranda", to: "/#home", icon: "house", group: "primary" },
+  { id: "about", label: "Tentang", to: "/#about", icon: "circle-info", group: "primary" },
+  { id: "services", label: "Layanan", to: "/#services", icon: "gear", group: "primary" },
+  { id: "activity", label: "Kegiatan", to: "/#activity", icon: "calendar", group: "primary" },
+  { id: "contact", label: "Kontak", to: "/#contact", icon: "phone", group: "primary" },
+  { id: "blog", label: "Blog", to: "/blog", icon: "newspaper", group: "primary" },
+  { id: "gallery", label: "Galeri", to: "/galeri", icon: "images", group: "more" },
+  { id: "transparency", label: "Transparansi", to: "/transparansi", icon: "file-lines", group: "more" },
+  { id: "team", label: "Pengurus", to: "/pengurus", icon: "people-group", group: "more" },
 ];
+
+const PRIMARY_ITEMS = NAV_ITEMS.filter((item) => item.group === "primary");
+const MORE_ITEMS = NAV_ITEMS.filter((item) => item.group === "more");
 
 function NavItem({ item, active, mobile = false, onClick }) {
   return (
@@ -38,6 +41,91 @@ function NavItem({ item, active, mobile = false, onClick }) {
   );
 }
 
+function DesktopMoreMenu({ items, active, onNavClick }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+  const buttonRef = useRef(null);
+  const menuId = "desktop-more-menu";
+  const moreActive = items.some((item) => item.id === active);
+
+  // Klik di luar dan Escape hanya dipasang selama dropdown terbuka.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleMouseDown = (event) => {
+      if (!containerRef.current?.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+        buttonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        ref={buttonRef}
+        aria-expanded={isOpen}
+        aria-controls={menuId}
+        aria-haspopup="true"
+        onClick={() => setIsOpen((open) => !open)}
+        className={`flex min-h-[44px] items-center gap-2 border-b-2 px-2 text-sm font-medium leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
+          moreActive
+            ? "border-brand-primary text-brand-primary"
+            : "border-transparent text-gray-600 hover:text-gray-900"
+        }`}
+      >
+        <span>Lainnya</span>
+        <i
+          className={`fa-solid fa-chevron-down text-[0.65rem] transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+          aria-hidden="true"
+        ></i>
+      </button>
+
+      {isOpen && (
+        <ul
+          id={menuId}
+          className="absolute right-0 top-full mt-1 w-52 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+        >
+          {items.map((item) => (
+            <li key={item.id}>
+              <Link
+                to={item.to}
+                aria-current={active === item.id ? "location" : undefined}
+                onClick={() => {
+                  setIsOpen(false);
+                  onNavClick(item);
+                }}
+                className={`flex min-h-[44px] items-center px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-inset ${
+                  active === item.id
+                    ? "text-brand-primary"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                }`}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function scrollToSection(section) {
   section?.scrollIntoView({
     behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -48,6 +136,7 @@ function scrollToSection(section) {
 
 function MobileNavigation({ active, onNavClick }) {
   const [isOpen, setIsOpen] = useState(false);
+  const toggleRef = useRef(null);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -61,10 +150,27 @@ function MobileNavigation({ active, onNavClick }) {
   useEffect(() => {
     if (!isOpen) return undefined;
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") setIsOpen(false);
+      if (event.key === "Escape") {
+        setIsOpen(false);
+        toggleRef.current?.focus();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
+  // Drawer tidak boleh tertinggal terbuka saat layar melewati breakpoint xl.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const desktopQuery = window.matchMedia("(min-width: 1280px)");
+    const handleChange = (event) => {
+      if (event.matches) {
+        setIsOpen(false);
+        toggleRef.current?.focus();
+      }
+    };
+    desktopQuery.addEventListener("change", handleChange);
+    return () => desktopQuery.removeEventListener("change", handleChange);
   }, [isOpen]);
 
   return (
@@ -72,10 +178,11 @@ function MobileNavigation({ active, onNavClick }) {
       {/* Mobile Toggle */}
       <button
         type="button"
+        ref={toggleRef}
         aria-label={isOpen ? "Tutup menu" : "Buka menu"}
         aria-expanded={isOpen}
         aria-controls="mobile-nav-drawer"
-        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-xl text-gray-700 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 lg:hidden"
+        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-xl text-gray-700 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 xl:hidden"
         onClick={() => setIsOpen((open) => !open)}
       >
         <i className={`fa-solid ${isOpen ? "fa-xmark" : "fa-bars"}`} aria-hidden="true"></i>
@@ -85,7 +192,7 @@ function MobileNavigation({ active, onNavClick }) {
       {isOpen && (
         <nav
           id="mobile-nav-drawer"
-          className="absolute left-0 right-0 top-full border-t border-gray-200 bg-white px-4 py-3 lg:hidden"
+          className="absolute left-0 right-0 top-full max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-t border-gray-200 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] xl:hidden"
           aria-label="Navigasi Utama"
         >
           <ul className="space-y-1">
@@ -199,7 +306,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white">
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white pt-[env(safe-area-inset-top)]">
       <div className="mx-auto flex h-18 max-w-6xl items-center justify-between px-3 sm:px-6">
         <Link
           to="/#home"
@@ -214,22 +321,22 @@ export default function Header() {
           <img
             src={bumdesmaNganjuk}
             alt="BUMDESMA Nganjuk"
-            className="h-8 w-auto shrink-0 sm:h-9"
+            className="hidden h-8 w-8 shrink-0 object-contain sm:block sm:h-9 sm:w-9"
           />
           <img
             src={podoRukun}
             alt="Podo Rukun"
-            className="h-8 w-auto shrink-0 sm:h-9"
+            className="h-8 w-8 shrink-0 object-contain sm:h-9 sm:w-9"
           />
-          <span className="truncate text-base font-bold tracking-tight text-gray-900 sm:text-lg md:text-xl">
+          <span className="min-w-0 text-sm font-bold leading-tight tracking-tight text-gray-900 sm:text-base">
             BUMDESMA
           </span>
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden lg:block" aria-label="Navigasi Utama">
+        <nav className="hidden xl:flex" aria-label="Navigasi Utama">
           <ul className="flex items-center gap-3 xl:gap-5">
-            {NAV_ITEMS.map((item) => (
+            {PRIMARY_ITEMS.map((item) => (
               <li key={item.id}>
                 <NavItem
                   item={item}
@@ -238,6 +345,16 @@ export default function Header() {
                 />
               </li>
             ))}
+            {MORE_ITEMS.length > 0 && (
+              <li>
+                <DesktopMoreMenu
+                  key={routeKey}
+                  items={MORE_ITEMS}
+                  active={active}
+                  onNavClick={handleNavClick}
+                />
+              </li>
+            )}
           </ul>
         </nav>
 
