@@ -183,6 +183,11 @@ function AdminBackup() {
                 <li>{counts.categories} kategori</li>
                 <li>{counts.articles} artikel</li>
                 <li>{counts.siteContent} konten situs</li>
+                <li>{counts.gallery} item galeri</li>
+                <li>{counts.team} pengurus</li>
+                <li>{counts.documents} dokumen</li>
+                <li>{counts.serviceDetails} layanan</li>
+                <li>{counts.faqs} FAQ</li>
                 <li>{counts.files} gambar</li>
               </ul>
             )}

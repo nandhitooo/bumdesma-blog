@@ -56,6 +56,19 @@ const MAX_TOTAL_BYTES = 200 * 1024 * 1024;
 const MAX_DATA_BYTES = 10 * 1024 * 1024;
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 
+// Tabel yang diperiksa sebelum snapshot. Tabel yang belum ada dilewati, baik
+// saat membuat backup maupun saat memulihkan (lihat replaceData).
+const SNAPSHOT_TABLES = [
+  "categories",
+  "articles",
+  "site_content",
+  "gallery_items",
+  "team_members",
+  "report_documents",
+  "service_details",
+  "faqs",
+];
+
 const UPLOAD_NAME_PATTERN = /^[0-9a-fA-F-]{1,64}\.(jpg|png|webp)$/;
 const UPLOAD_ENTRY_PATTERN = /^uploads\/([^/]+)$/;
 
@@ -140,6 +153,20 @@ function invalidBackup(message) {
   return error;
 }
 
+// to_regclass mengembalikan null untuk tabel yang tidak ada. Pemeriksaan ini
+// memakai transaksi yang sama dengan pembacaan/pemulihan supaya keputusan
+// "tabel ada" konsisten dengan operasi berikutnya.
+async function detectTables(client, tables) {
+  const existing = new Set();
+  for (const table of tables) {
+    const { rows } = await client.query("SELECT to_regclass($1) AS name", [
+      table,
+    ]);
+    if (rows[0]?.name) existing.add(table);
+  }
+  return existing;
+}
+
 /* --------------------------------------------------------- baca snapshot --- */
 
 // Membaca seluruh data dalam satu transaksi REPEATABLE READ supaya jumlah di
@@ -148,38 +175,106 @@ function invalidBackup(message) {
 // menggagalkan backup.
 async function readSnapshot() {
   const client = await pool.connect();
-  let categories;
-  let articles;
-  let siteRows;
+  let categories = [];
+  let articles = [];
+  let siteRows = [];
+  let gallery = [];
+  let team = [];
+  let documents = [];
+  let serviceDetails = [];
+  let faqs = [];
+  let existingTables = new Set();
 
   try {
     await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
 
-    ({ rows: categories } = await client.query(
-      "SELECT name, slug FROM categories ORDER BY id",
-    ));
+    // Diperiksa di dalam transaksi yang sama: snapshot tidak boleh melihat
+    // tabel yang muncul/hilang di tengah pembacaan.
+    existingTables = await detectTables(client, SNAPSHOT_TABLES);
 
-    ({ rows: articles } = await client.query(`
-      SELECT a.title,
-             a.slug,
-             a.excerpt,
-             a.content_html AS "contentHtml",
-             a.cover_image_url AS "coverImageUrl",
-             c.slug AS "categorySlug",
-             u.email AS "authorEmail",
-             a.status,
-             a.published_at AS "publishedAt",
-             a.created_at AS "createdAt",
-             a.updated_at AS "updatedAt"
-      FROM articles a
-      LEFT JOIN categories c ON c.id = a.category_id
-      LEFT JOIN users u ON u.id = a.author_id
-      ORDER BY a.created_at, a.id
-    `));
+    if (existingTables.has("categories")) {
+      ({ rows: categories } = await client.query(
+        "SELECT name, slug FROM categories ORDER BY id",
+      ));
+    }
 
-    ({ rows: siteRows } = await client.query(
-      "SELECT key, content FROM site_content ORDER BY key",
-    ));
+    if (existingTables.has("articles") && existingTables.has("categories")) {
+      ({ rows: articles } = await client.query(`
+        SELECT a.title,
+               a.slug,
+               a.excerpt,
+               a.content_html AS "contentHtml",
+               a.cover_image_url AS "coverImageUrl",
+               c.slug AS "categorySlug",
+               u.email AS "authorEmail",
+               a.status,
+               a.published_at AS "publishedAt",
+               a.created_at AS "createdAt",
+               a.updated_at AS "updatedAt"
+        FROM articles a
+        LEFT JOIN categories c ON c.id = a.category_id
+        LEFT JOIN users u ON u.id = a.author_id
+        ORDER BY a.created_at, a.id
+      `));
+    }
+
+    if (existingTables.has("site_content")) {
+      ({ rows: siteRows } = await client.query(
+        "SELECT key, content FROM site_content ORDER BY key",
+      ));
+    }
+
+    if (existingTables.has("gallery_items")) {
+      ({ rows: gallery } = await client.query(`
+        SELECT image_url AS "imageUrl",
+               caption,
+               event_date::text AS "eventDate",
+               sort_order AS "sortOrder"
+        FROM gallery_items
+        ORDER BY id
+      `));
+    }
+
+    if (existingTables.has("team_members")) {
+      ({ rows: team } = await client.query(`
+        SELECT name,
+               position,
+               term_label AS "termLabel",
+               photo_url AS "photoUrl",
+               sort_order AS "sortOrder"
+        FROM team_members
+        ORDER BY id
+      `));
+    }
+
+    if (existingTables.has("report_documents")) {
+      ({ rows: documents } = await client.query(`
+        SELECT title, year, description, url
+        FROM report_documents
+        ORDER BY id
+      `));
+    }
+
+    if (existingTables.has("service_details")) {
+      ({ rows: serviceDetails } = await client.query(`
+        SELECT slug,
+               title,
+               summary,
+               requirements,
+               steps,
+               sort_order AS "sortOrder"
+        FROM service_details
+        ORDER BY id
+      `));
+    }
+
+    if (existingTables.has("faqs")) {
+      ({ rows: faqs } = await client.query(`
+        SELECT question, answer, sort_order AS "sortOrder"
+        FROM faqs
+        ORDER BY id
+      `));
+    }
 
     await client.query("COMMIT");
   } catch (error) {
@@ -205,6 +300,16 @@ async function readSnapshot() {
       referenced.add(path.basename(url));
     }
   }
+  for (const item of gallery) {
+    if (item.imageUrl && isUploadUrl(item.imageUrl)) {
+      referenced.add(path.basename(item.imageUrl));
+    }
+  }
+  for (const member of team) {
+    if (member.photoUrl && isUploadUrl(member.photoUrl)) {
+      referenced.add(path.basename(member.photoUrl));
+    }
+  }
 
   const files = [];
   const missingFiles = [];
@@ -219,16 +324,36 @@ async function readSnapshot() {
     }
   }
 
+  // Kunci tabel baru hanya ditulis bila tabelnya ada. Dengan begitu backup v2
+  // dari server lama tetap jujur tentang tabel mana yang tidak ikut, dan
+  // restore tidak menghapus tabel yang tidak dikenal saat backup dibuat.
+  const optionalSections = {};
+  if (existingTables.has("gallery_items")) optionalSections.gallery = gallery;
+  if (existingTables.has("team_members")) optionalSections.team = team;
+  if (existingTables.has("report_documents")) {
+    optionalSections.documents = documents;
+  }
+  if (existingTables.has("service_details")) {
+    optionalSections.serviceDetails = serviceDetails;
+  }
+  if (existingTables.has("faqs")) optionalSections.faqs = faqs;
+
   const data = {
-    formatVersion: 1,
+    formatVersion: 2,
     createdAt: new Date().toISOString(),
     categories,
     articles: normalizedArticles,
     siteContent: Object.fromEntries(siteRows.map((row) => [row.key, row.content])),
+    ...optionalSections,
     counts: {
       categories: categories.length,
       articles: normalizedArticles.length,
       siteContent: siteRows.length,
+      gallery: gallery.length,
+      team: team.length,
+      documents: documents.length,
+      serviceDetails: serviceDetails.length,
+      faqs: faqs.length,
       files: files.length,
     },
     missingFiles,
@@ -298,10 +423,22 @@ router.get("/download", downloadLimiter, async (req, res) => {
   archive.pipe(res);
   await archive.finalize().catch(() => {});
 
-  const { categories, articles, siteContent, files } = snapshot.data.counts;
+  const {
+    categories,
+    articles,
+    siteContent,
+    gallery,
+    team,
+    documents,
+    serviceDetails,
+    faqs,
+    files,
+  } = snapshot.data.counts;
   console.log(
     `Backup diunduh oleh admin ${req.user.id}: ${categories} kategori, ` +
-      `${articles} artikel, ${siteContent} konten situs, ${files} gambar.`,
+      `${articles} artikel, ${siteContent} konten situs, ${gallery} galeri, ` +
+      `${team} pengurus, ${documents} dokumen, ${serviceDetails} layanan, ` +
+      `${faqs} FAQ, ${files} gambar.`,
   );
   // Dicatat setelah arsip selesai dikirim; kegagalan mencatat tidak mengubah
   // respons yang sudah terkirim.
@@ -348,11 +485,100 @@ const backupArticleSchema = z.object({
   authorEmail: z.union([z.string().trim().email().max(254), z.null()]),
 });
 
+const plainText = (schema) =>
+  schema.refine(
+    (value) => !/[<>]/.test(value),
+    "Teks harus berupa teks biasa.",
+  );
+
+// Aturan gambar sama dengan coverImageUrl artikel dan route galeri/pengurus:
+// hanya berkas yang diunggah server sendiri.
+const galleryImageSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(500)
+  .regex(/^\/uploads\/[0-9a-f-]+\.(?:jpg|png|webp)$/i);
+
+const teamSortOrderSchema = z.coerce
+  .number()
+  .int()
+  .min(0)
+  .max(9999);
+
+const integerSortOrderSchema = z.coerce.number().int();
+
+const backupGalleryItemSchema = z.object({
+  imageUrl: galleryImageSchema,
+  caption: z.string().trim().max(200).default(""),
+  eventDate: z.iso.date().nullable().optional(),
+  sortOrder: integerSortOrderSchema.default(0),
+});
+
+const backupTeamMemberSchema = z.object({
+  name: plainText(z.string().trim().min(1).max(150)),
+  position: plainText(z.string().trim().min(1).max(150)),
+  termLabel: plainText(z.string().trim().max(50)).default(""),
+  photoUrl: coverImageSchema.optional(),
+  sortOrder: teamSortOrderSchema.default(0),
+});
+
+const backupDocumentSchema = z.object({
+  title: plainText(z.string().trim().min(1).max(200)),
+  year: z.coerce.number().int().min(2000).max(2100),
+  description: plainText(z.string().trim().max(500)).default(""),
+  // Dokumen disimpan di penyimpanan eksternal, jadi hanya HTTPS yang diterima
+  // mengikuti aturan route report_documents.
+  url: z
+    .string()
+    .trim()
+    .min(1)
+    .max(2048)
+    .url("URL tidak valid.")
+    .refine(
+      (value) => /^https:\/\//i.test(value),
+      "URL harus menggunakan HTTPS.",
+    ),
+});
+
+const serviceSlugSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(120)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+
+const serviceListItemSchema = plainText(
+  z.string().trim().min(1).max(300),
+);
+
+const serviceListSchema = z.array(serviceListItemSchema).max(20);
+
+const backupServiceDetailSchema = z.object({
+  slug: serviceSlugSchema,
+  title: plainText(z.string().trim().min(1).max(150)),
+  summary: plainText(z.string().trim().max(600)).default(""),
+  requirements: serviceListSchema.default([]),
+  steps: serviceListSchema.default([]),
+  sortOrder: integerSortOrderSchema.default(0),
+});
+
+const backupFaqSchema = z.object({
+  question: plainText(z.string().trim().min(1).max(300)),
+  answer: plainText(z.string().trim().min(1).max(2000)),
+  sortOrder: teamSortOrderSchema.default(0),
+});
+
 const backupDataSchema = z.object({
+  // Versi 1 adalah backup lama (tanpa tabel baru); versi 2 menambahkan kunci
+  // galeri, pengurus, dokumen, layanan, dan FAQ yang semuanya opsional.
   formatVersion: z
     .number()
     .int()
-    .refine((value) => value === 1, "Versi format backup tidak didukung."),
+    .refine(
+      (value) => value === 1 || value === 2,
+      "Versi format backup tidak didukung.",
+    ),
   createdAt: z.string().optional(),
   categories: z
     .array(
@@ -371,6 +597,13 @@ const backupDataSchema = z.object({
   // Kunci konten situs divalidasi satu per satu dengan skema yang dipakai
   // endpoint konten situs, lalu nilainya disusun ulang di pemanggil.
   siteContent: z.record(z.string(), z.unknown()),
+  // Opsional: backup v1 tidak memuatnya, dan tabel yang belum ada juga tidak
+  // ikut ditulis oleh readSnapshot.
+  gallery: z.array(backupGalleryItemSchema).max(5000).optional(),
+  team: z.array(backupTeamMemberSchema).max(5000).optional(),
+  documents: z.array(backupDocumentSchema).max(5000).optional(),
+  serviceDetails: z.array(backupServiceDetailSchema).max(5000).optional(),
+  faqs: z.array(backupFaqSchema).max(5000).optional(),
 });
 
 function validateSiteContent(siteContent) {
@@ -548,10 +781,22 @@ async function writePreRestoreSnapshot(adminId) {
   await writeArchiveToFile(target, snapshot);
   await pruneSnapshots();
 
-  const { categories, articles, siteContent, files } = snapshot.data.counts;
+  const {
+    categories,
+    articles,
+    siteContent,
+    gallery,
+    team,
+    documents,
+    serviceDetails,
+    faqs,
+    files,
+  } = snapshot.data.counts;
   console.log(
     `Snapshot pra-restore dibuat oleh admin ${adminId}: ${path.basename(target)} ` +
-      `(${categories} kategori, ${articles} artikel, ${siteContent} konten situs, ${files} gambar).`,
+      `(${categories} kategori, ${articles} artikel, ${siteContent} konten situs, ` +
+      `${gallery} galeri, ${team} pengurus, ${documents} dokumen, ` +
+      `${serviceDetails} layanan, ${faqs} FAQ, ${files} gambar).`,
   );
   return target;
 }
@@ -637,6 +882,89 @@ async function replaceData(client, data, adminId) {
        VALUES ($1, $2::jsonb, $3)`,
       [key, JSON.stringify(content), adminId],
     );
+  }
+
+  // Tabel baru hanya diganti bila kuncinya ADA di backup DAN tabelnya ada.
+  // Backup v1 tidak memuat kunci ini, sehingga isi tabel dibiarkan utuh.
+  const existingTables = await detectTables(client, [
+    "gallery_items",
+    "team_members",
+    "report_documents",
+    "service_details",
+    "faqs",
+  ]);
+
+  if (data.gallery !== undefined && existingTables.has("gallery_items")) {
+    await client.query("DELETE FROM gallery_items");
+    for (const item of data.gallery) {
+      await client.query(
+        `INSERT INTO gallery_items (image_url, caption, event_date, sort_order)
+         VALUES ($1, $2, $3, $4)`,
+        [item.imageUrl, item.caption, item.eventDate ?? null, item.sortOrder],
+      );
+    }
+  }
+
+  if (data.team !== undefined && existingTables.has("team_members")) {
+    await client.query("DELETE FROM team_members");
+    for (const member of data.team) {
+      await client.query(
+        `INSERT INTO team_members
+          (name, position, term_label, photo_url, sort_order)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          member.name,
+          member.position,
+          member.termLabel,
+          member.photoUrl ?? null,
+          member.sortOrder,
+        ],
+      );
+    }
+  }
+
+  if (data.documents !== undefined && existingTables.has("report_documents")) {
+    await client.query("DELETE FROM report_documents");
+    for (const document of data.documents) {
+      await client.query(
+        `INSERT INTO report_documents (title, year, description, url)
+         VALUES ($1, $2, $3, $4)`,
+        [document.title, document.year, document.description, document.url],
+      );
+    }
+  }
+
+  if (
+    data.serviceDetails !== undefined &&
+    existingTables.has("service_details")
+  ) {
+    await client.query("DELETE FROM service_details");
+    for (const service of data.serviceDetails) {
+      await client.query(
+        `INSERT INTO service_details
+          (slug, title, summary, requirements, steps, sort_order)
+         VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6)`,
+        [
+          service.slug,
+          service.title,
+          service.summary,
+          JSON.stringify(service.requirements),
+          JSON.stringify(service.steps),
+          service.sortOrder,
+        ],
+      );
+    }
+  }
+
+  if (data.faqs !== undefined && existingTables.has("faqs")) {
+    await client.query("DELETE FROM faqs");
+    for (const faq of data.faqs) {
+      await client.query(
+        `INSERT INTO faqs (question, answer, sort_order)
+         VALUES ($1, $2, $3)`,
+        [faq.question, faq.answer, faq.sortOrder],
+      );
+    }
   }
 }
 
@@ -728,13 +1056,22 @@ router.post(
         categories: backup.data.categories.length,
         articles: backup.data.articles.length,
         siteContent: Object.keys(backup.data.siteContent).length,
+        // Kunci yang tidak ada di backup v1 dihitung 0: tabelnya memang tidak
+        // disentuh, bukan berarti isinya ikut dipulihkan.
+        gallery: backup.data.gallery?.length ?? 0,
+        team: backup.data.team?.length ?? 0,
+        documents: backup.data.documents?.length ?? 0,
+        serviceDetails: backup.data.serviceDetails?.length ?? 0,
+        faqs: backup.data.faqs?.length ?? 0,
         files: backup.files.length - failedFiles.length,
       };
 
       console.log(
         `Backup dipulihkan oleh admin ${req.user.id}: ${counts.categories} kategori, ` +
           `${counts.articles} artikel, ${counts.siteContent} konten situs, ` +
-          `${counts.files} gambar, ${failedFiles.length} gagal.`,
+          `${counts.gallery} galeri, ${counts.team} pengurus, ` +
+          `${counts.documents} dokumen, ${counts.serviceDetails} layanan, ` +
+          `${counts.faqs} FAQ, ${counts.files} gambar, ${failedFiles.length} gagal.`,
       );
 
       await logAudit(req, "restore", "backup", null, { counts });
@@ -766,4 +1103,6 @@ router.post(
   },
 );
 
+// Diekspor untuk uji format backup (v1 vs v2) tanpa perlu database.
+export { backupDataSchema };
 export default router;
