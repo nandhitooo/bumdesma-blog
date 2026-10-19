@@ -19,6 +19,10 @@ const UPLOAD_URL_IN_HTML_PATTERN = /\/uploads\/[0-9a-fA-F-]{1,64}\.(?:jpg|png|we
 const EXTRA_REFERENCES = [
   { table: "gallery_items", column: "image_url" },
   { table: "team_members", column: "photo_url" },
+  // Revisi menyimpan salinan lama artikel. Gambar yang hanya muncul di riwayat
+  // tetap harus dianggap terpakai, kalau tidak gambar di dialog revisi rusak.
+  { table: "article_revisions", column: "cover_image_url" },
+  { table: "article_revisions", column: "content_html", contains: true },
 ];
 
 export function isUploadUrl(value) {
@@ -115,10 +119,13 @@ export async function deleteUnreferencedUploads(candidates) {
       if (rowCount > 0) continue;
 
       let referencedElsewhere = false;
-      for (const { table, column } of EXTRA_REFERENCES) {
+      for (const { table, column, contains } of EXTRA_REFERENCES) {
+        // `contains` dipakai kolom HTML: URL bisa berada di tengah markup.
         const reference = await pool.query(
-          `SELECT 1 FROM ${table} WHERE ${column} = $1 LIMIT 1`,
-          [url],
+          contains
+            ? `SELECT 1 FROM ${table} WHERE ${column} LIKE $1 LIMIT 1`
+            : `SELECT 1 FROM ${table} WHERE ${column} = $1 LIMIT 1`,
+          [contains ? `%${url}%` : url],
         );
         if (reference.rowCount > 0) {
           referencedElsewhere = true;

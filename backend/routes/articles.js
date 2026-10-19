@@ -106,6 +106,47 @@ const statusSchema = z.object({
   status: z.enum(["draft", "published"]),
 });
 
+const revisionParamsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+  revId: z.coerce.number().int().positive(),
+});
+
+// Riwayat revisi menyimpan nilai LAMA artikel setiap kali isinya berubah. Jumlah
+// revisi dibatasi supaya tabel tidak tumbuh tanpa batas. Kegagalan mencatat
+// riwayat tidak pernah menggagalkan penyimpanan artikel; cukup dicatat.
+const REVISION_LIMIT = 20;
+
+async function recordRevision(articleId, snapshot, savedBy) {
+  try {
+    await pool.query(
+      `INSERT INTO article_revisions
+         (article_id, title, excerpt, content_html, cover_image_url, saved_by)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        articleId,
+        snapshot.title,
+        snapshot.excerpt,
+        snapshot.contentHtml,
+        snapshot.coverImageUrl,
+        savedBy,
+      ],
+    );
+    await pool.query(
+      `DELETE FROM article_revisions
+       WHERE article_id = $1
+         AND id NOT IN (
+           SELECT id FROM article_revisions
+           WHERE article_id = $1
+           ORDER BY id DESC
+           LIMIT $2
+         )`,
+      [articleId, REVISION_LIMIT],
+    );
+  } catch (error) {
+    console.error(`Gagal menyimpan revisi artikel ${articleId}:`, error.message);
+  }
+}
+
 /* ---------------------------------------------------------------- publik ---- */
 
 // Daftar artikel terbit dengan paginasi, filter kategori, dan pencarian.
@@ -289,6 +330,106 @@ adminRouter.post(
   },
 );
 
+// Daftar revisi artikel, terbaru dulu. Editor hanya bisa melihat artikelnya
+// sendiri karena kepemilikan artikel induk diperiksa lebih dulu.
+adminRouter.get(
+  "/:id/revisions",
+  validate(idSchema, "params"),
+  async (req, res) => {
+    const id = req.validated.params.id;
+    const values = [id];
+    const filters = ["a.id = $1"];
+    scopeToEditor(filters, values, req.user);
+    const article = await pool.query(
+      `SELECT a.id FROM articles a WHERE ${filters.join(" AND ")}`,
+      values,
+    );
+    if (!article.rows[0]) {
+      return res.status(404).json({ message: "Artikel tidak ditemukan." });
+    }
+
+    const { rows } = await pool.query(
+      `SELECT r.id, r.title, r.created_at AS "createdAt",
+              u.name AS "savedByName"
+       FROM article_revisions r
+       LEFT JOIN users u ON u.id = r.saved_by
+       WHERE r.article_id = $1
+       ORDER BY r.id DESC`,
+      [id],
+    );
+    return res.json({ revisions: rows });
+  },
+);
+
+// Memulihkan artikel ke isi sebuah revisi. Nilai yang sedang aktif disimpan
+// dulu sebagai revisi baru supaya pemulihan bisa dibatalkan dengan cara yang
+// sama. HTML revisi tetap melewati sanitizer sebelum disimpan.
+adminRouter.post(
+  "/:id/revisions/:revId/restore",
+  validate(revisionParamsSchema, "params"),
+  async (req, res) => {
+    const { id, revId } = req.validated.params;
+    const values = [id];
+    const filters = ["a.id = $1"];
+    scopeToEditor(filters, values, req.user);
+    const { rows: articleRows } = await pool.query(
+      `SELECT a.id, a.title, a.excerpt, a.content_html, a.cover_image_url
+       FROM articles a
+       WHERE ${filters.join(" AND ")}`,
+      values,
+    );
+    const current = articleRows[0];
+    if (!current) {
+      return res.status(404).json({ message: "Artikel tidak ditemukan." });
+    }
+
+    const revisionResult = await pool.query(
+      `SELECT title, excerpt, content_html, cover_image_url
+       FROM article_revisions
+       WHERE id = $1 AND article_id = $2`,
+      [revId, id],
+    );
+    const revision = revisionResult.rows[0];
+    if (!revision) {
+      return res.status(404).json({ message: "Revisi tidak ditemukan." });
+    }
+
+    await recordRevision(
+      id,
+      {
+        title: current.title,
+        excerpt: current.excerpt,
+        contentHtml: current.content_html,
+        coverImageUrl: current.cover_image_url,
+      },
+      req.user.id,
+    );
+
+    const updateValues = [
+      revision.title,
+      revision.excerpt,
+      cleanContent(revision.content_html),
+      revision.cover_image_url,
+      id,
+    ];
+    const updateFilters = ["id = $5"];
+    scopeToEditor(updateFilters, updateValues, req.user, "author_id");
+    const { rows } = await pool.query(
+      `UPDATE articles
+       SET title = $1, excerpt = $2, content_html = $3, cover_image_url = $4,
+           updated_at = now()
+       WHERE ${updateFilters.join(" AND ")}
+       RETURNING id`,
+      updateValues,
+    );
+    if (!rows[0]) {
+      return res.status(404).json({ message: "Artikel tidak ditemukan." });
+    }
+
+    return res.json({ id: rows[0].id });
+  },
+);
+
 // Detail artikel untuk editor (berdasarkan id, bukan slug).
 adminRouter.get("/:id", async (req, res) => {
   const id = idSchema.safeParse(req.params);
@@ -409,7 +550,7 @@ adminRouter.put(
     const previousFilters = ["id = $1"];
     scopeToEditor(previousFilters, previousValues, req.user, "author_id");
     const previous = await pool.query(
-      `SELECT cover_image_url, content_html FROM articles
+      `SELECT title, excerpt, cover_image_url, content_html FROM articles
        WHERE ${previousFilters.join(" AND ")}`,
       previousValues,
     );
@@ -437,6 +578,41 @@ adminRouter.put(
     }
 
     const previousRow = previous.rows[0];
+
+    // Revisi hanya dibuat bila ada perubahan isi yang benar-benar tersimpan.
+    // Field yang tidak dikirim pada PUT parsial tetap memakai nilai lama.
+    const currentValues = {
+      title: "title" in fields ? fields.title : previousRow?.title,
+      excerpt: "excerpt" in fields ? fields.excerpt : previousRow?.excerpt,
+      contentHtml:
+        "contentHtml" in fields
+          ? cleanContent(fields.contentHtml)
+          : previousRow?.content_html,
+      coverImageUrl:
+        "coverImageUrl" in fields
+          ? fields.coverImageUrl ?? null
+          : previousRow?.cover_image_url ?? null,
+    };
+    const contentChanged =
+      previousRow &&
+      (currentValues.title !== previousRow.title ||
+        currentValues.excerpt !== previousRow.excerpt ||
+        currentValues.contentHtml !== previousRow.content_html ||
+        currentValues.coverImageUrl !== (previousRow.cover_image_url ?? null));
+
+    if (contentChanged) {
+      await recordRevision(
+        req.validated.params.id,
+        {
+          title: previousRow.title,
+          excerpt: previousRow.excerpt,
+          contentHtml: previousRow.content_html,
+          coverImageUrl: previousRow.cover_image_url,
+        },
+        req.user.id,
+      );
+    }
+
     const removedCoverImages =
       "coverImageUrl" in fields &&
       previousRow?.cover_image_url &&

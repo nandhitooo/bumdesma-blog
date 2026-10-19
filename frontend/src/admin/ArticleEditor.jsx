@@ -10,7 +10,7 @@ import { Link as RouterLink, useNavigate, useOutletContext, useParams } from "re
 import ArticleImage from "../components/ArticleImage";
 import ArticleView from "../components/ArticleView";
 import EditorToolbar from "./EditorToolbar";
-import { adminApi, uniqueSlug } from "./api";
+import { adminApi, dateFormatter, uniqueSlug } from "./api";
 
 const emptyForm = {
   title: "",
@@ -97,6 +97,14 @@ function ArticleEditor() {
   const [previewWidth, setPreviewWidth] = useState("desktop");
   const previewButton = useRef(null);
   const previewDialog = useRef(null);
+  // Riwayat revisi hanya tersedia untuk artikel yang sudah tersimpan (ada id).
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState("");
+  const [history, setHistory] = useState([]);
+  const [restoringId, setRestoringId] = useState(null);
+  const historyButton = useRef(null);
+  const historyDialog = useRef(null);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -216,6 +224,59 @@ function ArticleEditor() {
       trigger?.focus();
     };
   }, [previewOpen]);
+
+  // Perilaku dialog riwayat sama dengan pratinjau: kunci scroll, fokus masuk ke
+  // dialog, Escape menutup, dan fokus kembali ke tombol pembukanya.
+  useEffect(() => {
+    if (!historyOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const trigger = historyButton.current;
+    document.body.style.overflow = "hidden";
+    historyDialog.current?.focus();
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setHistoryOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+      trigger?.focus();
+    };
+  }, [historyOpen]);
+
+  const openHistory = async () => {
+    if (!id) return;
+    setHistoryOpen(true);
+    setHistoryLoading(true);
+    setHistoryError("");
+    setHistory([]);
+    try {
+      const { revisions } = await adminApi(`/api/admin/articles/${id}/revisions`);
+      setHistory(Array.isArray(revisions) ? revisions : []);
+    } catch (historyFailure) {
+      setHistoryError(historyFailure.message);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const restoreRevision = async (revision) => {
+    const confirmed = window.confirm(
+      `Pulihkan versi “${revision.title}”? Isi artikel saat ini akan disimpan sebagai revisi baru.`,
+    );
+    if (!confirmed) return;
+    setError("");
+    setRestoringId(revision.id);
+    try {
+      await adminApi(`/api/admin/articles/${id}/revisions/${revision.id}/restore`, {
+        method: "POST",
+      });
+      window.location.reload();
+    } catch (restoreFailure) {
+      setError(restoreFailure.message);
+      setRestoringId(null);
+    }
+  };
 
   const openPreview = async () => {
     if (!editor) return;
@@ -586,6 +647,18 @@ function ArticleEditor() {
         </section>
 
         <div className="flex flex-wrap justify-end gap-3">
+          {id && (
+            <button
+              ref={historyButton}
+              type="button"
+              onClick={openHistory}
+              aria-haspopup="dialog"
+              className="min-h-[44px] flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 transition hover:bg-gray-100"
+            >
+              <i className="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+              Riwayat revisi
+            </button>
+          )}
           <button
             ref={previewButton}
             type="button"
@@ -699,6 +772,85 @@ function ArticleEditor() {
                   <ArticleView article={previewArticle} showPlaceholders />
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {historyOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/60 p-3 sm:p-6">
+          <div
+            ref={historyDialog}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="article-history-title"
+            tabIndex={-1}
+            className="mx-auto w-full max-w-2xl rounded-3xl bg-white shadow-2xl outline-none"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-200 p-4 sm:p-5">
+              <div>
+                <h2
+                  id="article-history-title"
+                  className="text-lg font-extrabold text-gray-900"
+                >
+                  Riwayat revisi
+                </h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  Versi tersimpan sebelumnya, terbaru lebih dulu.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setHistoryOpen(false)}
+                className="min-h-[44px] rounded-xl bg-green-700 px-5 py-3 font-bold text-white transition hover:bg-green-800"
+              >
+                Tutup
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-5">
+              {historyLoading ? (
+                <p className="py-10 text-center text-sm font-medium text-gray-500">
+                  Memuat riwayat...
+                </p>
+              ) : historyError ? (
+                <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
+                  {historyError}
+                </p>
+              ) : history.length ? (
+                <ul className="divide-y divide-gray-100">
+                  {history.map((revision) => (
+                    <li
+                      key={revision.id}
+                      className="flex flex-wrap items-center justify-between gap-3 py-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate font-bold text-gray-900">
+                          {revision.title}
+                        </p>
+                        <p className="mt-1 text-xs text-gray-500">
+                          {dateFormatter.format(new Date(revision.createdAt))}
+                          {revision.savedByName
+                            ? ` · oleh ${revision.savedByName}`
+                            : ""}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => restoreRevision(revision)}
+                        disabled={restoringId !== null}
+                        className="min-h-[44px] rounded-lg bg-green-50 px-4 py-2 text-sm font-bold text-green-800 transition hover:bg-green-100 disabled:opacity-60"
+                      >
+                        {restoringId === revision.id ? "Memulihkan..." : "Pulihkan"}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="py-10 text-center text-sm text-gray-500">
+                  Belum ada revisi. Revisi dibuat saat isi artikel diubah.
+                </p>
+              )}
             </div>
           </div>
         </div>
