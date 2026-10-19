@@ -55,193 +55,216 @@ const CATEGORIES = [
 ];
 
 // published_at memakai waktu tetap (WIB) supaya data contoh reproducible.
-// Artikel terbit diurutkan dari yang terbaru; draf tidak punya published_at.
+// Tanggal diambil dari spanduk/stempel foto bila terbaca; selain itu hanya
+// tanggal contoh yang bisa diubah dari panel admin.
 const ARTICLES = [
   {
-    title: "Evaluasi Kinerja Tahunan BUMDesma Podo Rukun",
-    slug: "evaluasi-kinerja-tahunan-bumdesma-podo-rukun",
+    title: "Evaluasi Kegiatan BUMDesma Kabupaten Nganjuk Semester I 2023",
+    slug: "evaluasi-kegiatan-bumdesma-kabupaten-nganjuk-semester-1-2023",
     photoIndex: 1,
     categorySlug: "internal",
     status: "published",
-    publishedAt: "2026-09-28T08:00:00+07:00",
+    publishedAt: "2023-07-11T15:00:00+07:00",
     excerpt:
-      "Evaluasi kinerja tahunan menjadi momen meninjau capaian unit usaha sekaligus menyusun rencana kerja BUMDESMA Podo Rukun LKD periode berikutnya.",
-    contentHtml: `<p>Evaluasi kinerja tahunan BUMDESMA Podo Rukun LKD dilaksanakan sebagai bagian dari tata kelola kelembagaan yang transparan dan akuntabel.</p>
-<h2>Cakupan Penilaian</h2>
-<p>Penilaian mencakup capaian setiap unit usaha, kualitas layanan kepada masyarakat, serta tertib administrasi dan pelaporan.</p>
+      "Dinas Pemberdayaan Masyarakat dan Desa menggelar evaluasi kegiatan BUMDesma se-Kabupaten Nganjuk untuk semester I tahun 2023 pada Selasa, 11 Juli 2023.",
+    contentHtml: `<p>Pada Selasa, 11 Juli 2023, Dinas Pemberdayaan Masyarakat dan Desa (PMD) Kabupaten Nganjuk menyelenggarakan Evaluasi Kegiatan BUMDesma Kabupaten Nganjuk Semester I Tahun 2023.</p>
+<p>Forum ini mempertemukan pengelola BUMDesma dengan pihak dinas untuk meninjau perkembangan kegiatan selama enam bulan pertama tahun berjalan.</p>
+<h2>Fokus Evaluasi</h2>
 <ul>
-  <li>Capaian kinerja unit usaha dan layanan</li>
-  <li>Kendala operasional yang dihadapi pengelola</li>
-  <li>Rekomendasi perbaikan tata kelola</li>
+  <li>Perkembangan kegiatan dan layanan tiap BUMDesma</li>
+  <li>Kendala yang dihadapi pengelola di lapangan</li>
+  <li>Arahan pembinaan dari dinas untuk semester berikutnya</li>
 </ul>
-<h2>Tindak Lanjut</h2>
-<p>Hasil evaluasi dipakai sebagai dasar penyusunan rencana kerja periode berikutnya, termasuk penguatan pencatatan dan pelaporan keuangan.</p>
-<blockquote>Evaluasi dilakukan bersama pengurus dan perwakilan desa agar hasilnya dapat ditindaklanjuti bersama.</blockquote>`,
+<p>Hasil evaluasi menjadi bahan perbaikan bagi BUMDESMA Podo Rukun LKD dalam menyusun program dan pelaporan pada periode selanjutnya.</p>`,
   },
   {
-    title: "Musyawarah Antar Desa Membahas Program BUMDesma",
-    slug: "musyawarah-antar-desa-membahas-program-bumdesma",
-    photoIndex: 4,
-    categorySlug: "internal",
-    status: "published",
-    publishedAt: "2026-09-14T09:30:00+07:00",
-    excerpt:
-      "Musyawarah Antar Desa menjadi forum koordinasi antar pemerintah desa untuk menyelaraskan program dan layanan BUMDESMA Podo Rukun LKD.",
-    contentHtml: `<p>Musyawarah Antar Desa (MAD) menjadi forum koordinasi antara pengelola BUMDESMA Podo Rukun LKD dan pemerintah desa di Kecamatan Wilangan.</p>
-<h2>Agenda Pembahasan</h2>
-<p>Forum ini membahas arah program, kebutuhan masyarakat, serta bentuk dukungan desa terhadap layanan yang dikelola bersama.</p>
-<ol>
-  <li>Penyampaian perkembangan program dan layanan</li>
-  <li>Pembahasan usulan kegiatan dari tiap desa</li>
-  <li>Penetapan kesepakatan tindak lanjut</li>
-</ol>
-<p>Kesepakatan yang dihasilkan menjadi acuan pelaksanaan kegiatan pada periode berikutnya.</p>`,
-  },
-  {
-    title: "Penyaluran Bantuan Sosial bagi Warga Desa",
-    slug: "penyaluran-bantuan-sosial-bagi-warga-desa",
-    photoIndex: 5,
-    categorySlug: "sosial",
-    status: "published",
-    publishedAt: "2026-08-30T08:00:00+07:00",
-    excerpt:
-      "Penyaluran bantuan sosial dilakukan bersama pemerintah desa dengan mengutamakan ketepatan sasaran dan keterbukaan data penerima.",
-    contentHtml: `<p>Penyaluran bantuan sosial bagi warga desa dilaksanakan bersama pemerintah desa agar sasaran penerima sesuai data yang disepakati.</p>
-<p>Kegiatan ini mengedepankan ketepatan sasaran, keterbukaan informasi, dan pendampingan bagi warga penerima manfaat.</p>
-<h2>Prinsip Pelaksanaan</h2>
-<ul>
-  <li>Data penerima disusun dan diverifikasi bersama pemerintah desa</li>
-  <li>Penyaluran dilakukan secara terbuka dan terdokumentasi</li>
-  <li>Warga penerima mendapat pendampingan setelah penyaluran</li>
-</ul>
-<p>Dokumentasi kegiatan disimpan sebagai bahan laporan pertanggungjawaban kepada desa dan masyarakat.</p>`,
-  },
-  {
-    title: "Pembinaan Kelompok SPP dan UEP",
-    slug: "pembinaan-kelompok-spp-dan-uep",
-    photoIndex: 6,
-    categorySlug: "edukasi",
-    status: "published",
-    publishedAt: "2026-08-12T10:00:00+07:00",
-    excerpt:
-      "Pembinaan kelompok SPP dan UEP mendampingi warga mengembangkan usaha melalui pencatatan sederhana dan penguatan modal kelompok.",
-    contentHtml: `<p>Pembinaan kelompok Simpan Pinjam Perempuan (SPP) dan Usaha Ekonomi Produktif (UEP) dilakukan secara berkala oleh pendamping BUMDESMA.</p>
-<h2>Materi Pendampingan</h2>
-<p>Pendampingan menekankan praktik sederhana yang bisa langsung diterapkan kelompok dalam kegiatan usaha sehari-hari.</p>
-<ul>
-  <li>Pencatatan transaksi dan kas kelompok</li>
-  <li>Pengelolaan modal serta penentuan angsuran</li>
-  <li>Penguatan kelembagaan dan pertemuan rutin kelompok</li>
-</ul>
-<p>Hasil pendampingan ditinjau kembali pada pertemuan berikutnya untuk memastikan perbaikan berjalan.</p>`,
-  },
-  {
-    title: "Bimtek Aplikasi Laporan Keuangan",
-    slug: "bimtek-aplikasi-laporan-keuangan",
-    photoIndex: 9,
-    categorySlug: "edukasi",
-    status: "published",
-    publishedAt: "2026-07-29T09:00:00+07:00",
-    excerpt:
-      "Bimbingan teknis aplikasi laporan keuangan membekali pengelola unit usaha agar pencatatan transaksi lebih tertib dan mudah diperiksa.",
-    contentHtml: `<p>Bimbingan teknis (bimtek) aplikasi laporan keuangan diikuti oleh pengelola unit usaha BUMDESMA Podo Rukun LKD.</p>
-<h2>Materi Bimtek</h2>
-<ol>
-  <li>Pengenalan antarmuka dan alur kerja aplikasi</li>
-  <li>Pencatatan transaksi harian dan pengelompokan akun</li>
-  <li>Penyusunan laporan berkala</li>
-  <li>Penelusuran dan perbaikan kesalahan pencatatan</li>
-</ol>
-<p>Peserta didampingi untuk menerapkan pencatatan tersebut pada transaksi harian unit usaha masing-masing.</p>
-<p>Bimtek diakhiri dengan latihan mandiri agar peserta terbiasa memakai aplikasi pada pekerjaan sehari-hari.</p>`,
-  },
-  {
-    title: "Bazar Produk Desa Mendorong Promosi Usaha Warga",
-    slug: "bazar-produk-desa-mendorong-promosi-usaha-warga",
+    title: "Stan BUMDESMA Podo Rukun di Bazar Produk Desa",
+    slug: "stan-bumdesma-podo-rukun-di-bazar-produk-desa",
     photoIndex: 2,
     categorySlug: "event",
     status: "published",
-    publishedAt: "2026-07-11T09:00:00+07:00",
+    publishedAt: "2023-08-05T10:00:00+07:00",
     excerpt:
-      "Bazar produk desa menjadi ruang promosi produk unggulan warga sekaligus ajang memperkuat jejaring pelaku usaha lokal.",
-    contentHtml: `<p>Bazar produk desa digelar sebagai ruang promosi produk unggulan masyarakat Kecamatan Wilangan.</p>
-<p>Kegiatan ini mempertemukan pelaku usaha warga dengan pembeli, sehingga produk desa lebih dikenal di luar lingkungan sendiri.</p>
-<h2>Tujuan Kegiatan</h2>
+      "Pengurus BUMDESMA Podo Rukun Kecamatan Wilangan membuka stan dalam bazar bersama Dinas PMD, menampilkan produk dan identitas lembaga kepada pengunjung.",
+    contentHtml: `<p>BUMDESMA Podo Rukun Kecamatan Wilangan, Kabupaten Nganjuk, ikut berpartisipasi dalam bazar bersama Dinas PMD dengan membuka stan sendiri.</p>
+<p>Stan dihias dengan balon, rangkaian bunga, dan spanduk lembaga, sementara pengurus yang mengenakan seragam lapangan menyambut pengunjung.</p>
+<h2>Yang Ditampilkan</h2>
 <ul>
-  <li>Memperkenalkan produk unggulan dari tiap desa</li>
-  <li>Membuka peluang kerja sama antar pelaku usaha</li>
-  <li>Mendorong kemandirian ekonomi warga</li>
+  <li>Kaos bergambar identitas BUMDESMA yang dipajang pada manekin</li>
+  <li>Spanduk dan materi informasi tentang lembaga</li>
+  <li>Dekorasi stan bernuansa merah yang menarik perhatian pengunjung</li>
 </ul>
-<p>Evaluasi kegiatan dilakukan bersama peserta untuk menyusun perbaikan pada penyelenggaraan berikutnya.</p>`,
+<p>Bazar semacam ini menjadi sarana memperkenalkan BUMDESMA kepada masyarakat luas sekaligus mempererat jejaring dengan lembaga lain.</p>`,
   },
   {
-    title: "Layanan Dana Bergulir Masyarakat",
-    slug: "layanan-dana-bergulir-masyarakat",
-    photoIndex: 8,
-    categorySlug: "bisnis",
+    title: "Dolan Bareng Kelembagaan BUMDESMA Podo Rukun ke Semarang",
+    slug: "dolan-bareng-kelembagaan-bumdesma-podo-rukun-ke-semarang",
+    photoIndex: 3,
+    categorySlug: "gathering",
     status: "published",
-    publishedAt: "2026-06-24T08:30:00+07:00",
+    publishedAt: "2021-12-04T18:00:00+07:00",
     excerpt:
-      "Layanan Dana Bergulir Masyarakat menyediakan pembiayaan usaha bagi kelompok warga dengan pendampingan yang berkelanjutan.",
-    contentHtml: `<p>Layanan Dana Bergulir Masyarakat menjadi salah satu unit usaha BUMDESMA Podo Rukun LKD dalam mendukung permodalan warga.</p>
-<h2>Alur Layanan</h2>
-<p>Calon penerima menyampaikan pengajuan kepada pengelola, kemudian diproses sesuai ketentuan yang berlaku.</p>
-<ul>
-  <li>Pengajuan dan pemeriksaan kelengkapan berkas</li>
-  <li>Penilaian kelayakan usaha dan kesepakatan angsuran</li>
-  <li>Pendampingan penggunaan dana dan pembayaran angsuran</li>
-</ul>
-<p>Pendampingan dilakukan agar dana yang diterima benar-benar dipakai untuk mengembangkan usaha.</p>`,
+      "Pada 4 Desember 2021, kelembagaan BUMDESMA Podo Rukun Kecamatan Wilangan berwisata bersama ke Semarang untuk mempererat kebersamaan antarpengurus dan pengelola.",
+    contentHtml: `<p>Pada 4 Desember 2021, kelembagaan BUMDESMA Podo Rukun Kecamatan Wilangan menggelar kegiatan bertajuk Dolan Bareng dengan tujuan Semarang.</p>
+<p>Peserta berfoto bersama di depan spanduk kegiatan dengan pose penuh semangat, mengenakan kaos seragam dan sebagian masih memakai masker sesuai protokol kesehatan saat itu.</p>
+<h2>Makna Kegiatan</h2>
+<p>Di luar urusan layanan dan pelaporan, kegiatan kebersamaan seperti ini menjaga keakraban antaranggota kelembagaan.</p>
+<p>Hubungan kerja yang hangat membantu pengurus dan pengelola berkoordinasi lebih lancar dalam tugas sehari-hari.</p>`,
   },
   {
-    title: "Sejarah BUMDesma Podo Rukun dari PPK hingga PNPM",
-    slug: "sejarah-bumdesma-podo-rukun-dari-ppk-hingga-pnpm",
+    title: "Musyawarah Antar Desa: Pertanggungjawaban Tahun Anggaran 2021",
+    slug: "musyawarah-antar-desa-pertanggungjawaban-tahun-anggaran-2021",
     photoIndex: 4,
     categorySlug: "internal",
     status: "published",
-    publishedAt: "2026-06-05T09:00:00+07:00",
+    publishedAt: "2022-01-27T12:00:00+07:00",
     excerpt:
-      "Perjalanan BUMDESMA Podo Rukun LKD dimulai dari program pemberdayaan masyarakat yang berjalan sejak 2003 hingga 2014.",
-    contentHtml: `<p>BUMDESMA Podo Rukun LKD tumbuh dari program pemberdayaan masyarakat yang berjalan bertahap, mulai dari Program Pengembangan Kecamatan (PPK) hingga Program Nasional Pemberdayaan Masyarakat (PNPM) pada 2003 sampai 2014.</p>
-<p>Dana yang diterima Kecamatan Wilangan melalui rangkaian program tersebut tercatat mencapai <strong>Rp 11.353.000.000</strong>.</p>
-<h2>Landasan Hukum</h2>
-<p>BUMDesa Bersama PODO RUKUN LKD telah memperoleh pengesahan badan hukum melalui sertifikat <strong>AHU-00115.AH.01.35.Tahun 2022</strong> dari Kementerian Hukum dan Hak Asasi Manusia Republik Indonesia.</p>
-<p>Kantor pengelola berlokasi di Desa Wilangan, Kecamatan Wilangan, Kabupaten Nganjuk, Jawa Timur.</p>
-<p>Perjalanan tersebut menjadi dasar pengembangan unit usaha dan layanan yang dikelola bersama oleh desa-desa anggota.</p>`,
+      "Musyawarah Antar Desa pada 27 Januari 2022 membahas pertanggungjawaban dan evaluasi BUMDesma Podo Rukun tahun anggaran 2021 serta perencanaan keuangan 2022.",
+    contentHtml: `<p>Pada 27 Januari 2022, BUM Desa Bersama Podo Rukun Kecamatan Wilangan menyelenggarakan Musyawarah Antar Desa (MAD) di Wilangan.</p>
+<p>Agenda utama musyawarah adalah pertanggungjawaban dan evaluasi kelembagaan BUMDesma Podo Rukun tahun anggaran 2021, dilanjutkan perencanaan keuangan tahun anggaran 2022.</p>
+<h2>Jalannya Musyawarah</h2>
+<ul>
+  <li>Pengurus dan pejabat desa duduk di meja depan memimpin forum</li>
+  <li>Perwakilan desa hadir sebagai peserta dan mengikuti paparan di layar proyektor</li>
+  <li>Pembahasan dilakukan terbuka agar seluruh desa anggota memahami kondisi lembaga</li>
+</ul>
+<p>Kesepakatan dalam musyawarah menjadi acuan pelaksanaan program dan pengelolaan keuangan sepanjang tahun 2022.</p>`,
   },
   {
-    title: "Rencana Layanan Keagenan Bank di Kantor Pengelola",
-    slug: "rencana-layanan-keagenan-bank-di-kantor-pengelola",
+    title: "Penyaluran Bantuan Dana Sosial dari Surplus BUMDESMA",
+    slug: "penyaluran-bantuan-dana-sosial-dari-surplus-bumdesma",
+    photoIndex: 5,
+    categorySlug: "sosial",
+    status: "published",
+    publishedAt: "2023-09-01T09:00:00+07:00",
+    excerpt:
+      "BUMDesa Bersama Podo Rukun menyalurkan bantuan dana sosial dari alokasi surplus usaha kepada warga di Kecamatan Wilangan bersama pemerintah desa.",
+    contentHtml: `<p>BUMDesa Bersama Podo Rukun menyalurkan bantuan dana sosial yang bersumber dari alokasi surplus BUMDesa kepada warga di wilayah Kecamatan Wilangan pada tahun 2023.</p>
+<p>Penyerahan dilakukan secara langsung. Seorang warga lanjut usia menerima bingkisan bantuan dari pengurus BUMDESMA, disaksikan perangkat desa yang hadir mendampingi.</p>
+<h2>Dari Usaha untuk Warga</h2>
+<p>Sebagian hasil usaha lembaga memang dialokasikan bagi kepentingan sosial, sehingga manfaat BUMDESMA dirasakan juga oleh warga yang membutuhkan.</p>
+<p>Dokumentasi penyaluran disimpan sebagai bagian dari pertanggungjawaban kepada desa dan masyarakat.</p>`,
+  },
+  {
+    title: "Pembinaan Kelompok SPP dan UEP Unit DBM Wilangan",
+    slug: "pembinaan-kelompok-spp-uep-unit-dbm-wilangan",
+    photoIndex: 6,
+    categorySlug: "edukasi",
+    status: "published",
+    publishedAt: "2022-06-25T13:00:00+07:00",
+    excerpt:
+      "Pada 25 Juni 2022, BUMDesma Podo Rukun membina kelompok SPP dan UEP Unit Dana Bergulir Masyarakat di Kecamatan Wilangan dalam pertemuan santai lesehan.",
+    contentHtml: `<p>BUMDesma Podo Rukun menggelar pembinaan kelompok Simpan Pinjam Perempuan (SPP) dan Usaha Ekonomi Produktif (UEP) Unit DBM di Kecamatan Wilangan pada 25 Juni 2022.</p>
+<p>Pertemuan berlangsung lesehan dengan suasana akrab. Para narasumber duduk berjajar di depan spanduk kegiatan, dan salah satunya menyampaikan materi menggunakan pengeras suara.</p>
+<h2>Tujuan Pembinaan</h2>
+<ul>
+  <li>Menguatkan pemahaman kelompok tentang pengelolaan pinjaman</li>
+  <li>Menjaga ketertiban angsuran dan administrasi kelompok</li>
+  <li>Membuka ruang tanya jawab antara pengelola dan anggota</li>
+</ul>
+<p>Pembinaan berkala seperti ini membantu kelompok tetap sehat dan usaha anggota terus berkembang.</p>`,
+  },
+  {
+    title: "Rapat Koordinasi Pengurus BUMDESMA Podo Rukun 2023",
+    slug: "rapat-koordinasi-pengurus-bumdesma-podo-rukun-2023",
+    photoIndex: 7,
+    categorySlug: "internal",
+    status: "published",
+    publishedAt: "2023-09-18T14:00:00+07:00",
+    excerpt:
+      "Pengurus BUMDESMA Podo Rukun Wilangan mengikuti rapat koordinasi pada 18 September 2023 bersama unsur pemerintahan di ruang pertemuan.",
+    contentHtml: `<p>Pada 18 September 2023, pengurus BUMDESMA Podo Rukun Wilangan mengikuti rapat koordinasi yang berlangsung di sebuah ruang pertemuan.</p>
+<p>Peserta duduk mengelilingi meja panjang dengan berkas, buku catatan, dan konsumsi tersedia. Rapat dihadiri pengurus berseragam biru serta perwakilan unsur pemerintahan.</p>
+<h2>Suasana Rapat</h2>
+<p>Papan tulis di ruangan memuat data calon DPT dan TPS pemilihan kepala desa serentak Kabupaten Nganjuk tahun 2023, menandakan banyaknya agenda tingkat desa yang dikoordinasikan pada periode tersebut.</p>
+<p>Rapat koordinasi menjadi cara pengurus menyelaraskan jadwal dan kegiatan dengan pihak-pihak terkait.</p>`,
+  },
+  {
+    title: "Launching PT LKM Artha Tanjung Mandiri dan Penggunaan BNI Direct",
+    slug: "launching-pt-lkm-artha-tanjung-mandiri-dan-penggunaan-bni-direct",
     photoIndex: 8,
     categorySlug: "bisnis",
-    status: "draft",
-    publishedAt: null,
+    status: "published",
+    publishedAt: "2023-07-06T10:00:00+07:00",
     excerpt:
-      "Layanan keagenan bank membantu warga melakukan transaksi perbankan tanpa harus menempuh perjalanan jauh ke pusat kota.",
-    contentHtml: `<p>Layanan keagenan bank menjadi salah satu layanan yang disiapkan BUMDESMA Podo Rukun LKD bagi masyarakat desa.</p>
-<h2>Bentuk Layanan</h2>
-<p>Melalui layanan ini, warga dapat melakukan transaksi perbankan dasar di kantor pengelola.</p>
+      "Peluncuran PT LKM Artha Tanjung Mandiri di Tanjunganom disertai pengenalan penggunaan BNI Direct dan rapat evaluasi semester I BUMDesma Mulia Mandiri LKD.",
+    contentHtml: `<p>Di Kecamatan Tanjunganom digelar peluncuran PT LKM Artha Tanjung Mandiri yang dirangkaikan dengan penggunaan BNI Direct dan Rapat Evaluasi Semester 1 BUMDesma Mulia Mandiri LKD.</p>
+<p>Spanduk kegiatan menampilkan logo mitra perbankan dan mitra pendukung, sedangkan para hadirin berpakaian batik berfoto bersama di depan panggung.</p>
+<h2>Arti bagi Lembaga Keuangan Desa</h2>
 <ul>
-  <li>Setoran dan penarikan tunai</li>
-  <li>Transfer antar rekening</li>
-  <li>Pembayaran tagihan rutin</li>
+  <li>Layanan keuangan mikro yang lebih terstruktur melalui badan usaha berbentuk PT</li>
+  <li>Transaksi perbankan berbasis aplikasi yang lebih mudah dan tercatat</li>
+  <li>Kesempatan belajar antar-BUMDesma lewat forum evaluasi semester</li>
 </ul>
-<p>Keberadaan layanan ini diharapkan menghemat waktu dan biaya perjalanan warga.</p>`,
+<p>Kegiatan ini menjadi gambaran arah pengembangan layanan keuangan BUMDESMA di Kabupaten Nganjuk.</p>`,
   },
   {
-    title: "Gerak Jalan Agustusan Warga Wilangan",
-    slug: "gerak-jalan-agustusan-warga-wilangan",
-    photoIndex: 11,
-    categorySlug: "gathering",
-    status: "draft",
-    publishedAt: null,
+    title: "Bimtek Aplikasi Laporan Keuangan Asosiasi BUMDesma Cluster 4",
+    slug: "bimtek-aplikasi-laporan-keuangan-asosiasi-bumdesma-cluster-4",
+    photoIndex: 9,
+    categorySlug: "edukasi",
+    status: "published",
+    publishedAt: "2022-12-01T09:00:00+07:00",
     excerpt:
-      "Gerak jalan agustusan menjadi kegiatan kebersamaan warga yang rutin digelar untuk memeriahkan hari kemerdekaan.",
-    contentHtml: `<p>Gerak jalan agustusan menjadi salah satu kegiatan yang dinantikan warga desa.</p>
-<p>Kegiatan ini digelar untuk memeriahkan hari kemerdekaan sekaligus mempererat kebersamaan antarwarga dan antarlembaga desa.</p>
-<h2>Pelaksanaan Kegiatan</h2>
-<p>Peserta berjalan bersama menempuh rute yang telah disiapkan panitia, dengan pengaturan lalu lintas dan penjagaan petugas di sepanjang jalur.</p>
-<p>Dokumentasi kegiatan menjadi bahan publikasi kegiatan desa pada periode berikutnya.</p>`,
+      "Asosiasi BUMDesma Kabupaten Nganjuk menggelar bimtek aplikasi laporan keuangan Cluster 4 di Wilangan untuk pengelola dari beberapa kecamatan.",
+    contentHtml: `<p>Asosiasi BUMDesma Kabupaten Nganjuk menyelenggarakan Bimbingan Teknis (Bimtek) Aplikasi Laporan Keuangan Cluster 4 di Wilangan pada akhir tahun 2022.</p>
+<p>Cluster 4 mencakup pengelola dari Kecamatan Wilangan, Gondang, Bejoso, dan Ngluyu, sehingga bimtek menjadi ajang bertemu sekaligus bertukar pengalaman antar-BUMDesma.</p>
+<h2>Manfaat Bimtek</h2>
+<ul>
+  <li>Pengelola terbiasa memakai aplikasi pelaporan keuangan</li>
+  <li>Format laporan lebih seragam antar-BUMDesma</li>
+  <li>Kesalahan pencatatan dapat dibahas dan diperbaiki bersama</li>
+</ul>
+<p>Peserta berfoto bersama di akhir kegiatan di depan spanduk asosiasi.</p>`,
+  },
+  {
+    title: "Verifikasi Data Penyaluran Bantuan Sosial di Kantor Pengelola",
+    slug: "verifikasi-data-penyaluran-bantuan-sosial-di-kantor-pengelola",
+    photoIndex: 10,
+    categorySlug: "sosial",
+    status: "published",
+    publishedAt: "2022-07-14T10:00:00+07:00",
+    excerpt:
+      "Pengurus dan pengelola BUMDESMA Podo Rukun LKD memeriksa daftar penerima di kantor pengelola sebagai persiapan penyaluran bantuan sosial bagi masyarakat.",
+    contentHtml: `<p>Di kantor pengelola BUMDESMA Podo Rukun LKD, pengurus dan staf berkumpul di sekeliling meja untuk memeriksa lembar daftar penerima sebelum penyaluran bantuan sosial bagi masyarakat.</p>
+<p>Spanduk Penyaluran Bantuan Sosial terpasang di belakang meja, dan dinding ruangan dipenuhi foto dokumentasi kegiatan lembaga.</p>
+<h2>Tahap Persiapan</h2>
+<ul>
+  <li>Membaca dan mencocokkan data pada formulir</li>
+  <li>Mencatat hal-hal yang perlu dikoreksi</li>
+  <li>Menyiapkan berkas untuk laporan penyaluran</li>
+</ul>
+<p>Pemeriksaan teliti pada tahap ini membuat bantuan sosial lebih tepat sasaran dan mudah dipertanggungjawabkan.</p>`,
+  },
+  {
+    title: "Gerak Jalan Agustusan BUMDESMA Podo Rukun",
+    slug: "gerak-jalan-agustusan-bumdesma-podo-rukun",
+    photoIndex: 11,
+    categorySlug: "event",
+    status: "published",
+    publishedAt: "2023-08-17T09:00:00+07:00",
+    excerpt:
+      "Pengurus dan pengelola BUMDESMA Podo Rukun ikut gerak jalan peringatan kemerdekaan dengan kaos putih, selempang bertuliskan nama lembaga, dan topi biru.",
+    contentHtml: `<p>Pengurus dan pengelola BUMDESMA Podo Rukun ikut serta dalam gerak jalan dalam rangka memeriahkan peringatan hari kemerdekaan Indonesia.</p>
+<p>Peserta tampil kompak dengan kaos putih, celana biru, topi biru, kacamata hitam, dan selempang merah putih bertuliskan nama lembaga. Sebagian mengacungkan jempol ke arah kamera.</p>
+<h2>Kebersamaan di Hari Kemerdekaan</h2>
+<p>Kegiatan gerak jalan menjadi sarana memperkenalkan BUMDESMA kepada warga di sepanjang rute sekaligus mempererat hubungan antarpengurus.</p>
+<p>Dokumentasi ini melengkapi rangkaian kegiatan kebersamaan lembaga.</p>`,
+  },
+  {
+    title: "Kebersamaan Tim BUMDESMA Podo Rukun di Pantai",
+    slug: "kebersamaan-tim-bumdesma-podo-rukun-di-pantai",
+    photoIndex: 12,
+    categorySlug: "gathering",
+    status: "published",
+    publishedAt: "2022-10-22T09:00:00+07:00",
+    excerpt:
+      "Tim BUMDESMA Podo Rukun berfoto bersama di tepi pantai dengan kaos seragam bertuliskan One Team Dream dalam kegiatan kebersamaan lembaga.",
+    contentHtml: `<p>Tim BUMDESMA Podo Rukun meluangkan waktu bersama di tepi pantai, berfoto di atas batu karang dengan latar laut dan bukit hijau.</p>
+<p>Para peserta mengenakan kaos putih seragam bertuliskan One Team Dream, sebagian memakai kerudung motif senada dan kacamata hitam, dengan pose gembira yang kompak.</p>
+<h2>Satu Tim, Satu Tujuan</h2>
+<p>Tulisan pada kaos menjadi pengingat bahwa pekerjaan lembaga dijalankan sebagai satu tim.</p>
+<p>Kegiatan di luar kantor seperti ini membantu menyegarkan suasana kerja dan menguatkan rasa kekeluargaan.</p>`,
   },
 ];
 
@@ -257,9 +280,15 @@ function assertArticlesAreValid() {
       );
     }
     if (article.status === "published" && !article.publishedAt) {
-      throw new Error(`Artikel terbit "${article.slug}" wajib punya publishedAt.`);
+      throw new Error(
+        `Artikel terbit "${article.slug}" wajib punya publishedAt.`,
+      );
     }
-    if (!Number.isInteger(article.photoIndex) || article.photoIndex < 1 || article.photoIndex > 12) {
+    if (
+      !Number.isInteger(article.photoIndex) ||
+      article.photoIndex < 1 ||
+      article.photoIndex > 12
+    ) {
       throw new Error(`Foto kegiatan tidak valid untuk "${article.slug}".`);
     }
 
@@ -277,7 +306,9 @@ function assertArticlesAreValid() {
         match[1].toLowerCase(),
       ),
     );
-    const unexpectedTags = [...usedTags].filter((tag) => !ALLOWED_TAGS.has(tag));
+    const unexpectedTags = [...usedTags].filter(
+      (tag) => !ALLOWED_TAGS.has(tag),
+    );
     if (unexpectedTags.length) {
       throw new Error(
         `Konten "${article.slug}" memakai tag di luar daftar: ${unexpectedTags.join(", ")}.`,
@@ -394,7 +425,9 @@ async function insertArticles(client, author, categories, coversBySlug) {
   let insertedDraft = 0;
 
   for (const article of ARTICLES) {
-    const publishedAt = article.publishedAt ? new Date(article.publishedAt) : null;
+    const publishedAt = article.publishedAt
+      ? new Date(article.publishedAt)
+      : null;
 
     const { rows } = await client.query(
       `INSERT INTO articles
@@ -450,7 +483,9 @@ async function run() {
 
     await client.query("COMMIT");
 
-    console.log(`Penulis artikel contoh: user id ${author.id} (${author.role}), sumber ${author.source}.`);
+    console.log(
+      `Penulis artikel contoh: user id ${author.id} (${author.role}), sumber ${author.source}.`,
+    );
     console.log(
       `Kategori: ${categories.inserted} dibuat, ${categories.skipped} dilewati (sudah ada).`,
     );
