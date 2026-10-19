@@ -4,7 +4,11 @@ import path from "node:path";
 import express from "express";
 import multer from "multer";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
-import { detectImage, uploadDir } from "../services/uploads.js";
+import {
+  detectImage,
+  processUploadedImage,
+  uploadDir,
+} from "../services/uploads.js";
 
 const router = express.Router();
 
@@ -46,9 +50,12 @@ router.post("/", uploadLimiter, multipart.single("image"), async (req, res) => {
     return res.status(400).json({ message: "Isi file bukan gambar JPG, PNG, atau WebP yang valid." });
   }
 
+  // Validasi magic bytes di atas tetap menjadi gerbang pertama; sharp baru
+  // dijalankan setelah isinya terbukti gambar yang didukung.
+  const processed = await processUploadedImage(req.file.buffer);
   await mkdir(uploadDir, { recursive: true });
-  const filename = `${randomUUID()}.${image.extension}`;
-  await writeFile(path.join(uploadDir, filename), req.file.buffer, { flag: "wx" });
+  const filename = `${randomUUID()}.${processed.extension}`;
+  await writeFile(path.join(uploadDir, filename), processed.buffer, { flag: "wx" });
   return res.status(201).json({ url: `/uploads/${filename}` });
 });
 

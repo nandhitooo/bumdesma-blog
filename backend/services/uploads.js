@@ -1,5 +1,6 @@
 import { unlink } from "node:fs/promises";
 import path from "node:path";
+import sharp from "sharp";
 import { serverDirPath } from "../config/env.js";
 import { pool } from "../db/pool.js";
 
@@ -58,6 +59,24 @@ export function detectImage(buffer) {
     return { mime: "image/webp", extension: "webp" };
   }
   return null;
+}
+
+// Memperbaiki orientasi berdasarkan EXIF, mengecilkan lebar maksimal 1600 px
+// tanpa memperbesar gambar kecil, lalu mengonversi ke WebP. Metadata tidak ikut
+// ditulis karena sharp hanya menyertakannya bila diminta secara eksplisit.
+export async function processUploadedImage(buffer) {
+  try {
+    const processed = await sharp(buffer)
+      .rotate()
+      .resize({ width: 1600, withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+    return { buffer: processed, extension: "webp" };
+  } catch {
+    const error = new Error("Gambar tidak dapat diproses.");
+    error.status = 400;
+    throw error;
+  }
 }
 
 // Semua gambar unggahan yang dirujuk di dalam HTML artikel (gambar inline).
