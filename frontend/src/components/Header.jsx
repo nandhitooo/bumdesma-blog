@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { id: "contact", label: "Kontak", to: "/#contact", icon: "phone" },
   { id: "blog", label: "Blog", to: "/blog", icon: "newspaper" },
   { id: "gallery", label: "Galeri", to: "/galeri", icon: "images" },
+  { id: "transparency", label: "Transparansi", to: "/transparansi", icon: "file-lines" },
 ];
 
 function NavItem({ item, active, mobile = false, onClick }) {
@@ -113,13 +114,16 @@ export default function Header() {
   const routeKey = `${location.pathname}${location.hash}`;
   const isBlog = location.pathname.startsWith("/blog");
   const isGallery = location.pathname.startsWith("/galeri");
+  const isTransparency = location.pathname.startsWith("/transparansi");
   const active = isBlog
     ? "blog"
     : isGallery
       ? "gallery"
-      : location.pathname === "/"
-        ? scrollActive
-        : "";
+      : isTransparency
+        ? "transparency"
+        : location.pathname === "/"
+          ? scrollActive
+          : "";
 
   // Track active scroll position on homepage.
   useEffect(() => {

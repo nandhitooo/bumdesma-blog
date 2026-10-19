@@ -6,6 +6,7 @@ const navigation = [
   { to: "/admin", label: "Ringkasan", icon: "gauge", end: true },
   { to: "/admin/articles", label: "Artikel", icon: "newspaper" },
   { to: "/admin/gallery", label: "Galeri", icon: "images", adminOnly: true },
+  { to: "/admin/documents", label: "Dokumen", icon: "file-lines", adminOnly: true },
   { to: "/admin/categories", label: "Kategori", icon: "layer-group", adminOnly: true },
   { to: "/admin/users", label: "Pengguna", icon: "users", adminOnly: true },
   { to: "/admin/content", label: "Konten Situs", icon: "sliders", adminOnly: true },

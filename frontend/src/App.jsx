@@ -12,6 +12,7 @@ import Footer from "./components/Footer";
 import BlogList from "./pages/BlogList";
 import BlogDetail from "./pages/BlogDetail";
 import Gallery from "./pages/Gallery";
+import Transparency from "./pages/Transparency";
 import NotFound from "./pages/NotFound";
 import { SiteContentProvider } from "./lib/siteContent";
 
@@ -27,6 +28,7 @@ const AdminUsers = lazy(() => import("./admin/Users"));
 const AdminSiteContent = lazy(() => import("./admin/SiteContent"));
 const AdminChangePassword = lazy(() => import("./admin/ChangePassword"));
 const AdminBackup = lazy(() => import("./admin/Backup"));
+const AdminDocuments = lazy(() => import("./admin/Documents"));
 
 const adminFallback = (
   <main className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-600">
@@ -107,6 +109,16 @@ function App() {
             }
           />
           <Route
+            path="/transparansi"
+            element={
+              <>
+                <Header />
+                <Transparency />
+                <Footer />
+              </>
+            }
+          />
+          <Route
             path="/cms"
             element={
               <>
@@ -139,6 +151,7 @@ function App() {
             <Route path="articles/new" element={<AdminArticleEditor />} />
             <Route path="articles/:id/edit" element={<AdminArticleEditor />} />
             <Route path="gallery" element={<AdminGallery />} />
+            <Route path="documents" element={<AdminDocuments />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="content" element={<AdminSiteContent />} />
