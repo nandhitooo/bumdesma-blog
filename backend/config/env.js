@@ -64,6 +64,13 @@ export const env = {
   get clientOrigin() {
     return this.clientOrigins[0];
   },
+  // URL publik situs untuk tautan absolut di robots.txt, sitemap.xml, feed, dan
+  // pratinjau tautan. Bila tidak diisi, origin frontend pertama dipakai supaya
+  // konfigurasi lama tetap berjalan.
+  get publicSiteUrl() {
+    const configured = stringEnv("PUBLIC_SITE_URL").replace(/\/+$/, "");
+    return configured || this.clientOrigin;
+  },
   // Di belakang reverse proxy (nginx, Railway, dsb.) Express perlu tahu hop
   // pertama supaya IP asli klien dipakai rate limiter. Kosong = nonaktif.
   // Nilai yang diterima: "true", "false", jumlah hop ("1"), atau nama subnet
@@ -162,6 +169,30 @@ function collectEnvProblems() {
           `${label} harus https saat NODE_ENV=production (contoh: https://bumdesma.example.id).`,
         );
       }
+    }
+  }
+
+  // URL absolut di sitemap/feed/Open Graph harus menunjuk ke domain publik,
+  // bukan origin dev. Aturannya sama dengan CLIENT_ORIGIN: http(s) lengkap tanpa
+  // slash di akhir, dan wajib https di produksi.
+  const publicSiteUrl = stringEnv("PUBLIC_SITE_URL");
+  if (publicSiteUrl) {
+    let parsed = null;
+    try {
+      parsed = new URL(publicSiteUrl);
+    } catch {
+      parsed = null;
+    }
+    if (!parsed || !["http:", "https:"].includes(parsed.protocol)) {
+      problems.push(
+        "PUBLIC_SITE_URL harus URL http(s) lengkap tanpa slash di akhir (contoh: https://bumdesma.example.id).",
+      );
+    } else if (publicSiteUrl.endsWith("/")) {
+      problems.push("PUBLIC_SITE_URL tidak boleh diakhiri slash.");
+    } else if (env.isProduction && parsed.protocol !== "https:") {
+      problems.push(
+        "PUBLIC_SITE_URL harus https saat NODE_ENV=production (contoh: https://bumdesma.example.id).",
+      );
     }
   }
 

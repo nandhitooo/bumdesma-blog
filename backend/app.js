@@ -20,6 +20,7 @@ import siteContentRoutes, {
 import usersRoutes from "./routes/users.js";
 import uploadRoutes from "./routes/upload.js";
 import backupRoutes from "./routes/backup.js";
+import seoRoutes from "./routes/seo.js";
 import { requireAuth } from "./middleware/auth.js";
 import { noStore, originCheck } from "./middleware/security.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
@@ -161,6 +162,10 @@ app.use("/api/admin/site-content", adminSiteContentRoutes);
 app.use("/api/admin/users", usersRoutes);
 app.use("/api/admin/upload", uploadRoutes);
 app.use("/api/admin/backup", backupRoutes);
+
+// Berkas SEO dan pratinjau tautan berada di root domain (bukan /api) supaya
+// perayap mesin pencari dan layanan pesan bisa mengaksesnya langsung.
+app.use(seoRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
