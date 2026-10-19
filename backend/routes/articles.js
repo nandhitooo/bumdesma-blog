@@ -157,6 +157,60 @@ publicRouter.get(
   },
 );
 
+// Artikel terkait untuk halaman detail: maksimal 3 artikel terbit selain artikel
+// itu sendiri. Artikel dengan kategori yang sama diutamakan; bila jumlahnya
+// kurang dari 3, sisanya dilengkapi artikel terbit terbaru lainnya.
+publicRouter.get("/:slug/related", async (req, res) => {
+  const slug = z.string().trim().min(1).max(220).safeParse(req.params.slug);
+  if (!slug.success) {
+    return res.status(400).json({ message: "Slug artikel tidak valid." });
+  }
+
+  const source = await pool.query(
+    "SELECT id, category_id FROM articles WHERE slug = $1 AND status = 'published'",
+    [slug.data],
+  );
+  const article = source.rows[0];
+  if (!article) {
+    return res.status(404).json({ message: "Artikel tidak ditemukan." });
+  }
+
+  const articles = [];
+  const excludedIds = [article.id];
+
+  if (article.category_id !== null) {
+    const sameCategory = await pool.query(
+      `SELECT ${ARTICLE_LIST_COLUMNS}
+       FROM articles a
+       LEFT JOIN categories c ON c.id = a.category_id
+       LEFT JOIN users u ON u.id = a.author_id
+       WHERE a.status = 'published' AND a.category_id = $1 AND a.id <> $2
+       ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
+       LIMIT 3`,
+      [article.category_id, article.id],
+    );
+    articles.push(...sameCategory.rows);
+    excludedIds.push(...sameCategory.rows.map((row) => row.id));
+  }
+
+  // Pelengkap dari artikel terbit lain, tanpa mengulang yang sudah terpilih.
+  if (articles.length < 3) {
+    const fill = await pool.query(
+      `SELECT ${ARTICLE_LIST_COLUMNS}
+       FROM articles a
+       LEFT JOIN categories c ON c.id = a.category_id
+       LEFT JOIN users u ON u.id = a.author_id
+       WHERE a.status = 'published' AND NOT (a.id = ANY($1::int[]))
+       ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
+       LIMIT $2`,
+      [excludedIds, 3 - articles.length],
+    );
+    articles.push(...fill.rows);
+  }
+
+  return res.json({ articles });
+});
+
 // Detail artikel terbit berdasarkan slug.
 publicRouter.get("/:slug", async (req, res) => {
   const slug = z.string().trim().min(1).max(220).safeParse(req.params.slug);

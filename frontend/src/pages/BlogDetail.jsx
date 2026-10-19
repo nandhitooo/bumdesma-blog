@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ArticleView from "../components/ArticleView";
+import ShareButtons from "../components/ShareButtons";
+import RelatedArticles from "../components/RelatedArticles";
 
 function BlogDetail() {
   const { slug } = useParams();
@@ -57,6 +59,9 @@ function BlogDetail() {
             </div>
 
             <ArticleView article={article} />
+
+            <ShareButtons title={article.title} slug={article.slug} />
+            <RelatedArticles slug={article.slug} />
 
             {/* Bottom Back Link */}
             <div className="mt-12 pt-6 border-t border-gray-200 flex justify-between items-center">
