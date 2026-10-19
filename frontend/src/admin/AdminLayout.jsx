@@ -18,6 +18,8 @@ const navigation = [
   // Terbuka untuk admin maupun editor: setiap pengguna boleh mengganti
   // password-nya sendiri.
   { to: "/admin/password", label: "Ganti Password", icon: "key" },
+  // Juga terbuka untuk editor: verifikasi dua langkah milik akun sendiri.
+  { to: "/admin/two-factor", label: "Verifikasi 2 Langkah", icon: "shield-halved" },
 ];
 
 function AdminLayout() {

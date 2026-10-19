@@ -37,6 +37,7 @@ const AdminTeam = lazy(() => import("./admin/Team"));
 const AdminServiceDetails = lazy(() => import("./admin/ServiceDetails"));
 const AdminFaqs = lazy(() => import("./admin/Faqs"));
 const AdminAuditLog = lazy(() => import("./admin/AuditLog"));
+const AdminTwoFactor = lazy(() => import("./admin/TwoFactor"));
 
 const adminFallback = (
   <main className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-600">
@@ -210,6 +211,7 @@ function App() {
             <Route path="users" element={<AdminUsers />} />
             <Route path="content" element={<AdminSiteContent />} />
             <Route path="password" element={<AdminChangePassword />} />
+            <Route path="two-factor" element={<AdminTwoFactor />} />
             <Route path="backup" element={<AdminBackup />} />
             <Route path="audit" element={<AdminAuditLog />} />
           </Route>
