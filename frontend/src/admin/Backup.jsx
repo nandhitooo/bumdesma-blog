@@ -115,7 +115,7 @@ function AdminBackup() {
   };
 
   const inputClass =
-    "w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700";
+    "min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700";
 
   return (
     <section className="mx-auto max-w-3xl">
@@ -146,7 +146,7 @@ function AdminBackup() {
           type="button"
           onClick={downloadBackup}
           disabled={downloading}
-          className="mt-5 rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60"
+          className="mt-5 min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
         >
           {downloading ? "Menyiapkan backup..." : "Unduh backup"}
         </button>
@@ -192,7 +192,7 @@ function AdminBackup() {
               </ul>
             )}
             {failedFiles.length > 0 && (
-              <p className="mt-2 text-sm text-red-700">
+              <p className="mt-2 break-words text-sm text-red-700">
                 Gambar yang gagal ditulis: {failedFiles.join(", ")}. Data lain
                 sudah dipulihkan; unggah ulang gambar tersebut bila perlu.
               </p>
@@ -214,7 +214,7 @@ function AdminBackup() {
               type="file"
               accept=".zip,application/zip"
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-              className="w-full cursor-pointer rounded-xl border border-gray-200 px-4 py-3 file:mr-4 file:rounded-lg file:border-0 file:bg-green-700 file:px-4 file:py-2 file:font-bold file:text-white hover:file:bg-green-800"
+              className="min-h-[44px] w-full cursor-pointer rounded-xl border border-gray-200 px-4 py-3 text-base file:mr-4 file:rounded-lg file:border-0 file:bg-green-700 file:px-4 file:py-3 file:font-bold file:text-white hover:file:bg-green-800"
             />
             <p className="mt-2 text-xs text-gray-500">
               Hanya file .zip hasil unduhan halaman ini yang didukung. Ukuran
@@ -265,7 +265,7 @@ function AdminBackup() {
           <button
             type="submit"
             disabled={restoring || confirmation !== CONFIRMATION_WORD}
-            className="rounded-xl bg-red-700 px-5 py-3 font-bold text-white hover:bg-red-800 disabled:opacity-60"
+            className="min-h-[44px] w-full rounded-xl bg-red-700 px-5 py-3 font-bold text-white hover:bg-red-800 disabled:opacity-60 sm:w-auto"
           >
             {restoring ? "Memulihkan..." : "Pulihkan data dari backup"}
           </button>

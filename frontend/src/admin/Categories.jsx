@@ -107,7 +107,7 @@ function AdminCategories() {
         </p>
       )}
 
-      <form onSubmit={submit} className="mb-7 grid gap-4 rounded-3xl bg-white p-5 shadow-sm sm:grid-cols-2 sm:p-7">
+      <form onSubmit={submit} className="mb-7 grid grid-cols-1 gap-4 rounded-3xl bg-white p-5 shadow-sm md:grid-cols-2 sm:p-7">
         <div>
           <label htmlFor="category-name" className="mb-2 block font-bold text-gray-700">
             Nama kategori
@@ -124,7 +124,7 @@ function AdminCategories() {
                 ...(!slugEdited ? { slug: toSlug(event.target.value) } : {}),
               }))
             }
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700"
+            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
           />
         </div>
         <div>
@@ -144,14 +144,14 @@ function AdminCategories() {
                 slug: event.target.value.toLowerCase().replace(/\s+/g, "-"),
               }));
             }}
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700"
+            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
           />
         </div>
-        <div className="flex flex-wrap gap-3 sm:col-span-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2">
           <button
             type="submit"
             disabled={saving}
-            className="rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60"
+            className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
           >
             {saving ? "Menyimpan..." : editingId ? "Simpan perubahan" : "Tambah kategori"}
           </button>
@@ -159,7 +159,7 @@ function AdminCategories() {
             <button
               type="button"
               onClick={resetForm}
-              className="rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200"
+              className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
             >
               Batal
             </button>
@@ -177,22 +177,22 @@ function AdminCategories() {
                 key={category.id}
                 className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-7"
               >
-                <div>
-                  <p className="font-bold text-gray-900">{category.name}</p>
-                  <p className="mt-1 text-sm text-gray-500">/{category.slug}</p>
+                <div className="min-w-0">
+                  <p className="break-words font-bold text-gray-900">{category.name}</p>
+                  <p className="mt-1 break-all text-sm text-gray-500">/{category.slug}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => startEdit(category)}
-                    className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200"
+                    className="min-h-[44px] rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200"
                   >
                     Ubah
                   </button>
                   <button
                     type="button"
                     onClick={() => deleteCategory(category)}
-                    className="rounded-lg bg-red-50 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-100"
+                    className="min-h-[44px] rounded-lg bg-red-50 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-100"
                   >
                     Hapus
                   </button>

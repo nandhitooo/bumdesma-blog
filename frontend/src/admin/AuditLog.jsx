@@ -104,15 +104,17 @@ function AuditLog() {
                         {dateTimeFormatter.format(new Date(log.createdAt))}
                       </time>
                     </td>
-                    <td className="px-5 py-3 font-semibold text-gray-900">
+                    <td className="break-words px-5 py-3 font-semibold text-gray-900" title={log.userName || "—"}>
                       {log.userName || "—"}
                     </td>
                     <td className="px-5 py-3">
-                      <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-800">
+                      <span className="inline-block break-words rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-800">
                         {log.action}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-gray-700">{log.entity}</td>
+                    <td className="break-words px-5 py-3 text-gray-700" title={log.entity}>
+                      {log.entity}
+                    </td>
                     <td className="px-5 py-3 text-gray-500">
                       {log.entityId ?? "—"}
                     </td>

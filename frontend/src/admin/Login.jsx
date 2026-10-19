@@ -39,9 +39,12 @@ function AdminLogin() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-green-900 px-5 py-12">
-      <section className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl sm:p-10">
-        <Link to="/" className="text-sm font-bold text-green-700 hover:text-green-900">
+    <main className="flex min-h-dvh items-center justify-center bg-green-900 px-4 py-10 sm:px-6">
+      <section className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
+        <Link
+          to="/"
+          className="inline-flex min-h-[44px] items-center text-sm font-bold text-green-700 hover:text-green-900"
+        >
           <i className="fa-solid fa-arrow-left mr-2" aria-hidden="true"></i>
           Kembali ke situs
         </Link>
@@ -65,7 +68,7 @@ function AdminLogin() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
           <div>
@@ -79,7 +82,7 @@ function AdminLogin() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700"
+              className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
           {requiresTotp && (
@@ -99,7 +102,7 @@ function AdminLogin() {
                   setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
                 }
                 placeholder="123456"
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 tracking-[0.4em] outline-none focus:border-green-700"
+                className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base tracking-[0.4em] outline-none focus:border-green-700"
               />
               <p className="mt-2 text-sm text-gray-500">
                 Masukkan 6 digit dari aplikasi authenticator Anda.
@@ -114,7 +117,7 @@ function AdminLogin() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white transition hover:bg-green-800 disabled:opacity-60"
+            className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 text-base font-bold text-white transition hover:bg-green-800 disabled:opacity-60"
           >
             {submitting ? "Memeriksa..." : "Masuk"}
           </button>

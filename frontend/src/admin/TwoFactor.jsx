@@ -95,10 +95,10 @@ function AdminTwoFactor() {
   };
 
   const inputClass =
-    "w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-green-700";
+    "min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700";
 
   return (
-    <section className="mx-auto max-w-3xl">
+    <section className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center px-4 py-8">
       <header className="mb-7">
         <p className="font-bold text-green-700">Pengaturan</p>
         <h1 className="mt-1 text-3xl font-extrabold text-gray-900">
@@ -145,7 +145,7 @@ function AdminTwoFactor() {
                 type="button"
                 onClick={startSetup}
                 disabled={starting}
-                className="mt-5 rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60"
+                className="mt-5 min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
               >
                 {starting ? "Menyiapkan..." : "Aktifkan verifikasi dua langkah"}
               </button>
@@ -205,11 +205,11 @@ function AdminTwoFactor() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60"
+                  className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
                 >
                   {saving ? "Memverifikasi..." : "Aktifkan"}
                 </button>
@@ -220,7 +220,7 @@ function AdminTwoFactor() {
                     setEnableCode("");
                     setError("");
                   }}
-                  className="rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200"
+                  className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
                 >
                   Batal
                 </button>
@@ -288,7 +288,7 @@ function AdminTwoFactor() {
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded-xl bg-red-600 px-5 py-3 font-bold text-white hover:bg-red-700 disabled:opacity-60"
+                className="min-h-[44px] w-full rounded-xl bg-red-600 px-5 py-3 font-bold text-white hover:bg-red-700 disabled:opacity-60 sm:w-auto"
               >
                 {saving ? "Menonaktifkan..." : "Nonaktifkan"}
               </button>

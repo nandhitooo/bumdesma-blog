@@ -28,7 +28,7 @@ function AdminDashboard() {
     <div className="mx-auto max-w-6xl">
       <header className="mb-8">
         <p className="font-bold text-green-700">Panel pengelola</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-gray-900">
+        <h1 className="mt-1 break-words text-2xl font-extrabold text-gray-900 sm:text-3xl">
           Selamat datang, {user.name}
         </h1>
         <p className="mt-2 text-gray-600">
@@ -38,7 +38,7 @@ function AdminDashboard() {
 
       {error && <p role="alert" className="mb-5 text-red-700">{error}</p>}
 
-      <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
         {[
           { label: "Semua artikel", value: articles.length, icon: "newspaper" },
           { label: "Terbit", value: published, icon: "circle-check" },
@@ -62,7 +62,7 @@ function AdminDashboard() {
           </div>
           <Link
             to="/admin/articles/new"
-            className="rounded-xl bg-green-700 px-4 py-3 font-bold text-white transition hover:bg-green-800"
+            className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-green-700 px-4 py-3 font-bold text-white transition hover:bg-green-800 motion-reduce:transition-none sm:w-auto"
           >
             <i className="fa-solid fa-plus mr-2" aria-hidden="true"></i>
             Tulis artikel
@@ -75,8 +75,10 @@ function AdminDashboard() {
               to={`/admin/articles/${article.id}/edit`}
               className="flex flex-col justify-between gap-2 py-4 transition hover:text-green-700 sm:flex-row sm:items-center"
             >
-              <span className="font-bold text-gray-800">{article.title}</span>
-              <span className="text-sm text-gray-500">
+              <span className="min-w-0 break-words font-bold text-gray-800">
+                {article.title}
+              </span>
+              <span className="shrink-0 text-sm text-gray-500">
                 {article.status === "published" ? "Terbit" : "Draf"}
                 {" · "}
                 {dateFormatter.format(new Date(article.updatedAt))}

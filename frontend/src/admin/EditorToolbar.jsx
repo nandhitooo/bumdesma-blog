@@ -20,7 +20,7 @@ const ALIGNMENTS = [
 ];
 
 const selectClass =
-  "min-h-[44px] rounded-lg border border-gray-200 bg-white px-2 text-sm font-semibold text-gray-700 outline-none focus:border-green-700";
+  "min-h-[44px] max-w-full rounded-lg border border-gray-200 bg-white px-2 text-base font-semibold text-gray-700 outline-none focus:border-green-700 sm:text-sm";
 
 function ToolbarButton({ label, active, disabled, onClick, icon }) {
   return (

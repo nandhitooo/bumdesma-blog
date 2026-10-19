@@ -96,7 +96,7 @@ function AdminArticles() {
         </div>
         <Link
           to="/admin/articles/new"
-          className="rounded-xl bg-green-700 px-5 py-3 font-bold text-white transition hover:bg-green-800"
+          className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-green-700 px-5 py-3 font-bold text-white transition hover:bg-green-800 motion-reduce:transition-none sm:w-auto"
         >
           <i className="fa-solid fa-plus mr-2" aria-hidden="true"></i>
           Tulis artikel
@@ -113,7 +113,7 @@ function AdminArticles() {
             key={value}
             type="button"
             onClick={() => setFilter(value)}
-            className={`rounded-full px-4 py-2 text-sm font-bold ${
+            className={`min-h-[44px] rounded-full px-4 py-2 text-sm font-bold ${
               filter === value
                 ? "bg-green-700 text-white"
                 : "bg-white text-gray-600 hover:bg-green-50 hover:text-green-700"
@@ -133,7 +133,7 @@ function AdminArticles() {
           <button
             type="button"
             onClick={() => setNotice("")}
-            className="rounded-lg px-3 py-1 text-sm font-bold text-green-800 transition hover:bg-green-100"
+            className="min-h-[44px] rounded-lg px-3 py-1 text-sm font-bold text-green-800 transition hover:bg-green-100 motion-reduce:transition-none"
           >
             Tutup
           </button>
@@ -158,7 +158,7 @@ function AdminArticles() {
                   className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
                 >
                   <div className="min-w-0">
-                    <h2 className="truncate text-lg font-bold text-gray-900">
+                    <h2 className="truncate text-lg font-bold text-gray-900" title={article.title}>
                       {article.title}
                     </h2>
                     <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
@@ -200,21 +200,21 @@ function AdminArticles() {
                       <button
                         type="button"
                         onClick={() => toggleStatus(article)}
-                        className="rounded-lg bg-green-50 px-3 py-2 text-sm font-bold text-green-800 hover:bg-green-100"
+                        className="min-h-[44px] rounded-lg bg-green-50 px-3 py-2 text-sm font-bold text-green-800 hover:bg-green-100"
                       >
                         {article.status === "published" ? "Jadikan draf" : "Terbitkan"}
                       </button>
                     )}
                     <Link
                       to={`/admin/articles/${article.id}/edit`}
-                      className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200"
+                      className="min-h-[44px] rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-200"
                     >
                       Ubah
                     </Link>
                     <button
                       type="button"
                       onClick={() => deleteArticle(article)}
-                      className="rounded-lg bg-red-50 px-3 py-2 text-sm font-bold text-red-700 hover:bg-red-100"
+                      className="min-h-[44px] rounded-lg bg-red-50 px-3 py-2 text-sm font-bold text-red-700 hover:bg-red-100"
                     >
                       Hapus
                     </button>
@@ -223,7 +223,7 @@ function AdminArticles() {
                         to={`/blog/${article.slug}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-lg px-3 py-2 text-sm font-bold text-green-700 hover:bg-green-50"
+                        className="min-h-[44px] rounded-lg px-3 py-2 text-sm font-bold text-green-700 hover:bg-green-50"
                       >
                         Lihat
                       </Link>
