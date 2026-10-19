@@ -1,4 +1,5 @@
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import { Link } from "react-router-dom";
 import { useSiteContent } from "../lib/siteContent";
 import { isValidIcon } from "../lib/siteContentUtils";
 
@@ -48,6 +49,16 @@ const Service = () => {
               </div>
             );
           })}
+        </div>
+
+        <div className="mt-10">
+          <Link
+            to="/layanan"
+            className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-primary transition-colors hover:text-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+          >
+            <span>Lihat syarat dan alur pengajuan</span>
+            <i className="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+          </Link>
         </div>
       </div>
     </section>
