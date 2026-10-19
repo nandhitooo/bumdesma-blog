@@ -11,6 +11,12 @@ export const uploadDir = path.join(serverDirPath, "uploads");
 const UPLOAD_URL_PATTERN = /^\/uploads\/[0-9a-fA-F-]{1,64}\.(?:jpg|png|webp)$/;
 const UPLOAD_URL_IN_HTML_PATTERN = /\/uploads\/[0-9a-fA-F-]{1,64}\.(?:jpg|png|webp)/gi;
 
+// Tabel lain yang juga menyimpan URL unggahan. Daftar ini konstanta kode, bukan
+// masukan pengguna, sehingga nama tabel/kolom aman disisipkan ke query. Tanpa
+// pemeriksaan ini, gambar yang masih dipakai galeri bisa terhapus saat artikel
+// yang memakai gambar yang sama diperbarui.
+const EXTRA_REFERENCES = [{ table: "gallery_items", column: "image_url" }];
+
 export function isUploadUrl(value) {
   return typeof value === "string" && UPLOAD_URL_PATTERN.test(value);
 }
@@ -85,6 +91,19 @@ export async function deleteUnreferencedUploads(candidates) {
       );
 
       if (rowCount > 0) continue;
+
+      let referencedElsewhere = false;
+      for (const { table, column } of EXTRA_REFERENCES) {
+        const reference = await pool.query(
+          `SELECT 1 FROM ${table} WHERE ${column} = $1 LIMIT 1`,
+          [url],
+        );
+        if (reference.rowCount > 0) {
+          referencedElsewhere = true;
+          break;
+        }
+      }
+      if (referencedElsewhere) continue;
 
       await unlink(filePath);
       console.log(`Berkas unggahan tidak lagi dirujuk, dihapus: ${url}`);

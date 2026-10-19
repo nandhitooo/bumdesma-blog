@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { id: "activity", label: "Kegiatan", to: "/#activity", icon: "calendar" },
   { id: "contact", label: "Kontak", to: "/#contact", icon: "phone" },
   { id: "blog", label: "Blog", to: "/blog", icon: "newspaper" },
+  { id: "gallery", label: "Galeri", to: "/galeri", icon: "images" },
 ];
 
 function NavItem({ item, active, mobile = false, onClick }) {
@@ -111,8 +112,14 @@ export default function Header() {
   const location = useLocation();
   const routeKey = `${location.pathname}${location.hash}`;
   const isBlog = location.pathname.startsWith("/blog");
-  const active =
-    isBlog ? "blog" : location.pathname === "/" ? scrollActive : "";
+  const isGallery = location.pathname.startsWith("/galeri");
+  const active = isBlog
+    ? "blog"
+    : isGallery
+      ? "gallery"
+      : location.pathname === "/"
+        ? scrollActive
+        : "";
 
   // Track active scroll position on homepage.
   useEffect(() => {

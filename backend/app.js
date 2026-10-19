@@ -18,6 +18,9 @@ import siteContentRoutes, {
   adminRouter as adminSiteContentRoutes,
 } from "./routes/siteContent.js";
 import usersRoutes from "./routes/users.js";
+import galleryRoutes, {
+  adminRouter as adminGalleryRoutes,
+} from "./routes/gallery.js";
 import uploadRoutes from "./routes/upload.js";
 import backupRoutes from "./routes/backup.js";
 import seoRoutes from "./routes/seo.js";
@@ -152,6 +155,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/articles", articlesRoutes);
 app.use("/api/categories", categoriesRoutes);
 app.use("/api/site-content", siteContentRoutes);
+app.use("/api/gallery", galleryRoutes);
 // requireAuth dipasang untuk seluruh /api/admin, jadi router admin di bawahnya
 // tidak perlu memasangnya lagi. Router admin artikel tidak memakai requireAdmin
 // karena editor juga berhak mengelola artikel miliknya sendiri.
@@ -159,6 +163,7 @@ app.use("/api/admin", requireAuth);
 app.use("/api/admin/articles", adminArticlesRoutes);
 app.use("/api/admin/categories", adminCategoriesRoutes);
 app.use("/api/admin/site-content", adminSiteContentRoutes);
+app.use("/api/admin/gallery", adminGalleryRoutes);
 app.use("/api/admin/users", usersRoutes);
 app.use("/api/admin/upload", uploadRoutes);
 app.use("/api/admin/backup", backupRoutes);

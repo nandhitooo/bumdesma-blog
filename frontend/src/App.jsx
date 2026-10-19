@@ -11,6 +11,7 @@ import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import BlogList from "./pages/BlogList";
 import BlogDetail from "./pages/BlogDetail";
+import Gallery from "./pages/Gallery";
 import NotFound from "./pages/NotFound";
 import { SiteContentProvider } from "./lib/siteContent";
 
@@ -19,6 +20,7 @@ const AdminLayout = lazy(() => import("./admin/AdminLayout"));
 const AdminLogin = lazy(() => import("./admin/Login"));
 const AdminDashboard = lazy(() => import("./admin/Dashboard"));
 const AdminArticles = lazy(() => import("./admin/Articles"));
+const AdminGallery = lazy(() => import("./admin/Gallery"));
 const AdminArticleEditor = lazy(() => import("./admin/ArticleEditor"));
 const AdminCategories = lazy(() => import("./admin/Categories"));
 const AdminUsers = lazy(() => import("./admin/Users"));
@@ -95,6 +97,16 @@ function App() {
             }
           />
           <Route
+            path="/galeri"
+            element={
+              <>
+                <Header />
+                <Gallery />
+                <Footer />
+              </>
+            }
+          />
+          <Route
             path="/cms"
             element={
               <>
@@ -126,6 +138,7 @@ function App() {
             <Route path="articles" element={<AdminArticles />} />
             <Route path="articles/new" element={<AdminArticleEditor />} />
             <Route path="articles/:id/edit" element={<AdminArticleEditor />} />
+            <Route path="gallery" element={<AdminGallery />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="content" element={<AdminSiteContent />} />
