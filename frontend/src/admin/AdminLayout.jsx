@@ -14,6 +14,7 @@ const navigation = [
   { to: "/admin/users", label: "Pengguna", icon: "users", adminOnly: true },
   { to: "/admin/content", label: "Konten Situs", icon: "sliders", adminOnly: true },
   { to: "/admin/backup", label: "Backup", icon: "database", adminOnly: true },
+  { to: "/admin/audit", label: "Log Aktivitas", icon: "clipboard-list", adminOnly: true },
   // Terbuka untuk admin maupun editor: setiap pengguna boleh mengganti
   // password-nya sendiri.
   { to: "/admin/password", label: "Ganti Password", icon: "key" },

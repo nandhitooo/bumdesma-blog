@@ -3,6 +3,7 @@ import { z } from "zod";
 import { pool } from "../db/pool.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
+import { logAudit } from "../services/audit.js";
 import {
   getAll,
   getAllWithUpdatedAt,
@@ -46,6 +47,7 @@ adminRouter.put(
        RETURNING key, content, updated_at`,
       [key, JSON.stringify(parsed.data), req.user.id],
     );
+    await logAudit(req, "update", "site_content", key);
     return res.json({
       key: rows[0].key,
       content: rows[0].content,
@@ -59,6 +61,7 @@ adminRouter.delete(
   validate(keySchema, "params"),
   async (req, res) => {
     await resetKey(req.validated.params.key);
+    await logAudit(req, "delete", "site_content", req.validated.params.key);
     return res.status(204).end();
   },
 );

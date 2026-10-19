@@ -25,6 +25,7 @@ import serviceDetailsRoutes, {
   adminRouter as adminServiceDetailsRoutes,
 } from "./routes/serviceDetails.js";
 import faqsRoutes, { adminRouter as adminFaqsRoutes } from "./routes/faqs.js";
+import auditRoutes from "./routes/audit.js";
 import usersRoutes from "./routes/users.js";
 import galleryRoutes, {
   adminRouter as adminGalleryRoutes,
@@ -180,6 +181,7 @@ app.use("/api/admin/documents", adminDocumentsRoutes);
 app.use("/api/admin/team", adminTeamRoutes);
 app.use("/api/admin/service-details", adminServiceDetailsRoutes);
 app.use("/api/admin/faqs", adminFaqsRoutes);
+app.use("/api/admin/audit-logs", auditRoutes);
 app.use("/api/admin/users", usersRoutes);
 app.use("/api/admin/upload", uploadRoutes);
 app.use("/api/admin/backup", backupRoutes);

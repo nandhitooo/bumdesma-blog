@@ -3,6 +3,7 @@ import { z } from "zod";
 import { pool } from "../db/pool.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
+import { logAudit } from "../services/audit.js";
 
 const publicRouter = express.Router();
 const adminRouter = express.Router();
@@ -40,6 +41,7 @@ adminRouter.post("/", validate(categorySchema), async (req, res) => {
     "INSERT INTO categories (name, slug) VALUES ($1, $2) RETURNING id, name, slug",
     [name, slug],
   );
+  await logAudit(req, "create", "category", rows[0].id);
   return res.status(201).json({ category: rows[0] });
 });
 
@@ -68,6 +70,9 @@ adminRouter.put(
     if (!rows[0]) {
       return res.status(404).json({ message: "Kategori tidak ditemukan." });
     }
+    await logAudit(req, "update", "category", rows[0].id, {
+      fields: Object.keys(req.validated.body),
+    });
     return res.json({ category: rows[0] });
   },
 );
@@ -83,6 +88,7 @@ adminRouter.delete(
     if (!rowCount) {
       return res.status(404).json({ message: "Kategori tidak ditemukan." });
     }
+    await logAudit(req, "delete", "category", req.validated.params.id);
     return res.status(204).end();
   },
 );

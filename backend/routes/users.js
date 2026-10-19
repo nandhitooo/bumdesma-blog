@@ -5,6 +5,7 @@ import { BCRYPT_ROUNDS } from "../config/env.js";
 import { pool } from "../db/pool.js";
 import { publicUser, requireAdmin } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
+import { logAudit } from "../services/audit.js";
 import { withPasswordByteLimit } from "../services/passwords.js";
 
 const router = express.Router();
@@ -45,6 +46,7 @@ router.post("/", validate(userSchema), async (req, res) => {
      RETURNING id, name, email, role, created_at`,
     [name, email, passwordHash, role],
   );
+  await logAudit(req, "create", "user", rows[0].id);
   return res.status(201).json({ user: publicUser(rows[0]) });
 });
 
@@ -109,6 +111,10 @@ router.put(
         values,
       );
       await client.query("COMMIT");
+      // Nama field saja; nilai password (atau hash) tidak pernah dicatat.
+      await logAudit(req, "update", "user", rows[0].id, {
+        fields: Object.keys(fields),
+      });
       return res.json({ user: publicUser(rows[0]) });
     } catch (error) {
       await client.query("ROLLBACK");
@@ -150,6 +156,7 @@ router.delete(
 
       await client.query("DELETE FROM users WHERE id = $1", [id]);
       await client.query("COMMIT");
+      await logAudit(req, "delete", "user", id);
       return res.status(204).end();
     } catch (error) {
       await client.query("ROLLBACK");

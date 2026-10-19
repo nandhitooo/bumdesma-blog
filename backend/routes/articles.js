@@ -14,6 +14,7 @@ import {
   deleteUnreferencedUploads,
   extractUploadUrls,
 } from "../services/uploads.js";
+import { logAudit } from "../services/audit.js";
 
 // Dua router dipisah: publik (hanya baca artikel terbit) dan admin (CRUD).
 // Sebelumnya keduanya berbagi satu router sehingga route daftar publik
@@ -492,6 +493,7 @@ adminRouter.post(
         publishedAt ?? null,
       ],
     );
+    await logAudit(req, "create", "article", rows[0].id);
     return res.status(201).json({ id: rows[0].id });
   },
 );
@@ -634,6 +636,12 @@ adminRouter.put(
       ...removedInlineImages,
     ]);
 
+    // Hanya nama field yang dicatat, bukan nilainya: isi artikel tidak boleh
+    // masuk ke log aktivitas.
+    await logAudit(req, "update", "article", rows[0].id, {
+      fields: Object.keys(fields),
+    });
+
     return res.json({ id: rows[0].id });
   },
 );
@@ -663,6 +671,7 @@ adminRouter.patch(
     if (!rows[0]) {
       return res.status(404).json({ message: "Artikel tidak ditemukan." });
     }
+    await logAudit(req, "update-status", "article", rows[0].id, { status });
     return res.json({ id: rows[0].id, status });
   },
 );
@@ -688,6 +697,8 @@ adminRouter.delete(
       rows[0].cover_image_url,
       ...extractUploadUrls(rows[0].content_html),
     ]);
+
+    await logAudit(req, "delete", "article", req.validated.params.id);
 
     return res.status(204).end();
   },

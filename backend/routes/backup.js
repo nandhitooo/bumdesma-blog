@@ -31,6 +31,7 @@ import { serverDirPath } from "../config/env.js";
 import { pool } from "../db/pool.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { cleanContent } from "../services/articles.js";
+import { logAudit } from "../services/audit.js";
 import { SITE_CONTENT_KEYS, siteContentSchemas } from "../services/siteContent.js";
 import {
   detectImage,
@@ -302,6 +303,9 @@ router.get("/download", downloadLimiter, async (req, res) => {
     `Backup diunduh oleh admin ${req.user.id}: ${categories} kategori, ` +
       `${articles} artikel, ${siteContent} konten situs, ${files} gambar.`,
   );
+  // Dicatat setelah arsip selesai dikirim; kegagalan mencatat tidak mengubah
+  // respons yang sudah terkirim.
+  await logAudit(req, "download", "backup", filename, { counts: snapshot.data.counts });
   return undefined;
 });
 
@@ -732,6 +736,8 @@ router.post(
           `${counts.articles} artikel, ${counts.siteContent} konten situs, ` +
           `${counts.files} gambar, ${failedFiles.length} gagal.`,
       );
+
+      await logAudit(req, "restore", "backup", null, { counts });
 
       return res.json({
         message: "Backup berhasil dipulihkan.",

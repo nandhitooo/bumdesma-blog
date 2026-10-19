@@ -12,6 +12,7 @@ import {
   requireAuth,
   signToken,
 } from "../middleware/auth.js";
+import { logAudit } from "../services/audit.js";
 import { withPasswordByteLimit } from "../services/passwords.js";
 
 const router = express.Router();
@@ -102,6 +103,9 @@ router.post("/login", loginLimiter, async (req, res, next) => {
     }
 
     res.cookie(AUTH_COOKIE, signToken(user), cookieOptions());
+    // Login berhasil dicatat; percobaan gagal sengaja tidak dicatat. req.user
+    // belum ada di sini, jadi id pengguna dikirim eksplisit.
+    await logAudit(req, "login", "user", user.id, {}, user.id);
     return res.json({ user: publicUser(user) });
   } catch (error) {
     return next(error);
@@ -168,6 +172,7 @@ router.post(
       // lain yang lebih lama (iat sebelum password_changed_at) ditolak
       // requireAuth.
       res.cookie(AUTH_COOKIE, signToken(req.user), cookieOptions());
+      await logAudit(req, "password-change", "user", req.user.id);
       return res.json({ message: "Password berhasil diubah." });
     } catch (error) {
       return next(error);
