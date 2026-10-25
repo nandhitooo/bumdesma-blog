@@ -25,12 +25,18 @@ function NavItem({ item, active, mobile = false, onClick }) {
       to={item.to}
       onClick={onClick}
       aria-current={active ? "location" : undefined}
-      className={`flex min-h-[44px] items-center border-b-2 px-3 text-sm font-medium leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
-        mobile ? "w-full gap-3 rounded-sm" : "px-2"
-      } ${
-        active
-          ? "border-brand-primary text-brand-primary"
-          : "border-transparent text-gray-600 hover:text-gray-900"
+      className={`flex min-h-[44px] items-center text-sm font-medium leading-5 transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
+        mobile
+          ? `w-full gap-3 rounded-lg px-3 ${
+              active
+                ? "bg-brand-primary/10 font-semibold text-brand-primary"
+                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            }`
+          : `border-b-2 px-2 ${
+              active
+                ? "border-brand-primary text-brand-primary"
+                : "border-transparent text-gray-600 hover:text-gray-900"
+            }`
       }`}
     >
       {mobile && (
@@ -99,7 +105,7 @@ function DesktopMoreMenu({ items, active, onNavClick }) {
       {isOpen && (
         <ul
           id={menuId}
-          className="absolute right-0 top-full mt-1 w-52 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+          className="absolute right-0 top-full mt-1 w-52 rounded-lg border border-gray-200 bg-white py-1 shadow-sm"
         >
           {items.map((item) => (
             <li key={item.id}>
@@ -110,7 +116,7 @@ function DesktopMoreMenu({ items, active, onNavClick }) {
                   setIsOpen(false);
                   onNavClick(item);
                 }}
-                className={`flex min-h-[44px] items-center px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-inset ${
+                className={`flex min-h-[44px] items-center px-4 text-sm font-medium transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-inset ${
                   active === item.id
                     ? "text-brand-primary"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -182,7 +188,7 @@ function MobileNavigation({ active, onNavClick }) {
         aria-label={isOpen ? "Tutup menu" : "Buka menu"}
         aria-expanded={isOpen}
         aria-controls="mobile-nav-drawer"
-        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-xl text-gray-700 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 xl:hidden"
+        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-xl text-gray-700 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 xl:hidden"
         onClick={() => setIsOpen((open) => !open)}
       >
         <i className={`fa-solid ${isOpen ? "fa-xmark" : "fa-bars"}`} aria-hidden="true"></i>
@@ -192,7 +198,7 @@ function MobileNavigation({ active, onNavClick }) {
       {isOpen && (
         <nav
           id="mobile-nav-drawer"
-          className="absolute left-0 right-0 top-full max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-t border-gray-200 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] xl:hidden"
+          className="absolute left-0 right-0 top-full max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-b border-t border-gray-200 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-sm xl:hidden"
           aria-label="Navigasi Utama"
         >
           <ul className="space-y-1">
@@ -307,11 +313,11 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white pt-[env(safe-area-inset-top)]">
-      <div className="mx-auto flex h-18 max-w-6xl items-center justify-between px-3 sm:px-6">
+      <div className="mx-auto flex h-18 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link
           to="/#home"
           aria-label="BUMDESMA Podo Rukun, Beranda"
-          className="flex min-w-0 shrink items-center gap-2 rounded-md p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 sm:gap-3"
+          className="flex min-w-0 shrink items-center gap-2 rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 sm:gap-3"
           onClick={() => {
             if (location.pathname === "/" && location.hash === "#home") {
               scrollToSection(document.getElementById("home"));

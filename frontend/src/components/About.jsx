@@ -73,26 +73,52 @@ const About = () => {
         </div>
 
         {(vision || missions.length > 0) && (
-          <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="mt-14 border-t border-gray-200 pt-10 sm:mt-16 sm:pt-12">
+            <div className="mb-8 max-w-3xl">
+              <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
+                Arah Lembaga
+              </span>
+              <h3 className="mt-2 text-xl font-bold tracking-tight text-gray-900 sm:text-2xl lg:text-3xl">
+                Visi &amp; Misi
+              </h3>
+            </div>
+
             {vision && (
-              <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-6 sm:p-8">
-                <h3 className="text-lg font-bold text-gray-900 sm:text-xl">
-                  Visi
-                </h3>
-                <p className="mt-3 break-words text-sm leading-relaxed text-gray-700 sm:text-base">
-                  {vision}
-                </p>
+              <div className="flex flex-col gap-4 rounded-2xl bg-brand-primary p-6 text-white sm:flex-row sm:items-start sm:gap-6 sm:p-8">
+                <div
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 text-xl"
+                  aria-hidden="true"
+                >
+                  <i className="fa-solid fa-bullseye"></i>
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-white/80">
+                    Visi
+                  </h4>
+                  <p className="mt-2 break-words text-base font-medium leading-relaxed sm:text-lg lg:text-xl">
+                    {vision}
+                  </p>
+                </div>
               </div>
             )}
+
             {missions.length > 0 && (
-              <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-6 sm:p-8">
-                <h3 className="text-lg font-bold text-gray-900 sm:text-xl">
+              <div className={vision ? "mt-8" : ""}>
+                <h4 className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
                   Misi
-                </h3>
-                <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-gray-700 marker:font-semibold marker:text-brand-primary sm:text-base">
+                </h4>
+                <ol className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {missions.map((mission, index) => (
-                    <li key={index} className="break-words pl-1">
-                      {mission}
+                    <li
+                      key={index}
+                      className="flex min-w-0 items-start gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-sm font-bold text-brand-primary">
+                        {index + 1}
+                      </span>
+                      <p className="min-w-0 break-words pt-1 text-sm leading-relaxed text-gray-700 sm:text-base">
+                        {mission}
+                      </p>
                     </li>
                   ))}
                 </ol>
