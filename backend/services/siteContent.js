@@ -60,6 +60,10 @@ export const siteContentSchemas = {
       location: plainText(300),
       paragraphs: z.array(plainText(2000)).min(1).max(6),
       profileUrl: httpsUrl,
+      // Opsional supaya data lama dan backup lama tetap valid; string kosong
+      // berarti admin sengaja mengosongkan visi.
+      vision: z.union([z.literal(""), plainText(500)]).optional(),
+      missions: z.array(plainText(300)).max(8).optional(),
     })
     .strict(),
   services: z
@@ -138,6 +142,14 @@ export const DEFAULTS = {
     ],
     profileUrl:
       "https://drive.google.com/file/d/1EvypZ1A4ly4bN0URJ0BAASBzNXsf2AWJ/view?usp=sharing",
+    vision:
+      "Menjadi penggerak ekonomi dan kemandirian desa di Kecamatan Wilangan melalui pengelolaan usaha bersama yang profesional, transparan, dan inovatif.",
+    missions: [
+      "Menyediakan layanan permodalan dan keuangan yang mudah dijangkau kelompok masyarakat desa.",
+      "Mengelola unit usaha secara profesional dan inovatif demi kesejahteraan masyarakat.",
+      "Menjaga keterbukaan melalui laporan dan dokumen yang dapat diakses publik.",
+      "Mendampingi kelompok dan pelaku usaha desa melalui pembinaan berkala.",
+    ],
   },
   services: {
     items: [
@@ -232,3 +244,4 @@ export async function resetKey(key) {
   const parsedKey = siteContentKeySchema.parse(key);
   await pool.query("DELETE FROM site_content WHERE key = $1", [parsedKey]);
 }
+

@@ -6,6 +6,10 @@ import { safeHttpsUrl } from "../lib/siteContentUtils";
 const About = () => {
   const { about } = useSiteContent();
   const profileUrl = safeHttpsUrl(about.profileUrl);
+  const vision = typeof about.vision === "string" ? about.vision.trim() : "";
+  const missions = Array.isArray(about.missions)
+    ? about.missions.filter((item) => typeof item === "string" && item.trim())
+    : [];
 
   return (
     <section className="py-10 sm:py-14 lg:py-16 bg-white scroll-mt-18" id="about">
@@ -67,9 +71,39 @@ const About = () => {
             )}
           </div>
         </div>
+
+        {(vision || missions.length > 0) && (
+          <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {vision && (
+              <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-6 sm:p-8">
+                <h3 className="text-lg font-bold text-gray-900 sm:text-xl">
+                  Visi
+                </h3>
+                <p className="mt-3 break-words text-sm leading-relaxed text-gray-700 sm:text-base">
+                  {vision}
+                </p>
+              </div>
+            )}
+            {missions.length > 0 && (
+              <div className="min-w-0 rounded-xl border border-gray-200 bg-gray-50 p-6 sm:p-8">
+                <h3 className="text-lg font-bold text-gray-900 sm:text-xl">
+                  Misi
+                </h3>
+                <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-gray-700 marker:font-semibold marker:text-brand-primary sm:text-base">
+                  {missions.map((mission, index) => (
+                    <li key={index} className="break-words pl-1">
+                      {mission}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
 };
 
 export default About;
+

@@ -650,6 +650,91 @@ export default function SiteContent() {
             </div>
           </div>
 
+          {/* Visi */}
+          <div>
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+              <label htmlFor="about-vision" className="block text-sm font-bold text-gray-700">
+                Visi (opsional)
+              </label>
+              <CharCounter current={aboutForm.vision?.length} max={500} />
+            </div>
+            <textarea
+              id="about-vision"
+              rows={3}
+              maxLength={500}
+              value={aboutForm.vision || ""}
+              onChange={(e) => setAboutForm({ ...aboutForm, vision: e.target.value })}
+              className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+            />
+          </div>
+
+          {/* Misi */}
+          <div className="pt-2">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <label className="block text-sm font-bold text-gray-700">
+                  Misi ({aboutForm.missions?.length || 0} / 8)
+                </label>
+                <p className="text-xs text-gray-500">Opsional, maksimal 8 butir.</p>
+              </div>
+              <button
+                type="button"
+                disabled={(aboutForm.missions?.length || 0) >= 8}
+                onClick={() => {
+                  const current = aboutForm.missions || [];
+                  if (current.length < 8) {
+                    setAboutForm({ ...aboutForm, missions: [...current, ""] });
+                  }
+                }}
+                className="min-h-[44px] shrink-0 cursor-pointer rounded-lg bg-green-50 px-4 py-2.5 text-sm font-bold text-green-800 hover:bg-green-100 disabled:opacity-50"
+              >
+                + Tambah Misi
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {(aboutForm.missions || []).map((mission, index) => (
+                <div key={index} className="p-3.5 rounded-xl border border-gray-200 bg-gray-50">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <label
+                      htmlFor={`about-mission-${index}`}
+                      className="text-xs font-bold text-gray-600"
+                    >
+                      Misi #{index + 1}
+                    </label>
+                    <div className="flex items-center gap-1">
+                      <CharCounter current={mission?.length} max={300} />
+                      <button
+                        type="button"
+                        title="Hapus misi"
+                        onClick={() => {
+                          const copy = aboutForm.missions.filter((_, i) => i !== index);
+                          setAboutForm({ ...aboutForm, missions: copy });
+                        }}
+                        className="ml-2 flex h-11 w-11 items-center justify-center rounded hover:bg-red-100 text-red-600 cursor-pointer"
+                      >
+                        <i className="fa-solid fa-trash text-xs"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <textarea
+                    id={`about-mission-${index}`}
+                    required
+                    rows={2}
+                    maxLength={300}
+                    value={mission}
+                    onChange={(e) => {
+                      const copy = [...aboutForm.missions];
+                      copy[index] = e.target.value;
+                      setAboutForm({ ...aboutForm, missions: copy });
+                    }}
+                    className="min-h-[44px] w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2 text-base outline-none focus:border-green-700"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="about-profile-url" className="block text-sm font-bold text-gray-700">
@@ -1297,3 +1382,4 @@ export default function SiteContent() {
     </div>
   );
 }
+
