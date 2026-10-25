@@ -9,6 +9,7 @@
     "migrate": "node db/migrate.js",
     "seed": "node db/seed.js",
     "seed:articles": "node db/seed-articles.js",
+    "seed:content": "node db/seed-content.js",
     "reset-password": "node db/reset-password.js",
     "disable-2fa": "node db/disable-2fa.js"
   },
