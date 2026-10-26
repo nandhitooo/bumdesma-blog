@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { adminApi } from "./api";
+import PageHeader from "./components/PageHeader";
+import { useToast } from "./components/Toast";
 
 const emptyDisableForm = { password: "", code: "" };
 
@@ -12,7 +14,7 @@ function AdminTwoFactor() {
   const [starting, setStarting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const toast = useToast();
 
   useEffect(() => {
     let active = true;
@@ -39,7 +41,6 @@ function AdminTwoFactor() {
 
   const startSetup = async () => {
     setError("");
-    setNotice("");
     setStarting(true);
     try {
       const data = await adminApi("/api/auth/2fa/setup", { method: "POST" });
@@ -55,7 +56,6 @@ function AdminTwoFactor() {
   const enable = async (event) => {
     event.preventDefault();
     setError("");
-    setNotice("");
     setSaving(true);
     try {
       const data = await adminApi("/api/auth/2fa/enable", {
@@ -65,7 +65,7 @@ function AdminTwoFactor() {
       setEnabled(Boolean(data.totpEnabled));
       setSetup(null);
       setEnableCode("");
-      setNotice(data.message || "Verifikasi dua langkah berhasil diaktifkan.");
+      toast.show(data.message || "Verifikasi dua langkah berhasil diaktifkan.");
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -76,7 +76,6 @@ function AdminTwoFactor() {
   const disable = async (event) => {
     event.preventDefault();
     setError("");
-    setNotice("");
     setSaving(true);
     try {
       const data = await adminApi("/api/auth/2fa/disable", {
@@ -86,7 +85,7 @@ function AdminTwoFactor() {
       setEnabled(Boolean(data.totpEnabled));
       setDisableForm(emptyDisableForm);
       setSetup(null);
-      setNotice(data.message || "Verifikasi dua langkah berhasil dinonaktifkan.");
+      toast.show(data.message || "Verifikasi dua langkah berhasil dinonaktifkan.");
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -98,26 +97,16 @@ function AdminTwoFactor() {
     "min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700";
 
   return (
-    <section className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center px-4 py-8">
-      <header className="mb-7">
-        <p className="font-bold text-green-700">Pengaturan</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-gray-900">
-          Verifikasi Dua Langkah
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Setelah aktif, login membutuhkan kode 6 digit dari aplikasi
-          authenticator di samping password.
-        </p>
-      </header>
+    <section className="mx-auto w-full max-w-2xl">
+      <PageHeader
+        eyebrow="Akun"
+        title="Verifikasi Dua Langkah"
+        description="Setelah aktif, login membutuhkan kode 6 digit dari aplikasi authenticator di samping password."
+      />
 
       {error && (
         <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-700">
           {error}
-        </p>
-      )}
-      {notice && (
-        <p role="status" className="mb-5 rounded-xl bg-green-50 p-4 text-green-800">
-          {notice}
         </p>
       )}
 

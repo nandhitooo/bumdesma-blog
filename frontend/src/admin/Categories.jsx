@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { adminApi, toSlug } from "./api";
+import EmptyState from "./components/EmptyState";
+import LoadingSkeleton from "./components/LoadingSkeleton";
+import PageHeader from "./components/PageHeader";
+import { useConfirm } from "./components/ConfirmDialog";
+import { useToast } from "./components/Toast";
 
 function AdminCategories() {
   const { user } = useOutletContext();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({ name: "", slug: "" });
   const [editingId, setEditingId] = useState(null);
@@ -66,10 +73,12 @@ function AdminCategories() {
         method: editingId ? "PUT" : "POST",
         body: JSON.stringify(form),
       });
+      toast.show(editingId ? "Kategori diperbarui." : "Kategori ditambahkan.");
       resetForm();
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     } finally {
       setSaving(false);
     }
@@ -83,23 +92,34 @@ function AdminCategories() {
   };
 
   const deleteCategory = async (category) => {
-    if (!window.confirm(`Hapus kategori “${category.name}”?`)) return;
+    const confirmed = await confirm({
+      title: "Hapus kategori ini?",
+      message:
+        "Artikel yang memakai kategori ini akan menjadi tanpa kategori. Tindakan ini tidak bisa dibatalkan.",
+      detail: category.name,
+      confirmLabel: "Hapus kategori",
+    });
+    if (!confirmed) return;
+
     setError("");
     try {
       await adminApi(`/api/admin/categories/${category.id}`, { method: "DELETE" });
+      toast.show("Kategori berhasil dihapus.");
+      if (editingId === category.id) resetForm();
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     }
   };
 
   return (
     <section className="mx-auto max-w-5xl">
-      <header className="mb-7">
-        <p className="font-bold text-green-700">Pengaturan</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-gray-900">Kategori</h1>
-        <p className="mt-2 text-gray-600">Atur kategori yang tersedia untuk artikel.</p>
-      </header>
+      <PageHeader
+        eyebrow="Konten"
+        title="Kategori"
+        description="Atur kelompok artikel yang tampil sebagai filter di halaman blog."
+      />
 
       {error && (
         <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-700">
@@ -129,7 +149,7 @@ function AdminCategories() {
         </div>
         <div>
           <label htmlFor="category-slug" className="mb-2 block font-bold text-gray-700">
-            Slug
+            Alamat halaman
           </label>
           <input
             id="category-slug"
@@ -146,6 +166,9 @@ function AdminCategories() {
             }}
             className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
           />
+          <p className="mt-1 text-xs text-gray-500">
+            Bagian alamat yang dipakai filter blog, mis. “berita-desa”. Dibuat otomatis dari nama.
+          </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2">
           <button
@@ -169,7 +192,7 @@ function AdminCategories() {
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
-          <p className="p-10 text-center text-gray-500">Memuat kategori...</p>
+          <LoadingSkeleton rows={3} label="Memuat kategori..." />
         ) : categories.length ? (
           <ul className="divide-y divide-gray-100">
             {categories.map((category) => (
@@ -201,7 +224,11 @@ function AdminCategories() {
             ))}
           </ul>
         ) : (
-          <p className="p-10 text-center text-gray-500">Belum ada kategori.</p>
+          <EmptyState
+            icon="layer-group"
+            title="Belum ada kategori"
+            description="Tambahkan kategori pertama lewat formulir di atas agar artikel bisa dikelompokkan."
+          />
         )}
       </div>
     </section>

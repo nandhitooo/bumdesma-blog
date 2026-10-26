@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { adminApi } from "./api";
+import EmptyState from "./components/EmptyState";
+import LoadingSkeleton from "./components/LoadingSkeleton";
+import PageHeader from "./components/PageHeader";
 
 const PAGE_SIZE = 50;
 
@@ -60,17 +63,11 @@ function AuditLog() {
 
   return (
     <section className="mx-auto max-w-6xl">
-      <header className="mb-7">
-        <p className="font-bold text-green-700">Sistem</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-gray-900">
-          Log aktivitas
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Catatan aksi admin dan editor di panel. Hanya nama aksi, entitas, dan
-          id yang disimpan — isi artikel, password, dan token tidak pernah
-          dicatat.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Sistem"
+        title="Log aktivitas"
+        description="Catatan aksi admin dan editor di panel. Hanya jenis aksi dan nama data yang disimpan — isi artikel, password, dan token tidak pernah dicatat."
+      />
 
       {error && (
         <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-700">
@@ -80,9 +77,34 @@ function AuditLog() {
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
-          <p className="p-10 text-center text-gray-500">Memuat log aktivitas...</p>
+          <LoadingSkeleton rows={6} label="Memuat log aktivitas..." />
         ) : logs.length ? (
-          <div className="overflow-x-auto">
+          <>
+            <ul className="divide-y divide-gray-100 sm:hidden">
+              {logs.map((log) => (
+                <li key={log.id} className="p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <time
+                      dateTime={log.createdAt}
+                      className="text-xs text-gray-500"
+                    >
+                      {dateTimeFormatter.format(new Date(log.createdAt))}
+                    </time>
+                    <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-800">
+                      {log.action}
+                    </span>
+                  </div>
+                  <p className="mt-2 break-words font-semibold text-gray-900">
+                    {log.userName || "—"}
+                  </p>
+                  <p className="mt-0.5 break-words text-sm text-gray-600">
+                    {log.entity}
+                    {log.entityId != null ? ` #${log.entityId}` : ""}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <div className="hidden overflow-x-auto sm:block">
             <table className="w-full min-w-[46rem] text-left text-sm">
               <caption className="sr-only">
                 Daftar aktivitas panel admin, terbaru lebih dulu
@@ -121,12 +143,15 @@ function AuditLog() {
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
+              </table>
+            </div>
+          </>
         ) : (
-          <p className="px-6 py-14 text-center text-gray-500">
-            Belum ada aktivitas tercatat.
-          </p>
+          <EmptyState
+            icon="clipboard-list"
+            title="Belum ada aktivitas"
+            description="Setiap perubahan yang disimpan admin atau editor akan tercatat di sini."
+          />
         )}
       </div>
 

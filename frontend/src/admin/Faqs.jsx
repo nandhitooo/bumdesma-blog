@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { adminApi } from "./api";
+import EmptyState from "./components/EmptyState";
+import LoadingSkeleton from "./components/LoadingSkeleton";
+import PageHeader from "./components/PageHeader";
+import { useConfirm } from "./components/ConfirmDialog";
+import { useToast } from "./components/Toast";
 
 const EMPTY_FORM = { question: "", answer: "", sortOrder: "0" };
 
 function AdminFaqs() {
   const { user } = useOutletContext();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [faqs, setFaqs] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
@@ -66,10 +73,12 @@ function AdminFaqs() {
         method: editingId ? "PUT" : "POST",
         body: JSON.stringify(form),
       });
+      toast.show(editingId ? "FAQ diperbarui." : "FAQ ditambahkan.");
       resetForm();
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     } finally {
       setSaving(false);
     }
@@ -86,27 +95,34 @@ function AdminFaqs() {
   };
 
   const deleteFaq = async (faq) => {
-    if (!window.confirm(`Hapus FAQ “${faq.question}”?`)) return;
+    const confirmed = await confirm({
+      title: "Hapus FAQ ini?",
+      message:
+        "Pertanyaan dan jawabannya akan hilang dari halaman FAQ publik. Tindakan ini tidak bisa dibatalkan.",
+      detail: faq.question,
+      confirmLabel: "Hapus FAQ",
+    });
+    if (!confirmed) return;
+
     setError("");
     try {
       await adminApi(`/api/admin/faqs/${faq.id}`, { method: "DELETE" });
+      toast.show("FAQ berhasil dihapus.");
       if (editingId === faq.id) resetForm();
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     }
   };
 
   return (
     <section className="mx-auto max-w-5xl">
-      <header className="mb-7">
-        <p className="font-bold text-green-700">Konten</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-gray-900">FAQ</h1>
-        <p className="mt-2 text-gray-600">
-          Kelola pertanyaan umum yang tampil di halaman publik FAQ. Isi berupa
-          teks biasa; baris baru pada jawaban tetap ditampilkan.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Konten"
+        title="FAQ"
+        description="Kelola pertanyaan umum yang tampil di halaman publik FAQ. Isi berupa teks biasa; baris baru pada jawaban tetap ditampilkan."
+      />
 
       {error && (
         <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-700">
@@ -204,7 +220,7 @@ function AdminFaqs() {
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
-          <p className="p-10 text-center text-gray-500">Memuat FAQ...</p>
+          <LoadingSkeleton rows={3} label="Memuat FAQ..." />
         ) : faqs.length ? (
           <ul className="divide-y divide-gray-100">
             {faqs.map((faq) => (
@@ -241,7 +257,11 @@ function AdminFaqs() {
             ))}
           </ul>
         ) : (
-          <p className="p-10 text-center text-gray-500">Belum ada FAQ.</p>
+          <EmptyState
+            icon="circle-question"
+            title="Belum ada FAQ"
+            description="Tambahkan pertanyaan yang paling sering diajukan warga agar halaman FAQ tidak kosong."
+          />
         )}
       </div>
     </section>

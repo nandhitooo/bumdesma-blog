@@ -2,11 +2,14 @@ import { useRef, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { adminApi } from "./api";
 import { apiUrl } from "../lib/apiUrl";
+import PageHeader from "./components/PageHeader";
+import { useToast } from "./components/Toast";
 
 const CONFIRMATION_WORD = "PULIHKAN";
 
 function AdminBackup() {
   const { user } = useOutletContext();
+  const toast = useToast();
   const fileInputRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState("");
@@ -60,8 +63,10 @@ function AdminBackup() {
       link.remove();
       // Objek URL dilepas setelah unduhan sempat dimulai.
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.show("Backup berhasil diunduh.");
     } catch (requestError) {
       setDownloadError(requestError.message);
+      toast.show(requestError.message, "error");
     } finally {
       setDownloading(false);
     }
@@ -100,6 +105,7 @@ function AdminBackup() {
       });
 
       setRestoreNotice(result.message || "Backup berhasil dipulihkan.");
+      toast.show(result.message || "Backup berhasil dipulihkan.");
       setCounts(result.counts ?? null);
       setFailedFiles(result.failedFiles ?? []);
 
@@ -120,13 +126,11 @@ function AdminBackup() {
 
   return (
     <section className="mx-auto max-w-3xl">
-      <header className="mb-7">
-        <p className="font-bold text-green-700">Pengaturan</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-gray-900">Backup</h1>
-        <p className="mt-2 text-gray-600">
-          Unduh salinan isi situs atau pulihkan dari berkas backup sebelumnya.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Sistem"
+        title="Backup"
+        description="Unduh salinan isi situs atau pulihkan dari berkas backup sebelumnya."
+      />
 
       <div className="mb-7 rounded-3xl bg-white p-5 shadow-sm sm:p-7">
         <h2 className="text-xl font-extrabold text-gray-900">Unduh backup</h2>

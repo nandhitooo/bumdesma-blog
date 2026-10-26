@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { adminApi } from "./api";
+import EmptyState from "./components/EmptyState";
+import LoadingSkeleton from "./components/LoadingSkeleton";
+import PageHeader from "./components/PageHeader";
+import { useConfirm } from "./components/ConfirmDialog";
+import { useToast } from "./components/Toast";
 
 const EMPTY_FORM = {
   name: "",
@@ -12,6 +17,8 @@ const EMPTY_FORM = {
 
 function AdminTeam() {
   const { user } = useOutletContext();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [members, setMembers] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
@@ -109,10 +116,12 @@ function AdminTeam() {
           photoUrl: form.photoUrl || null,
         }),
       });
+      toast.show(editingId ? "Data pengurus diperbarui." : "Pengurus ditambahkan.");
       resetForm();
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     } finally {
       setSaving(false);
     }
@@ -131,27 +140,34 @@ function AdminTeam() {
   };
 
   const deleteMember = async (member) => {
-    if (!window.confirm(`Hapus pengurus “${member.name}”?`)) return;
+    const confirmed = await confirm({
+      title: "Hapus pengurus ini?",
+      message:
+        "Nama dan jabatannya akan hilang dari halaman publik Pengurus. Tindakan ini tidak bisa dibatalkan.",
+      detail: member.name,
+      confirmLabel: "Hapus pengurus",
+    });
+    if (!confirmed) return;
+
     setError("");
     try {
       await adminApi(`/api/admin/team/${member.id}`, { method: "DELETE" });
+      toast.show("Pengurus berhasil dihapus.");
       if (editingId === member.id) resetForm();
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     }
   };
 
   return (
     <section className="mx-auto max-w-6xl">
-      <header className="mb-7">
-        <p className="font-bold text-green-700">Konten</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-gray-900">Pengurus</h1>
-        <p className="mt-2 text-gray-600">
-          Atur susunan pengurus yang tampil di halaman publik Pengurus, termasuk
-          urutan tampilnya.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Situs"
+        title="Pengurus"
+        description="Atur susunan pengurus yang tampil di halaman publik Pengurus, termasuk urutan tampilnya."
+      />
 
       {error && (
         <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-700">
@@ -309,7 +325,7 @@ function AdminTeam() {
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
-          <p className="p-10 text-center text-gray-500">Memuat pengurus...</p>
+          <LoadingSkeleton rows={3} label="Memuat pengurus..." />
         ) : members.length ? (
           <ul className="divide-y divide-gray-100">
             {members.map((member) => (
@@ -361,7 +377,11 @@ function AdminTeam() {
             ))}
           </ul>
         ) : (
-          <p className="p-10 text-center text-gray-500">Belum ada pengurus.</p>
+          <EmptyState
+            icon="people-group"
+            title="Belum ada pengurus"
+            description="Tambahkan nama dan jabatan agar halaman Pengurus menampilkan struktur organisasi."
+          />
         )}
       </div>
     </section>

@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useOutletContext } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 import { adminApi, dateFormatter } from "./api";
 import { DEFAULT_SITE_CONTENT } from "../lib/defaultContent";
 import { useSiteContent } from "../lib/siteContent";
 import { isValidIcon } from "../lib/siteContentUtils";
+import LoadingSkeleton from "./components/LoadingSkeleton";
+import PageHeader from "./components/PageHeader";
+import { useConfirm } from "./components/ConfirmDialog";
+import { useUnsavedChangesGuard } from "./components/useUnsavedChangesGuard";
 
 function CharCounter({ current = 0, max }) {
   return (
@@ -314,6 +318,21 @@ const SECTION_FIELDS = [
   },
 ];
 
+// Satu tab per key site_content. Urutan tab mengikuti alur kerja pengurus:
+// identitas dulu, lalu isi beranda sampai teks halaman. `preview` menunjuk
+// bagian situs publik yang terpengaruh tab tersebut.
+const TABS = [
+  { key: "site", label: "Identitas", preview: "/" },
+  { key: "hero", label: "Beranda", preview: "/#home" },
+  { key: "about", label: "Tentang", preview: "/#about" },
+  { key: "services", label: "Layanan", preview: "/#services" },
+  { key: "contact", label: "Kontak", preview: "/#contact" },
+  { key: "footer", label: "Footer", preview: "/" },
+  { key: "sections", label: "Teks Halaman", preview: "/blog" },
+];
+
+const FORM_KEYS = ["hero", "about", "services", "contact", "footer", "site", "sections"];
+
 const NAV_FIELDS = [
   { name: "home", label: "Beranda" },
   { name: "about", label: "Tentang" },
@@ -330,7 +349,9 @@ const NAV_FIELDS = [
 export default function SiteContent() {
   const { user } = useOutletContext();
   const { refreshContent } = useSiteContent();
+  const confirm = useConfirm();
 
+  const [activeTab, setActiveTab] = useState("site");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [updatedAt, setUpdatedAt] = useState({});
@@ -343,6 +364,9 @@ export default function SiteContent() {
   const [footerForm, setFooterForm] = useState(DEFAULT_SITE_CONTENT.footer);
   const [siteForm, setSiteForm] = useState(DEFAULT_SITE_CONTENT.site);
   const [sectionsForm, setSectionsForm] = useState(DEFAULT_SITE_CONTENT.sections);
+  // Cuplikan isi tiap form saat terakhir dimuat/disimpan. Dipakai untuk
+  // menandai tab yang belum disimpan tanpa perlu menyimpan salinan objek form.
+  const [baseline, setBaseline] = useState(null);
 
   // Status per section: { saving: bool, error: string, success: string }
   const [status, setStatus] = useState({
@@ -373,15 +397,27 @@ export default function SiteContent() {
     adminApi("/api/admin/site-content")
       .then((data) => {
         if (!active) return;
-        if (data?.content) {
-          if (data.content.hero) setHeroForm(data.content.hero);
-          if (data.content.about) setAboutForm(data.content.about);
-          if (data.content.services) setServicesForm(data.content.services);
-          if (data.content.contact) setContactForm(data.content.contact);
-          if (data.content.footer) setFooterForm(data.content.footer);
-          if (data.content.site) setSiteForm(data.content.site);
-          if (data.content.sections) setSectionsForm(data.content.sections);
-        }
+        const loaded = {
+          hero: data?.content?.hero || DEFAULT_SITE_CONTENT.hero,
+          about: data?.content?.about || DEFAULT_SITE_CONTENT.about,
+          services: data?.content?.services || DEFAULT_SITE_CONTENT.services,
+          contact: data?.content?.contact || DEFAULT_SITE_CONTENT.contact,
+          footer: data?.content?.footer || DEFAULT_SITE_CONTENT.footer,
+          site: data?.content?.site || DEFAULT_SITE_CONTENT.site,
+          sections: data?.content?.sections || DEFAULT_SITE_CONTENT.sections,
+        };
+        setHeroForm(loaded.hero);
+        setAboutForm(loaded.about);
+        setServicesForm(loaded.services);
+        setContactForm(loaded.contact);
+        setFooterForm(loaded.footer);
+        setSiteForm(loaded.site);
+        setSectionsForm(loaded.sections);
+        setBaseline(
+          Object.fromEntries(
+            FORM_KEYS.map((key) => [key, JSON.stringify(loaded[key])]),
+          ),
+        );
         if (data?.updatedAt) {
           setUpdatedAt(data.updatedAt);
         }
@@ -397,6 +433,27 @@ export default function SiteContent() {
       active = false;
     };
   }, [user.role]);
+
+  // Perubahan tiap tab dibanding cuplikan terakhir yang dimuat/disimpan.
+  const forms = {
+    hero: heroForm,
+    about: aboutForm,
+    services: servicesForm,
+    contact: contactForm,
+    footer: footerForm,
+    site: siteForm,
+    sections: sectionsForm,
+  };
+  const isDirty = (key) =>
+    Boolean(baseline) && JSON.stringify(forms[key]) !== baseline[key];
+  const dirtyTabs = TABS.filter((tab) => isDirty(tab.key));
+
+  // Peringatan saat pindah halaman/menutup tab selama masih ada perubahan.
+  // Dipanggil sebelum layar penolakan agar urutan hook tetap sama di setiap render.
+  useUnsavedChangesGuard(
+    dirtyTabs.length > 0,
+    "Ada perubahan konten situs yang belum disimpan. Tinggalkan halaman ini?",
+  );
 
   if (user.role !== "admin") {
     return (
@@ -416,6 +473,10 @@ export default function SiteContent() {
       if (res?.updatedAt) {
         setUpdatedAt((prev) => ({ ...prev, [key]: res.updatedAt }));
       }
+      setBaseline((prev) => ({
+        ...prev,
+        [key]: JSON.stringify(res?.content ?? payload),
+      }));
       setSectionStatus(key, {
         saving: false,
         error: "",
@@ -441,9 +502,13 @@ export default function SiteContent() {
       site: "Identitas Situs & SEO",
       sections: "Judul Section & Halaman",
     };
-    const confirmed = window.confirm(
-      `Apakah Anda yakin ingin mengembalikan bagian "${sectionNames[key]}" ke bawaan?`
-    );
+    const confirmed = await confirm({
+      title: "Kembalikan ke bawaan?",
+      message:
+        "Isi bagian ini akan diganti dengan teks bawaan. Semua perubahan Anda pada bagian ini akan hilang.",
+      detail: sectionNames[key],
+      confirmLabel: "Kembalikan ke bawaan",
+    });
     if (!confirmed) return;
 
     setSectionStatus(key, { saving: true, error: "", success: "" });
@@ -458,6 +523,7 @@ export default function SiteContent() {
       if (key === "site") setSiteForm(defaultData);
       if (key === "sections") setSectionsForm(defaultData);
 
+      setBaseline((prev) => ({ ...prev, [key]: JSON.stringify(defaultData) }));
       setUpdatedAt((prev) => ({ ...prev, [key]: null }));
       setSectionStatus(key, {
         saving: false,
@@ -481,38 +547,79 @@ export default function SiteContent() {
     }));
   };
 
+  const activeTabConfig = TABS.find((tab) => tab.key === activeTab) || TABS[0];
+
   if (loading) {
     return (
-      <div className="py-12 text-center text-sm font-medium text-gray-500">
-        Memuat data konten situs...
+      <div className="mx-auto max-w-5xl overflow-hidden rounded-3xl bg-white shadow-sm">
+        <LoadingSkeleton rows={5} label="Memuat data konten situs..." />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 max-w-5xl">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-            Konten Situs
-          </h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Kelola teks, informasi kontak, layanan, dan tautan di halaman utama website.
+    <div className="mx-auto max-w-5xl space-y-6">
+      <PageHeader
+        eyebrow="Situs"
+        title="Konten Situs"
+        description="Kelola teks, gambar, dan tautan yang tampil di situs publik. Pilih bagian lewat tab, lalu simpan tab tersebut."
+      >
+        <a
+          href={activeTabConfig.preview}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 motion-reduce:transition-none"
+        >
+          <span>Lihat di situs</span>
+          <i className="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
+        </a>
+      </PageHeader>
+
+      <nav
+        aria-label="Bagian konten situs"
+        className="overflow-x-auto rounded-2xl bg-white p-1.5 shadow-sm"
+      >
+        <ul className="flex min-w-max gap-1">
+          {TABS.map((tab) => (
+            <li key={tab.key}>
+              <button
+                type="button"
+                aria-pressed={activeTab === tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`inline-flex min-h-[44px] items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition motion-reduce:transition-none ${
+                  activeTab === tab.key
+                    ? "bg-green-700 text-white"
+                    : "text-gray-600 hover:bg-green-50 hover:text-green-800"
+                }`}
+              >
+                {tab.label}
+                {isDirty(tab.key) && (
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      activeTab === tab.key ? "bg-amber-300" : "bg-amber-500"
+                    }`}
+                    aria-hidden="true"
+                  ></span>
+                )}
+                {isDirty(tab.key) && <span className="sr-only">(belum disimpan)</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {dirtyTabs.length > 0 && (
+        <div
+          role="status"
+          className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+        >
+          <p className="font-bold">Ada perubahan yang belum disimpan.</p>
+          <p className="mt-1 break-words">
+            Bagian: {dirtyTabs.map((tab) => tab.label).join(", ")}. Buka tabnya lalu tekan
+            tombol Simpan di bagian bawah formulir.
           </p>
         </div>
-        <div>
-          <Link
-            to="/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-white border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition shadow-sm motion-reduce:transition-none sm:w-auto"
-          >
-            <span>Lihat situs</span>
-            <i className="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
-          </Link>
-        </div>
-      </div>
+      )}
 
       {loadError && (
         <p role="alert" className="rounded-2xl bg-red-50 p-5 text-sm text-red-700">
@@ -521,12 +628,15 @@ export default function SiteContent() {
       )}
 
       {/* ========================================================================= */}
-      {/* 1. HERO SECTION CARD */}
+      {/* Hero (Beranda) */}
       {/* ========================================================================= */}
-      <section className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200">
+      <section
+        hidden={activeTab !== "hero"}
+        className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-5 border-b border-gray-100">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">1. Bagian Hero (Beranda Utama)</h2>
+            <h2 className="text-xl font-bold text-gray-900">Hero (Beranda Utama)</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               Judul utama, deskripsi pengantar, tombol aksi, dan poin sorotan BUMDESMA.
             </p>
@@ -825,12 +935,15 @@ export default function SiteContent() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 2. ABOUT SECTION CARD */}
+      {/* Tentang */}
       {/* ========================================================================= */}
-      <section className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200">
+      <section
+        hidden={activeTab !== "about"}
+        className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-5 border-b border-gray-100">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">2. Bagian Tentang (About)</h2>
+            <h2 className="text-xl font-bold text-gray-900">Tentang (Profil Lembaga)</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               Judul bagian, teks lokasi, paragraf profil, dan tautan dokumen profil resmi.
             </p>
@@ -1121,12 +1234,15 @@ export default function SiteContent() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 3. SERVICES SECTION CARD */}
+      {/* Layanan */}
       {/* ========================================================================= */}
-      <section className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200">
+      <section
+        hidden={activeTab !== "services"}
+        className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-5 border-b border-gray-100">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">3. Bagian Layanan (Services)</h2>
+            <h2 className="text-xl font-bold text-gray-900">Layanan</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               Unit usaha dan layanan yang ditawarkan BUMDESMA kepada masyarakat.
             </p>
@@ -1345,12 +1461,15 @@ export default function SiteContent() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 4. CONTACT SECTION CARD */}
+      {/* Kontak */}
       {/* ========================================================================= */}
-      <section className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200">
+      <section
+        hidden={activeTab !== "contact"}
+        className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-5 border-b border-gray-100">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">4. Bagian Kontak & Lokasi</h2>
+            <h2 className="text-xl font-bold text-gray-900">Kontak & Lokasi</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               Alamat operasional kantor, surel, kontak WhatsApp, dan peta Google Maps.
             </p>
@@ -1517,12 +1636,15 @@ export default function SiteContent() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 5. FOOTER SECTION CARD */}
+      {/* Footer */}
       {/* ========================================================================= */}
-      <section className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200">
+      <section
+        hidden={activeTab !== "footer"}
+        className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-5 border-b border-gray-100">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">5. Bagian Footer</h2>
+            <h2 className="text-xl font-bold text-gray-900">Footer</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               Deskripsi penutup, kontak ringkas kantor, dan tautan jejaring media sosial.
             </p>
@@ -1815,12 +1937,15 @@ export default function SiteContent() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 6. IDENTITAS SITUS & SEO */}
+      {/* Identitas Situs & SEO */}
       {/* ========================================================================= */}
-      <section className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200">
+      <section
+        hidden={activeTab !== "site"}
+        className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-5 border-b border-gray-100">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">6. Identitas Situs & SEO</h2>
+            <h2 className="text-xl font-bold text-gray-900">Identitas Situs & SEO</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               Nama lembaga, logo, label menu, judul tab, serta meta deskripsi dan feed.
             </p>
@@ -2097,12 +2222,15 @@ export default function SiteContent() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 7. JUDUL SECTION & HALAMAN */}
+      {/* Teks Halaman */}
       {/* ========================================================================= */}
-      <section className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200">
+      <section
+        hidden={activeTab !== "sections"}
+        className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-5 border-b border-gray-100">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">7. Judul Section & Halaman</h2>
+            <h2 className="text-xl font-bold text-gray-900">Teks Halaman</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               Eyebrow, judul, deskripsi, dan teks saat daftar kosong untuk tiap section dan halaman publik.
             </p>

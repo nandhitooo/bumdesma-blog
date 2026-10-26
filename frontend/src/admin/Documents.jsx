@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { adminApi } from "./api";
+import EmptyState from "./components/EmptyState";
+import LoadingSkeleton from "./components/LoadingSkeleton";
+import PageHeader from "./components/PageHeader";
+import { useConfirm } from "./components/ConfirmDialog";
+import { useToast } from "./components/Toast";
 
 const EMPTY_FORM = {
   title: "",
@@ -11,6 +16,8 @@ const EMPTY_FORM = {
 
 function AdminDocuments() {
   const { user } = useOutletContext();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [documents, setDocuments] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
@@ -73,10 +80,12 @@ function AdminDocuments() {
         method: editingId ? "PUT" : "POST",
         body: JSON.stringify(form),
       });
+      toast.show(editingId ? "Dokumen diperbarui." : "Dokumen ditambahkan.");
       resetForm();
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     } finally {
       setSaving(false);
     }
@@ -94,31 +103,36 @@ function AdminDocuments() {
   };
 
   const deleteDocument = async (document) => {
-    if (!window.confirm(`Hapus dokumen “${document.title}”?`)) return;
+    const confirmed = await confirm({
+      title: "Hapus dokumen ini?",
+      message:
+        "Tautan dokumen akan hilang dari halaman Transparansi. Berkas di Google Drive tidak terhapus.",
+      detail: document.title,
+      confirmLabel: "Hapus dokumen",
+    });
+    if (!confirmed) return;
+
     setError("");
     try {
       await adminApi(`/api/admin/documents/${document.id}`, {
         method: "DELETE",
       });
+      toast.show("Dokumen berhasil dihapus.");
+      if (editingId === document.id) resetForm();
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     }
   };
 
   return (
     <section className="mx-auto max-w-5xl">
-      <header className="mb-7">
-        <p className="font-bold text-green-700">Publikasi</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-gray-900">
-          Dokumen Laporan
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Kelola tautan dokumen laporan yang tampil di halaman publik
-          Transparansi. Berkas tidak diunggah ke server; tempelkan tautan HTTPS
-          (mis. Google Drive).
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Konten"
+        title="Dokumen Laporan"
+        description="Kelola tautan dokumen yang tampil di halaman Transparansi. Berkas tidak diunggah ke server; tempelkan tautan HTTPS (mis. Google Drive)."
+      />
 
       {error && (
         <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-700">
@@ -227,7 +241,7 @@ function AdminDocuments() {
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
-          <p className="p-10 text-center text-gray-500">Memuat dokumen...</p>
+          <LoadingSkeleton rows={3} label="Memuat dokumen..." />
         ) : documents.length ? (
           <ul className="divide-y divide-gray-100">
             {documents.map((document) => (
@@ -276,9 +290,11 @@ function AdminDocuments() {
             ))}
           </ul>
         ) : (
-          <p className="p-10 text-center text-gray-500">
-            Belum ada dokumen.
-          </p>
+          <EmptyState
+            icon="file-shield"
+            title="Belum ada dokumen"
+            description="Tambahkan tautan laporan agar warga bisa membuka dokumen resmi di halaman Transparansi."
+          />
         )}
       </div>
     </section>

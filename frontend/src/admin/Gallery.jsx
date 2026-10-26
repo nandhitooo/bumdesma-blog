@@ -2,15 +2,21 @@ import { useEffect, useRef, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { adminApi } from "./api";
 import { formatDate } from "../lib/date";
+import EmptyState from "./components/EmptyState";
+import LoadingSkeleton from "./components/LoadingSkeleton";
+import PageHeader from "./components/PageHeader";
+import { useConfirm } from "./components/ConfirmDialog";
+import { useToast } from "./components/Toast";
 
 const emptyForm = { imageUrl: "", caption: "", eventDate: "" };
 
 function AdminGallery() {
   const { user } = useOutletContext();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ caption: "", eventDate: "" });
@@ -68,7 +74,7 @@ function AdminGallery() {
       });
       setForm((current) => ({ ...current, imageUrl: result.url }));
     } catch (uploadError) {
-      setError(uploadError.message);
+      toast.show(uploadError.message, "error");
     } finally {
       setUploading(false);
       input.value = "";
@@ -78,13 +84,12 @@ function AdminGallery() {
   const submit = async (event) => {
     event.preventDefault();
     if (!form.imageUrl) {
-      setError("Pilih gambar terlebih dahulu sebelum menyimpan.");
+      toast.show("Pilih gambar terlebih dahulu sebelum menyimpan.", "error");
       return;
     }
 
     setSaving(true);
     setError("");
-    setNotice("");
     try {
       await adminApi("/api/admin/gallery", {
         method: "POST",
@@ -95,10 +100,11 @@ function AdminGallery() {
         }),
       });
       setForm(emptyForm);
-      setNotice("Foto berhasil ditambahkan.");
+      toast.show("Foto berhasil ditambahkan.");
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     } finally {
       setSaving(false);
     }
@@ -111,7 +117,6 @@ function AdminGallery() {
       eventDate: item.eventDate || "",
     });
     setError("");
-    setNotice("");
   };
 
   const saveEdit = async (event) => {
@@ -120,7 +125,6 @@ function AdminGallery() {
 
     setSavingId(editingId);
     setError("");
-    setNotice("");
     try {
       await adminApi(`/api/admin/gallery/${editingId}`, {
         method: "PUT",
@@ -130,55 +134,45 @@ function AdminGallery() {
         }),
       });
       setEditingId(null);
-      setNotice("Keterangan foto berhasil diperbarui.");
+      toast.show("Keterangan foto berhasil diperbarui.");
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     } finally {
       setSavingId(null);
     }
   };
 
   const deleteItem = async (item) => {
-    if (!window.confirm("Hapus foto ini dari galeri?")) return;
+    const confirmed = await confirm({
+      title: "Hapus foto ini?",
+      message:
+        "Foto akan hilang dari galeri publik dan dari bagian Kegiatan di beranda.",
+      detail: item.caption || "Foto tanpa keterangan",
+      confirmLabel: "Hapus foto",
+    });
+    if (!confirmed) return;
 
     setError("");
-    setNotice("");
     try {
       await adminApi(`/api/admin/gallery/${item.id}`, { method: "DELETE" });
       if (editingId === item.id) setEditingId(null);
-      setNotice("Foto berhasil dihapus.");
+      toast.show("Foto berhasil dihapus.");
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     }
   };
 
   return (
     <section className="mx-auto max-w-6xl">
-      <header className="mb-7">
-        <p className="font-bold text-green-700">Konten</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-gray-900">Galeri</h1>
-        <p className="mt-2 text-gray-600">
-          Unggah foto kegiatan dan atur keterangan yang tampil di halaman galeri.
-        </p>
-      </header>
-
-      {notice && (
-        <div
-          role="status"
-          className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-green-50 p-4 text-green-800"
-        >
-          <p className="font-semibold">{notice}</p>
-          <button
-            type="button"
-            onClick={() => setNotice("")}
-            className="min-h-[44px] rounded-lg px-3 py-1 text-sm font-bold text-green-800 transition hover:bg-green-100 motion-reduce:transition-none"
-          >
-            Tutup
-          </button>
-        </div>
-      )}
+      <PageHeader
+        eyebrow="Konten"
+        title="Galeri"
+        description="Unggah foto kegiatan dan atur keterangan yang tampil di halaman galeri serta bagian Kegiatan di beranda."
+      />
 
       {error && (
         <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-700">
@@ -290,7 +284,7 @@ function AdminGallery() {
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
-          <p className="p-10 text-center text-gray-500">Memuat galeri...</p>
+          <LoadingSkeleton rows={3} label="Memuat galeri..." />
         ) : items.length ? (
           <ul className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:gap-6 sm:p-6">
             {items.map((item) => (
@@ -400,7 +394,11 @@ function AdminGallery() {
             ))}
           </ul>
         ) : (
-          <p className="p-10 text-center text-gray-500">Belum ada foto galeri.</p>
+          <EmptyState
+            icon="images"
+            title="Belum ada foto"
+            description="Unggah foto pertama lewat formulir di atas. Foto ini juga tampil di bagian Kegiatan beranda bila belum ada artikel."
+          />
         )}
       </div>
     </section>

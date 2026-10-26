@@ -41,6 +41,29 @@
   max-width: 100%;
 }
 
+/* Panel admin: fokus keyboard selalu terlihat, dan warna tetap solid (tanpa
+   gradient) sesuai token brand hijau di atas. */
+.admin-layout :focus-visible {
+  outline: 2px solid var(--color-brand-primary);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+.admin-layout .admin-skeleton {
+  background-color: #e5e7eb;
+  animation: admin-skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes admin-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { adminApi, dateFormatter } from "./api";
+import EmptyState from "./components/EmptyState";
+import LoadingSkeleton from "./components/LoadingSkeleton";
+import PageHeader from "./components/PageHeader";
+import { useConfirm } from "./components/ConfirmDialog";
+import { useToast } from "./components/Toast";
 
 const newUser = { name: "", email: "", password: "", role: "editor" };
 
 function AdminUsers() {
   const { user: currentUser } = useOutletContext();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState(newUser);
   const [editingId, setEditingId] = useState(null);
@@ -69,10 +76,12 @@ function AdminUsers() {
           body: JSON.stringify(payload),
         },
       );
+      toast.show(editingId ? "Data pengguna diperbarui." : "Pengguna ditambahkan.");
       resetForm();
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     } finally {
       setSaving(false);
     }
@@ -90,23 +99,34 @@ function AdminUsers() {
   };
 
   const deleteUser = async (user) => {
-    if (!window.confirm(`Hapus pengguna ${user.name}?`)) return;
+    const confirmed = await confirm({
+      title: "Hapus pengguna ini?",
+      message:
+        "Akun tidak bisa dipakai masuk lagi. Artikel yang pernah ditulis tetap tersimpan.",
+      detail: `${user.name} (${user.email})`,
+      confirmLabel: "Hapus pengguna",
+    });
+    if (!confirmed) return;
+
     setError("");
     try {
       await adminApi(`/api/admin/users/${user.id}`, { method: "DELETE" });
+      toast.show("Pengguna berhasil dihapus.");
+      if (editingId === user.id) resetForm();
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     }
   };
 
   return (
     <section className="mx-auto max-w-6xl">
-      <header className="mb-7">
-        <p className="font-bold text-green-700">Pengaturan</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-gray-900">Pengguna</h1>
-        <p className="mt-2 text-gray-600">Kelola akun admin dan editor.</p>
-      </header>
+      <PageHeader
+        eyebrow="Sistem"
+        title="Pengguna"
+        description="Kelola akun admin (akses penuh) dan editor (artikel saja)."
+      />
 
       {error && (
         <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-700">
@@ -186,8 +206,8 @@ function AdminUsers() {
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
-          <p className="p-10 text-center text-gray-500">Memuat pengguna...</p>
-        ) : (
+          <LoadingSkeleton rows={3} label="Memuat pengguna..." />
+        ) : users.length ? (
           <ul className="divide-y divide-gray-100">
             {users.map((user) => (
               <li
@@ -224,6 +244,12 @@ function AdminUsers() {
               </li>
             ))}
           </ul>
+        ) : (
+          <EmptyState
+            icon="users"
+            title="Belum ada pengguna"
+            description="Tambahkan akun editor atau admin lewat formulir di atas."
+          />
         )}
       </div>
     </section>

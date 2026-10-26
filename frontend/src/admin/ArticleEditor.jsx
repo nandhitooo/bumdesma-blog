@@ -11,6 +11,10 @@ import ArticleImage from "../components/ArticleImage";
 import ArticleView from "../components/ArticleView";
 import EditorToolbar from "./EditorToolbar";
 import { adminApi, dateFormatter, uniqueSlug } from "./api";
+import StatusBadge from "./components/StatusBadge";
+import { useConfirm } from "./components/ConfirmDialog";
+import { useToast } from "./components/Toast";
+import { useUnsavedChangesGuard } from "./components/useUnsavedChangesGuard";
 
 const emptyForm = {
   title: "",
@@ -72,6 +76,8 @@ function ArticleEditor() {
   const { user } = useOutletContext();
   const { id } = useParams();
   const navigate = useNavigate();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [form, setForm] = useState(emptyForm);
   const [categories, setCategories] = useState([]);
   const [existingArticles, setExistingArticles] = useState([]);
@@ -190,20 +196,16 @@ function ArticleEditor() {
     };
   }, [editor, id]);
 
-  // Peringatan browser sebelum menutup/meninggalkan halaman dengan perubahan
-  // yang belum disimpan.
-  useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      if (!editor || !initialSnapshot.current) return;
-      const current = JSON.stringify({ form, html: editor.getHTML() });
-      if (current === initialSnapshot.current) return;
-      event.preventDefault();
-      event.returnValue = "";
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [editor, form]);
+  // Peringatan perubahan belum disimpan, baik saat berpindah halaman di dalam
+  // panel maupun saat menutup/memuat ulang tab. Snapshot awal diambil setelah
+  // artikel selesai dimuat supaya editor yang masih kosong tidak dianggap berubah.
+  const hasUnsavedChanges =
+    Boolean(editor && initialSnapshot.current) &&
+    JSON.stringify({ form, html: editor.getHTML() }) !== initialSnapshot.current;
+  useUnsavedChangesGuard(
+    hasUnsavedChanges,
+    "Ada perubahan artikel yang belum disimpan. Tinggalkan halaman ini?",
+  );
 
   // Selama dialog terbuka: halaman tidak ikut ter-scroll, fokus pindah ke
   // dialog, Escape menutupnya, dan fokus kembali ke tombol Pratinjau.
@@ -261,9 +263,14 @@ function ArticleEditor() {
   };
 
   const restoreRevision = async (revision) => {
-    const confirmed = window.confirm(
-      `Pulihkan versi “${revision.title}”? Isi artikel saat ini akan disimpan sebagai revisi baru.`,
-    );
+    const confirmed = await confirm({
+      title: "Pulihkan versi ini?",
+      message:
+        "Isi artikel saat ini akan disimpan sebagai revisi baru, lalu diganti dengan versi yang dipilih.",
+      detail: `${revision.title} · ${dateFormatter.format(new Date(revision.createdAt))}`,
+      confirmLabel: "Pulihkan versi",
+      tone: "default",
+    });
     if (!confirmed) return;
     setError("");
     setRestoringId(revision.id);
@@ -274,6 +281,7 @@ function ArticleEditor() {
       window.location.reload();
     } catch (restoreFailure) {
       setError(restoreFailure.message);
+      toast.show(restoreFailure.message, "error");
       setRestoringId(null);
     }
   };
@@ -431,11 +439,14 @@ function ArticleEditor() {
       });
     } catch (saveError) {
       if (saveError.status === 409) {
-        setError("Slug sudah dipakai artikel lain. Ubah slug lalu simpan lagi.");
+        setError(
+          "Alamat artikel ini sudah dipakai artikel lain. Ubah alamatnya lalu simpan lagi.",
+        );
         setSlugEdited(true);
       } else {
         setError(saveError.message);
       }
+      toast.show(saveError.message, "error");
     } finally {
       setSaving(false);
     }
@@ -468,9 +479,17 @@ function ArticleEditor() {
           <i className="fa-solid fa-arrow-left mr-2" aria-hidden="true"></i>
           Kembali ke artikel
         </RouterLink>
-        <h1 className="mt-4 text-3xl font-extrabold text-gray-900">
-          {id ? "Ubah artikel" : "Tulis artikel"}
-        </h1>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">
+            {id ? "Ubah artikel" : "Tulis artikel"}
+          </h1>
+          <StatusBadge status={form.status} />
+        </div>
+        <p className="mt-2 max-w-2xl text-sm text-gray-600">
+          {user.role === "admin"
+            ? "Simpan sebagai draf untuk ditinjau, atau terbitkan langsung ke halaman blog."
+            : "Penerbitan dilakukan oleh admin. Simpan pekerjaan Anda sebagai draf."}
+        </p>
       </header>
 
       {error && (
@@ -497,7 +516,7 @@ function ArticleEditor() {
 
           <div>
             <label htmlFor="article-slug" className="mb-2 block font-bold text-gray-700">
-              Slug
+              Alamat artikel
             </label>
             <input
               id="article-slug"
@@ -512,7 +531,8 @@ function ArticleEditor() {
               className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
             <p className="mt-2 text-xs text-gray-500">
-              Gunakan huruf kecil, angka, dan tanda hubung. Slug dibuat otomatis dari judul.
+              Bagian akhir alamat halaman artikel (mis. “berita-desa”), dibuat otomatis dari
+              judul. Gunakan huruf kecil, angka, dan tanda hubung.
             </p>
           </div>
 
@@ -550,7 +570,7 @@ function ArticleEditor() {
               </select>
             </div>
 
-            {user.role === "admin" && (
+            {user.role === "admin" ? (
               <div>
                 <label htmlFor="article-status" className="mb-2 block font-bold text-gray-700">
                   Status
@@ -564,6 +584,18 @@ function ArticleEditor() {
                   <option value="draft">Draf</option>
                   <option value="published">Terbit</option>
                 </select>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-gray-50 p-4">
+                <p className="text-sm font-bold text-gray-800">Status artikel</p>
+                <div className="mt-2">
+                  <StatusBadge status={form.status} />
+                </div>
+                <p className="mt-2 text-xs text-gray-600">
+                  {form.status === "published"
+                    ? "Artikel ini sudah terbit. Simpan perubahan Anda; penerbitan ulang diatur admin."
+                    : "Penerbitan dilakukan oleh admin. Setelah disimpan, artikel berstatus draf."}
+                </p>
               </div>
             )}
           </div>

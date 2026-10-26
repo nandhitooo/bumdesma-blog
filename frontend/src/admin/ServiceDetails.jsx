@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { adminApi, toSlug } from "./api";
+import EmptyState from "./components/EmptyState";
+import LoadingSkeleton from "./components/LoadingSkeleton";
+import PageHeader from "./components/PageHeader";
+import { useConfirm } from "./components/ConfirmDialog";
+import { useToast } from "./components/Toast";
 
 const EMPTY_FORM = {
   slug: "",
@@ -22,6 +27,8 @@ function toLines(value) {
 
 function AdminServiceDetails() {
   const { user } = useOutletContext();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [services, setServices] = useState([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState(null);
@@ -93,10 +100,14 @@ function AdminServiceDetails() {
           sortOrder: form.sortOrder,
         }),
       });
+      toast.show(
+        editingId ? "Detail layanan diperbarui." : "Detail layanan ditambahkan.",
+      );
       resetForm();
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     } finally {
       setSaving(false);
     }
@@ -117,31 +128,36 @@ function AdminServiceDetails() {
   };
 
   const deleteService = async (service) => {
-    if (!window.confirm(`Hapus detail layanan “${service.title}”?`)) return;
+    const confirmed = await confirm({
+      title: "Hapus detail layanan ini?",
+      message:
+        "Syarat dan alur pengajuan layanan ini akan hilang dari halaman publik Layanan.",
+      detail: service.title,
+      confirmLabel: "Hapus layanan",
+    });
+    if (!confirmed) return;
+
     setError("");
     try {
       await adminApi(`/api/admin/service-details/${service.id}`, {
         method: "DELETE",
       });
+      toast.show("Detail layanan berhasil dihapus.");
       if (editingId === service.id) resetForm();
       setRefreshKey((key) => key + 1);
     } catch (requestError) {
       setError(requestError.message);
+      toast.show(requestError.message, "error");
     }
   };
 
   return (
     <section className="mx-auto max-w-5xl">
-      <header className="mb-7">
-        <p className="font-bold text-green-700">Konten</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-gray-900">
-          Detail Layanan
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Atur syarat dan alur pengajuan tiap unit usaha yang tampil di halaman
-          publik Layanan. Tulis satu butir per baris.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Situs"
+        title="Detail Layanan"
+        description="Atur syarat dan alur pengajuan tiap unit usaha yang tampil di halaman publik Layanan. Tulis satu butir per baris."
+      />
 
       {error && (
         <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-700">
@@ -182,7 +198,7 @@ function AdminServiceDetails() {
             htmlFor="service-slug"
             className="mb-2 block font-bold text-gray-700"
           >
-            Slug
+            Alamat halaman
           </label>
           <input
             id="service-slug"
@@ -196,6 +212,9 @@ function AdminServiceDetails() {
             }}
             className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
           />
+          <p className="mt-1 text-xs text-gray-500">
+            Dipakai di alamat halaman layanan, mis. “dana-bergulir”. Dibuat otomatis dari judul.
+          </p>
         </div>
 
         <div className="md:col-span-2">
@@ -302,7 +321,7 @@ function AdminServiceDetails() {
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
-          <p className="p-10 text-center text-gray-500">Memuat layanan...</p>
+          <LoadingSkeleton rows={3} label="Memuat layanan..." />
         ) : services.length ? (
           <ul className="divide-y divide-gray-100">
             {services.map((service) => (
@@ -344,7 +363,11 @@ function AdminServiceDetails() {
             ))}
           </ul>
         ) : (
-          <p className="p-10 text-center text-gray-500">Belum ada layanan.</p>
+          <EmptyState
+            icon="circle-info"
+            title="Belum ada detail layanan"
+            description="Tambahkan syarat dan alur pengajuan agar halaman Layanan bisa dibuka warga."
+          />
         )}
       </div>
     </section>

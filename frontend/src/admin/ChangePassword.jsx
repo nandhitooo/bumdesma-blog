@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { adminApi } from "./api";
+import PageHeader from "./components/PageHeader";
+import { useToast } from "./components/Toast";
 
 const emptyForm = {
   currentPassword: "",
@@ -12,7 +14,7 @@ function AdminChangePassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const toast = useToast();
 
   const setField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -21,7 +23,6 @@ function AdminChangePassword() {
   const submit = async (event) => {
     event.preventDefault();
     setError("");
-    setNotice("");
 
     // Pemeriksaan cepat di sisi klien; server tetap memvalidasi ulang.
     if (form.newPassword.length < 8) {
@@ -50,7 +51,7 @@ function AdminChangePassword() {
       // jadi pengguna tetap masuk setelah password diganti.
       setForm(emptyForm);
       setShowPassword(false);
-      setNotice(message || "Password berhasil diubah.");
+      toast.show(message || "Password berhasil diubah.");
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -63,26 +64,16 @@ function AdminChangePassword() {
     "min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700";
 
   return (
-    <section className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-center px-4 py-8">
-      <header className="mb-7">
-        <p className="font-bold text-green-700">Pengaturan</p>
-        <h1 className="mt-1 text-3xl font-extrabold text-gray-900">
-          Ganti Password
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Ubah password akun Anda sendiri. Sesi ini tetap aktif, tetapi sesi
-          lama di perangkat lain akan berakhir.
-        </p>
-      </header>
+    <section className="mx-auto w-full max-w-xl">
+      <PageHeader
+        eyebrow="Akun"
+        title="Ganti Password"
+        description="Ubah password akun Anda sendiri. Sesi ini tetap aktif, tetapi sesi lama di perangkat lain akan berakhir."
+      />
 
       {error && (
         <p role="alert" className="mb-5 rounded-xl bg-red-50 p-4 text-red-700">
           {error}
-        </p>
-      )}
-      {notice && (
-        <p role="status" className="mb-5 rounded-xl bg-green-50 p-4 text-green-800">
-          {notice}
         </p>
       )}
 
