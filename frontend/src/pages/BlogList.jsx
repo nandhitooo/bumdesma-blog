@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import ArticleImage from "../components/ArticleImage";
 import { formatDate } from "../lib/date";
+import { apiUrl } from "../lib/apiUrl";
 
 function BlogList() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -43,7 +44,7 @@ function BlogList() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/categories", { signal: controller.signal })
+    fetch(apiUrl("/api/categories"), { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Gagal memuat kategori.");
         return response.json();
@@ -65,7 +66,7 @@ function BlogList() {
     if (category) params.set("category", category);
     if (query) params.set("q", query);
 
-    fetch(`/api/articles?${params}`, { signal: controller.signal })
+    fetch(apiUrl(`/api/articles?${params}`), { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Gagal memuat artikel.");
         return response.json();

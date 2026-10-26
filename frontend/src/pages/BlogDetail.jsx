@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import ArticleView from "../components/ArticleView";
 import ShareButtons from "../components/ShareButtons";
 import RelatedArticles from "../components/RelatedArticles";
+import { apiUrl } from "../lib/apiUrl";
 
 function BlogDetail() {
   const { slug } = useParams();
@@ -13,7 +14,7 @@ function BlogDetail() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`/api/articles/${encodeURIComponent(slug)}`, {
+    fetch(apiUrl(`/api/articles/${encodeURIComponent(slug)}`), {
       signal: controller.signal,
     })
       .then(async (response) => {

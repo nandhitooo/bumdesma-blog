@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import ArticleImage from "../components/ArticleImage";
+import { apiUrl } from "../lib/apiUrl";
 
 function Team() {
   const [members, setMembers] = useState([]);
@@ -15,7 +16,7 @@ function Team() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/team", { signal: controller.signal })
+    fetch(apiUrl("/api/team"), { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Gagal memuat pengurus.");
         return response.json();

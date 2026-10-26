@@ -99,6 +99,29 @@ contoh, `CLIENT_ORIGIN` kosong/bukan URL/trailing slash, `CLIENT_ORIGIN` bukan
 `https` saat `NODE_ENV=production`, atau `TRUST_PROXY=true` saat produksi
 (mempercayai `X-Forwarded-For` dari mana pun membuat IP bisa dipalsukan).
 
+### Frontend (opsional): `frontend/.env`
+
+Frontend tidak memerlukan env selama API berada di origin yang sama: semua
+permintaan memakai path relatif (`/api/...`) yang diproksi Vite saat
+development, sehingga `frontend/.env` hanya perlu dibuat bila API dipindah ke
+origin lain.
+
+```bash
+cp frontend/.env.example frontend/.env
+```
+
+| Variabel | Wajib | Keterangan |
+| --- | --- | --- |
+| `VITE_API_URL` | tidak | Origin API tanpa slash di akhir dan tanpa `/api`, mis. `https://api.situs.id`. Bila kosong, semua permintaan tetap relatif ke origin frontend. |
+
+Nilai ini dibaca sekali saat build oleh `frontend/src/lib/apiUrl.js` (dipakai
+`adminApi` dan seluruh `fetch` halaman publik), jadi `npm run build` ulang
+perlu dijalankan setelah diubah. Bila diisi, browser memanggil origin tersebut
+langsung dan proxy Vite tidak terpakai: daftarkan origin frontend di
+`CLIENT_ORIGIN` backend supaya CORS mengizinkan responsnya. Cookie sesi memakai
+`SameSite=Lax` (`backend/middleware/auth.js`), sehingga panel admin lintas
+situs juga menuntut penyesuaian `SameSite`/`Secure` di sisi backend.
+
 ## 5. Menjalankan
 
 Semua perintah dijalankan dari root repositori:
@@ -124,7 +147,9 @@ server`, dan `npm test` diteruskan ke workspace `backend`; `npm run dev`,
 
 Frontend pengembangan berjalan di `http://localhost:5173` dan API di
 `http://localhost:4000`. Vite mem-proxy `/api` dan `/uploads` ke API, sehingga
-cukup membuka alamat frontend saat mengembangkan.
+cukup membuka alamat frontend saat mengembangkan. Bila `VITE_API_URL` diisi
+(bagian 4), permintaan menuju `/api` langsung ke origin tersebut dan proxy tidak
+terpakai; `/uploads` tetap relatif.
 
 | Rute | Isi |
 | --- | --- |

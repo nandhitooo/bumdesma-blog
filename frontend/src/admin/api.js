@@ -1,3 +1,5 @@
+import { apiUrl } from "../lib/apiUrl";
+
 const LOGIN_PATH = "/api/auth/login";
 
 // Sesi yang habis di tengah pemakaian panel: kembalikan ke halaman login alih-alih
@@ -13,7 +15,7 @@ function redirectToLogin(path) {
 
 export async function adminApi(path, options = {}) {
   const { redirectOnUnauthorized = true, ...fetchOptions } = options;
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     credentials: "include",
     ...fetchOptions,
     headers: {

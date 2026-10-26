@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../lib/apiUrl";
 
 // Dokumen laporan hanya berupa tautan ke penyimpanan eksternal (mis. Google
 // Drive); tidak ada berkas yang diunggah atau disajikan dari server ini.
@@ -29,7 +30,7 @@ function Transparency() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/documents", { signal: controller.signal })
+    fetch(apiUrl("/api/documents"), { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Gagal memuat dokumen.");
         return response.json();

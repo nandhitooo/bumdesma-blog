@@ -227,6 +227,21 @@ describe("Uji keamanan API", { skip: skipWhenApiDown }, () => {
     assert.match(result.data.message, /72/);
   });
 
+  // Byte NUL lolos dari decodeURIComponent dan sebelumnya diteruskan ke Postgres,
+  // yang menolaknya dengan error 22021 sehingga request berakhir 500.
+  it("slug atau kata kunci berisi byte NUL ditolak (400), bukan 500", async () => {
+    for (const pathname of [
+      "/api/articles/%00",
+      "/api/articles/%00/related",
+      "/api/articles?category=%00",
+      "/api/articles?q=a%00b",
+      "/api/service-details/%00",
+    ]) {
+      const result = await request(pathname);
+      assert.equal(result.status, 400, `${pathname} harus 400, bukan 500`);
+    }
+  });
+
   it("ganti password menolak permintaan tanpa sesi (401)", async () => {
     const result = await request("/api/auth/change-password", {
       method: "POST",

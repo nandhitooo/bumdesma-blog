@@ -3,6 +3,7 @@ import { z } from "zod";
 import { pool } from "../db/pool.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
+import { slugParamSchema } from "../services/slug.js";
 
 // Router publik dan admin dipisah mengikuti pola routes/categories.js: daftar
 // layanan boleh dibaca siapa saja, sedangkan perubahan data hanya untuk admin.
@@ -10,6 +11,10 @@ const publicRouter = express.Router();
 const adminRouter = express.Router();
 
 const idSchema = z.object({ id: z.coerce.number().int().positive() });
+
+// Slug dari URL ikut divalidasi sebelum menyentuh query: tanpa ini nilai seperti
+// "%00" diteruskan apa adanya ke Postgres dan berakhir sebagai 500.
+const slugParamsSchema = z.object({ slug: slugParamSchema });
 
 const plainText = (schema, message) =>
   schema.refine((value) => !/[<>]/.test(value), message);
@@ -97,16 +102,21 @@ publicRouter.get("/", async (req, res) => {
   return res.json({ services: rows });
 });
 
-publicRouter.get("/:slug", async (req, res) => {
-  const { rows } = await pool.query(
-    `SELECT ${SERVICE_COLUMNS} FROM service_details WHERE slug = $1`,
-    [req.params.slug],
-  );
-  if (!rows[0]) {
-    return res.status(404).json({ message: "Layanan tidak ditemukan." });
-  }
-  return res.json({ service: rows[0] });
-});
+publicRouter.get(
+  "/:slug",
+  validate(slugParamsSchema, "params"),
+  async (req, res) => {
+    const { slug } = req.validated.params;
+    const { rows } = await pool.query(
+      `SELECT ${SERVICE_COLUMNS} FROM service_details WHERE slug = $1`,
+      [slug],
+    );
+    if (!rows[0]) {
+      return res.status(404).json({ message: "Layanan tidak ditemukan." });
+    }
+    return res.json({ service: rows[0] });
+  },
+);
 
 adminRouter.use(requireAdmin);
 

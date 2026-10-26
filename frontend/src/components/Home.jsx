@@ -5,6 +5,7 @@ import ArticleImage from "./ArticleImage";
 import { useSiteContent } from "../lib/siteContent";
 import { isValidIcon } from "../lib/siteContentUtils";
 import { formatDate } from "../lib/date";
+import { apiUrl } from "../lib/apiUrl";
 import kegiatan1 from "../assets/kegiatan/kegiatan1.jpg";
 import kegiatan2 from "../assets/kegiatan/kegiatan2.jpg";
 import kegiatan8 from "../assets/kegiatan/kegiatan8.jpg";
@@ -45,7 +46,7 @@ const Home = () => {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/articles?limit=4", { signal: controller.signal })
+    fetch(apiUrl("/api/articles?limit=4"), { signal: controller.signal })
       .then((res) => {
         if (!res.ok) throw new Error("Gagal memuat artikel.");
         return res.json();

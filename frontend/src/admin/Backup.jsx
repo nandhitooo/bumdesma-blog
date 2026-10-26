@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { adminApi } from "./api";
+import { apiUrl } from "../lib/apiUrl";
 
 const CONFIRMATION_WORD = "PULIHKAN";
 
@@ -34,7 +35,7 @@ function AdminBackup() {
     setDownloading(true);
     try {
       // Unduhan tidak lewat adminApi: respons berupa berkas, bukan JSON.
-      const response = await fetch("/api/admin/backup/download", {
+      const response = await fetch(apiUrl("/api/admin/backup/download"), {
         credentials: "include",
       });
 

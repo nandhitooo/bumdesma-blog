@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ArticleImage from "./ArticleImage";
 import { formatDate } from "../lib/date";
+import { apiUrl } from "../lib/apiUrl";
 
 // Bila tidak ada artikel terkait (atau permintaannya gagal), komponen ini
 // sengaja tidak menampilkan apa pun: bagian "Artikel Terkait" yang kosong
@@ -11,7 +12,7 @@ function RelatedArticles({ slug }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`/api/articles/${encodeURIComponent(slug)}/related`, {
+    fetch(apiUrl(`/api/articles/${encodeURIComponent(slug)}/related`), {
       signal: controller.signal,
     })
       .then((response) => {

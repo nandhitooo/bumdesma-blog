@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import ArticleImage from "./ArticleImage";
+import { apiUrl } from "../lib/apiUrl";
 import kegiatan1 from "../assets/kegiatan/kegiatan1.jpg";
 import kegiatan2 from "../assets/kegiatan/kegiatan2.jpg";
 import kegiatan3 from "../assets/kegiatan/kegiatan3.jpg";
@@ -58,7 +59,7 @@ const Activity = () => {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/articles?limit=6&page=1", { signal: controller.signal })
+    fetch(apiUrl("/api/articles?limit=6&page=1"), { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Gagal memuat artikel kegiatan.");
         return response.json();

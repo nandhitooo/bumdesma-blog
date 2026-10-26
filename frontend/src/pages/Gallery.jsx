@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { formatDate } from "../lib/date";
+import { apiUrl } from "../lib/apiUrl";
 
 function Gallery() {
   const [items, setItems] = useState([]);
@@ -19,7 +20,7 @@ function Gallery() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/gallery", { signal: controller.signal })
+    fetch(apiUrl("/api/gallery"), { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Gagal memuat galeri.");
         return response.json();

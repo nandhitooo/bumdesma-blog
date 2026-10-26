@@ -14,6 +14,7 @@ import {
   deleteUnreferencedUploads,
   extractUploadUrls,
 } from "../services/uploads.js";
+import { keywordSchema, slugParamSchema } from "../services/slug.js";
 import { logAudit } from "../services/audit.js";
 
 // Dua router dipisah: publik (hanya baca artikel terbit) dan admin (CRUD).
@@ -28,8 +29,17 @@ const idSchema = z.object({ id: z.coerce.number().int().positive() });
 const publicQuerySchema = z.object({
   page: z.coerce.number().int().min(1).max(1_000_000).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(9),
-  category: z.string().trim().min(1).max(100).optional(),
-  q: z.string().trim().max(200).optional(),
+  // Byte NUL ("%00") ditolak di sini: Postgres menolaknya dengan error 22021,
+  // dan tanpa penyaringan request seperti itu berakhir 500 alih-alih 400.
+  category: keywordSchema({
+    min: 1,
+    max: 100,
+    message: "Kategori tidak valid.",
+  }).optional(),
+  q: keywordSchema({
+    max: 200,
+    message: "Kata kunci pencarian tidak valid.",
+  }).optional(),
 });
 
 // Daftar artikel admin dibatasi supaya satu request tidak pernah menarik seluruh
@@ -205,7 +215,7 @@ publicRouter.get(
 // itu sendiri. Artikel dengan kategori yang sama diutamakan; bila jumlahnya
 // kurang dari 3, sisanya dilengkapi artikel terbit terbaru lainnya.
 publicRouter.get("/:slug/related", async (req, res) => {
-  const slug = z.string().trim().min(1).max(220).safeParse(req.params.slug);
+  const slug = slugParamSchema.safeParse(req.params.slug);
   if (!slug.success) {
     return res.status(400).json({ message: "Slug artikel tidak valid." });
   }
@@ -262,7 +272,7 @@ publicRouter.get("/:slug/related", async (req, res) => {
 
 // Detail artikel terbit berdasarkan slug.
 publicRouter.get("/:slug", async (req, res) => {
-  const slug = z.string().trim().min(1).max(220).safeParse(req.params.slug);
+  const slug = slugParamSchema.safeParse(req.params.slug);
   if (!slug.success) {
     return res.status(400).json({ message: "Slug artikel tidak valid." });
   }

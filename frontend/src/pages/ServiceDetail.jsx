@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSiteContent } from "../lib/siteContent";
 import { safeWaLink } from "../lib/siteContentUtils";
+import { apiUrl } from "../lib/apiUrl";
 
 function ServiceDetail() {
   const { slug } = useParams();
@@ -14,7 +15,7 @@ function ServiceDetail() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`/api/service-details/${encodeURIComponent(slug)}`, {
+    fetch(apiUrl(`/api/service-details/${encodeURIComponent(slug)}`), {
       signal: controller.signal,
     })
       .then(async (response) => {

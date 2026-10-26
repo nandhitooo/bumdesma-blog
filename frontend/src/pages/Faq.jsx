@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../lib/apiUrl";
 
 function Faq() {
   const [faqs, setFaqs] = useState([]);
@@ -15,7 +16,7 @@ function Faq() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/faqs", { signal: controller.signal })
+    fetch(apiUrl("/api/faqs"), { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Gagal memuat FAQ.");
         return response.json();

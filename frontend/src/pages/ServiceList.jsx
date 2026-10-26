@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { apiUrl } from "../lib/apiUrl";
 
 function ServiceList() {
   const [services, setServices] = useState([]);
@@ -15,7 +16,7 @@ function ServiceList() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/service-details", { signal: controller.signal })
+    fetch(apiUrl("/api/service-details"), { signal: controller.signal })
       .then((response) => {
         if (!response.ok) throw new Error("Gagal memuat layanan.");
         return response.json();

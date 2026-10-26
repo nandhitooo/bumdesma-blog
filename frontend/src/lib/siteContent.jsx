@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { DEFAULT_SITE_CONTENT } from "./defaultContent";
+import { apiUrl } from "./apiUrl";
 
 const SiteContentContext = createContext({
   content: DEFAULT_SITE_CONTENT,
@@ -45,7 +46,7 @@ export function SiteContentProvider({ children }) {
       // no-store: endpoint publik ini memakai max-age=30 di server, dan setelah
       // admin menyimpan perubahan, pemuatan ulang harus menampilkan isi terbaru
       // (bukan salinan dari cache browser).
-      const response = await fetch("/api/site-content", { cache: "no-store" });
+      const response = await fetch(apiUrl("/api/site-content"), { cache: "no-store" });
       if (!response.ok) {
         throw new Error("Gagal mengambil data konten situs.");
       }
