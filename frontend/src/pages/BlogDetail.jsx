@@ -4,6 +4,7 @@ import ArticleView from "../components/ArticleView";
 import ShareButtons from "../components/ShareButtons";
 import RelatedArticles from "../components/RelatedArticles";
 import { apiUrl } from "../lib/apiUrl";
+import { usePageTitle } from "../lib/usePageTitle";
 
 function BlogDetail() {
   const { slug } = useParams();
@@ -11,6 +12,13 @@ function BlogDetail() {
   const loading = result?.slug !== slug;
   const article = result?.slug === slug ? result.article : null;
   const error = result?.slug === slug ? result.error : "";
+  usePageTitle(
+    article
+      ? article.title
+      : result?.slug === slug
+        ? "Artikel tidak ditemukan"
+        : "Blog",
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -24,19 +32,14 @@ function BlogDetail() {
       })
       .then((data) => {
         setResult({ slug, article: data, error: "" });
-        document.title = `${data.title} | BUMDESMA Podo Rukun LKD`;
       })
       .catch((fetchError) => {
         if (fetchError.name !== "AbortError") {
           setResult({ slug, article: null, error: fetchError.message });
-          document.title = "Artikel tidak ditemukan | BUMDESMA Podo Rukun LKD";
         }
       });
 
-    return () => {
-      controller.abort();
-      document.title = "BUMDESMA Podo Rukun LKD";
-    };
+    return () => controller.abort();
   }, [slug]);
 
   return (

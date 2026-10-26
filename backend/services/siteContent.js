@@ -7,6 +7,8 @@ export const SITE_CONTENT_KEYS = [
   "services",
   "contact",
   "footer",
+  "site",
+  "sections",
 ];
 
 const plainText = (max) =>
@@ -29,6 +31,37 @@ const httpsUrl = z
 
 const optionalUrl = z.union([z.literal(""), httpsUrl]);
 
+// Gambar hanya boleh berasal dari unggahan panel admin (atau URL HTTPS yang
+// memang dikelola admin). String kosong berarti pakai aset bawaan frontend.
+const uploadedImage = z
+  .string()
+  .trim()
+  .max(500)
+  .regex(
+    /^\/uploads\/[0-9a-fA-F-]+\.(?:jpg|png|webp)$/i,
+    "Gambar harus diunggah lewat panel admin.",
+  );
+
+const optionalImage = z.union([z.literal(""), uploadedImage, httpsUrl]);
+
+// Tautan internal dibatasi ke path di dalam situs ini supaya isi footer tidak
+// bisa dipakai untuk mengalihkan pengunjung ke domain lain.
+const internalPath = z
+  .string()
+  .trim()
+  .max(300)
+  .refine(
+    (value) => /^\/(?:[a-z0-9][a-z0-9/-]*)?(?:#[a-z0-9-]+)?$/i.test(value),
+    "Tautan internal tidak valid.",
+  );
+
+const footerLinkSchema = z
+  .object({
+    label: plainText(80),
+    href: z.union([internalPath, httpsUrl]),
+  })
+  .strict();
+
 const iconSchema = z
   .string()
   .trim()
@@ -44,6 +77,16 @@ const highlightSchema = z
 
 const serviceSchema = highlightSchema;
 
+const pageHeadingSchema = z
+  .object({
+    eyebrow: plainText(120),
+    title: plainText(200),
+    description: plainText(600),
+    emptyTitle: plainText(200),
+    emptyText: plainText(600),
+  })
+  .strict();
+
 export const siteContentSchemas = {
   hero: z
     .object({
@@ -51,6 +94,8 @@ export const siteContentSchemas = {
       subtitle: plainText(200),
       description: plainText(1000),
       buttonLabel: plainText(100),
+      // Opsional supaya data dan backup lama tanpa gambar hero tetap valid.
+      imageUrl: optionalImage.optional(),
       highlights: z.array(highlightSchema).min(1).max(6),
     })
     .strict(),
@@ -100,6 +145,108 @@ export const siteContentSchemas = {
           youtube: optionalUrl,
         })
         .strict(),
+      // Semua tambahan di bawah opsional supaya baris lama dan backup lama
+      // tetap valid; nilainya diambil dari DEFAULTS saat kosong.
+      brandTagline: plainText(160).optional(),
+      legalNote: plainText(200).optional(),
+      navHeading: plainText(120).optional(),
+      navLinks: z.array(footerLinkSchema).min(1).max(10).optional(),
+      servicesHeading: plainText(120).optional(),
+      serviceLinks: z.array(footerLinkSchema).min(1).max(10).optional(),
+      contactHeading: plainText(120).optional(),
+    })
+    .strict(),
+  site: z
+    .object({
+      name: plainText(120),
+      legalName: plainText(160),
+      tagline: plainText(160),
+      logoUrl: optionalImage,
+      partnerLogoUrl: optionalImage,
+      metaTitle: plainText(200),
+      metaDescription: plainText(400),
+      feedTitle: plainText(200),
+      feedDescription: plainText(400),
+      copyright: plainText(200),
+      locationLine: plainText(160),
+      adminPortalLabel: plainText(60),
+      nav: z
+        .object({
+          home: plainText(40),
+          about: plainText(40),
+          services: plainText(40),
+          activity: plainText(40),
+          contact: plainText(40),
+          blog: plainText(40),
+          gallery: plainText(40),
+          transparency: plainText(40),
+          team: plainText(40),
+          more: plainText(40),
+        })
+        .strict(),
+    })
+    .strict(),
+  sections: z
+    .object({
+      home: z
+        .object({
+          newsEyebrow: plainText(120),
+          newsTitle: plainText(200),
+          newsDescription: plainText(600),
+          newsCta: plainText(100),
+          readMore: plainText(100),
+          readMoreShort: plainText(100),
+        })
+        .strict(),
+      about: z
+        .object({
+          eyebrow: plainText(120),
+          visionEyebrow: plainText(120),
+          visionTitle: plainText(200),
+          visionLabel: plainText(60),
+          missionLabel: plainText(60),
+          profileCta: plainText(120),
+        })
+        .strict(),
+      services: z
+        .object({
+          eyebrow: plainText(120),
+          title: plainText(200),
+          description: plainText(600),
+          cta: plainText(120),
+        })
+        .strict(),
+      activity: z
+        .object({
+          eyebrow: plainText(120),
+          title: plainText(200),
+          description: plainText(600),
+          cta: plainText(120),
+          detailLabel: plainText(100),
+          galleryCategory: plainText(60),
+        })
+        .strict(),
+      contact: z
+        .object({
+          eyebrow: plainText(120),
+          title: plainText(200),
+          description: plainText(600),
+          addressTitle: plainText(120),
+          addressCta: plainText(120),
+          emailTitle: plainText(120),
+          emailCta: plainText(120),
+          whatsappTitle: plainText(120),
+          whatsappCta: plainText(120),
+        })
+        .strict(),
+      // Halaman daftar memakai susunan judul yang sama: eyebrow, judul,
+      // deskripsi, lalu teks saat daftarnya kosong.
+      blog: pageHeadingSchema,
+      faq: pageHeadingSchema,
+      gallery: pageHeadingSchema,
+      team: pageHeadingSchema,
+      transparency: pageHeadingSchema,
+      serviceList: pageHeadingSchema,
     })
     .strict(),
 };
@@ -111,6 +258,7 @@ export const DEFAULTS = {
     description:
       "BUMDESMA Podo Rukun LKD berperan sebagai penggerak ekonomi desa melalui pengelolaan usaha bersama secara profesional, transparan, dan inovatif demi kesejahteraan masyarakat.",
     buttonLabel: "Lihat Berita Terbaru",
+    imageUrl: "",
     highlights: [
       {
         icon: "calendar-check",
@@ -207,28 +355,211 @@ export const DEFAULTS = {
       instagram: "",
       youtube: "",
     },
+    brandTagline: "LKD Kec. Wilangan",
+    legalNote: "Badan Hukum AHU-00115.AH.01.35.Tahun 2022",
+    navHeading: "Tautan Navigasi",
+    navLinks: [
+      { label: "Beranda", href: "/#home" },
+      { label: "Tentang Kami", href: "/#about" },
+      { label: "Blog & Berita", href: "/blog" },
+      { label: "Galeri Dokumentasi", href: "/galeri" },
+      { label: "Transparansi Laporan", href: "/transparansi" },
+      { label: "Susunan Pengurus", href: "/pengurus" },
+      { label: "Tanya Jawab (FAQ)", href: "/faq" },
+    ],
+    servicesHeading: "Unit Layanan Usaha",
+    serviceLinks: [
+      { label: "Dana Bergulir Masyarakat (SPP)", href: "/layanan" },
+      { label: "Perdagangan & Jasa Desa", href: "/layanan" },
+      { label: "Penguatan Usaha Warga", href: "/layanan" },
+      { label: "Syarat & Alur Pengajuan", href: "/layanan" },
+    ],
+    contactHeading: "Kontak Kantor",
+  },
+  site: {
+    name: "BUMDESMA Podo Rukun",
+    legalName: "BUMDESMA Podo Rukun LKD",
+    tagline: "Kec. Wilangan, Kab. Nganjuk",
+    logoUrl: "",
+    partnerLogoUrl: "",
+    metaTitle: "BUMDESMA PODO RUKUN LKD",
+    metaDescription:
+      "Situs resmi BUMDESMA Podo Rukun LKD Kecamatan Wilangan, Kabupaten Nganjuk: profil lembaga, layanan unit usaha, kegiatan, dan berita terbaru.",
+    feedTitle: "BUMDESMA Podo Rukun",
+    feedDescription:
+      "Kegiatan, layanan, dan berita BUMDESMA Podo Rukun LKD.",
+    copyright: "BUMDESMA Podo Rukun LKD. Hak Cipta Dilindungi.",
+    locationLine: "Kecamatan Wilangan, Kabupaten Nganjuk",
+    adminPortalLabel: "Portal Pengelola",
+    nav: {
+      home: "Beranda",
+      about: "Tentang",
+      services: "Layanan",
+      activity: "Kegiatan",
+      contact: "Kontak",
+      blog: "Blog",
+      gallery: "Galeri",
+      transparency: "Transparansi",
+      team: "Pengurus",
+      more: "Lainnya",
+    },
+  },
+  sections: {
+    home: {
+      newsEyebrow: "Publikasi & Kabar",
+      newsTitle: "Berita Terbaru",
+      newsDescription:
+        "Kabar, pengumuman, dan cerita terkini seputar kegiatan BUMDESMA.",
+      newsCta: "Lihat Semua Blog",
+      readMore: "Baca artikel lengkap",
+      readMoreShort: "Baca selengkapnya",
+    },
+    about: {
+      eyebrow: "Tentang BUMDESMA",
+      visionEyebrow: "Arah Lembaga",
+      visionTitle: "Visi & Misi",
+      visionLabel: "Visi",
+      missionLabel: "Misi",
+      profileCta: "Unduh Dokumen Profil Resmi",
+    },
+    services: {
+      eyebrow: "Unit Usaha",
+      title: "Layanan Kami",
+      description:
+        "Berbagai layanan profesional untuk mendukung pertumbuhan ekonomi dan kemandirian masyarakat desa.",
+      cta: "Lihat syarat dan alur pengajuan",
+    },
+    activity: {
+      eyebrow: "Dokumentasi",
+      title: "Kegiatan Terbaru",
+      description:
+        "Dokumentasi berbagai program dan kegiatan operasional BUMDESMA dalam memajukan ekonomi desa.",
+      cta: "Buka Galeri Penuh",
+      detailLabel: "Lihat detail",
+      galleryCategory: "Dokumentasi",
+    },
+    contact: {
+      eyebrow: "Kontak & Lokasi",
+      title: "Hubungi Kami",
+      description:
+        "Kami siap melayani kebutuhan informasi dan konsultasi masyarakat terkait seluruh layanan dan program BUMDESMA.",
+      addressTitle: "Alamat Kantor",
+      addressCta: "Buka di Google Maps",
+      emailTitle: "Surat Elektronik",
+      emailCta: "Kirim Email",
+      whatsappTitle: "WhatsApp Layanan",
+      whatsappCta: "Kirim Pesan WhatsApp",
+    },
+    blog: {
+      eyebrow: "Kabar & Publikasi",
+      title: "Blog BUMDESMA Podo Rukun",
+      description:
+        "Informasi, kegiatan, dan cerita terbaru dari BUMDESMA Podo Rukun LKD Kecamatan Wilangan.",
+      emptyTitle: "Belum ada artikel",
+      emptyText:
+        "Artikel yang sesuai dengan kriteria pencarian atau kategori belum tersedia.",
+    },
+    faq: {
+      eyebrow: "Bantuan & Informasi",
+      title: "Pertanyaan yang Sering Diajukan",
+      description:
+        "Jawaban singkat atas pertanyaan umum seputar layanan BUMDESMA Podo Rukun LKD.",
+      emptyTitle: "Belum ada FAQ",
+      emptyText:
+        "Pertanyaan umum akan tampil di sini setelah ditambahkan melalui panel admin.",
+    },
+    gallery: {
+      eyebrow: "Dokumentasi",
+      title: "Galeri BUMDESMA Podo Rukun",
+      description:
+        "Foto kegiatan, pembinaan, dan kebersamaan BUMDESMA Podo Rukun LKD Kecamatan Wilangan.",
+      emptyTitle: "Belum ada foto",
+      emptyText:
+        "Foto kegiatan akan tampil di sini setelah ditambahkan melalui panel admin.",
+    },
+    team: {
+      eyebrow: "Struktur Organisasi",
+      title: "Pengurus BUMDESMA Podo Rukun",
+      description:
+        "Susunan pengurus BUMDESMA Podo Rukun LKD Kecamatan Wilangan beserta jabatan dan masa bakti.",
+      emptyTitle: "Belum ada data pengurus",
+      emptyText:
+        "Susunan pengurus akan tampil di sini setelah ditambahkan melalui panel admin.",
+    },
+    transparency: {
+      eyebrow: "Keterbukaan Informasi",
+      title: "Transparansi Dokumen Laporan",
+      description:
+        "Laporan pertanggungjawaban dan dokumen resmi BUMDESMA Podo Rukun LKD per tahun, disajikan dalam bentuk tautan dokumen resmi.",
+      emptyTitle: "Belum ada dokumen",
+      emptyText:
+        "Dokumen laporan akan tampil di sini setelah ditambahkan melalui panel admin.",
+    },
+    serviceList: {
+      eyebrow: "Unit Usaha",
+      title: "Layanan BUMDESMA Podo Rukun",
+      description:
+        "Ringkasan tiap unit usaha beserta syarat dan alur pengajuan yang perlu disiapkan masyarakat.",
+      emptyTitle: "Belum ada layanan",
+      emptyText:
+        "Detail layanan akan tampil di sini setelah ditambahkan melalui panel admin.",
+    },
   },
 };
 
 const siteContentKeySchema = z.enum(SITE_CONTENT_KEYS);
 
-async function readContentState() {
-  const { rows } = await pool.query(
-    "SELECT key, content, updated_at FROM site_content",
-  );
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+// Nilai tersimpan bisa saja hanya memuat sebagian field (mis. baris lama yang
+// dibuat sebelum field baru ada). Gabungan dilakukan bertingkat supaya grup
+// seperti `footer.social` atau `site.nav` tidak hilang seluruhnya.
+export function mergeContentWithDefaults(defaults, content) {
+  if (Array.isArray(defaults)) {
+    return Array.isArray(content) ? content : [...defaults];
+  }
+  if (!isPlainObject(defaults)) {
+    return content === undefined ? defaults : content;
+  }
+
+  const merged = { ...defaults };
+  if (isPlainObject(content)) {
+    for (const [key, value] of Object.entries(content)) {
+      merged[key] = mergeContentWithDefaults(defaults[key], value);
+    }
+  }
+  return merged;
+}
+
+// Dipisahkan dari query supaya perilaku bawaan (tabel kosong) bisa diuji tanpa
+// database: setiap key yang belum tersimpan memakai DEFAULTS apa adanya.
+export function buildSiteContent(rows = []) {
   const content = Object.fromEntries(
-    SITE_CONTENT_KEYS.map((key) => [key, { ...DEFAULTS[key] }]),
+    SITE_CONTENT_KEYS.map((key) => [
+      key,
+      mergeContentWithDefaults(DEFAULTS[key], undefined),
+    ]),
   );
   const updatedAt = Object.fromEntries(
     SITE_CONTENT_KEYS.map((key) => [key, null]),
   );
 
   for (const row of rows) {
-    content[row.key] = { ...DEFAULTS[row.key], ...row.content };
-    updatedAt[row.key] = row.updated_at;
+    if (!SITE_CONTENT_KEYS.includes(row.key)) continue;
+    content[row.key] = mergeContentWithDefaults(DEFAULTS[row.key], row.content);
+    updatedAt[row.key] = row.updated_at ?? null;
   }
 
   return { content, updatedAt };
+}
+
+async function readContentState() {
+  const { rows } = await pool.query(
+    "SELECT key, content, updated_at FROM site_content",
+  );
+  return buildSiteContent(rows);
 }
 
 export async function getAll() {
@@ -238,6 +569,15 @@ export async function getAll() {
 
 export async function getAllWithUpdatedAt() {
   return readContentState();
+}
+
+// Dipakai berkas SEO (feed.xml) supaya judul dan deskripsi saluran ikut isi
+// panel admin, dengan bawaan yang sama saat tabel masih kosong.
+export async function getSiteIdentity() {
+  const { rows } = await pool.query(
+    "SELECT content FROM site_content WHERE key = 'site'",
+  );
+  return mergeContentWithDefaults(DEFAULTS.site, rows[0]?.content);
 }
 
 export async function resetKey(key) {

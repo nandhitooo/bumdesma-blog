@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import ArticleImage from "./ArticleImage";
 import { useSiteContent } from "../lib/siteContent";
-import { isValidIcon } from "../lib/siteContentUtils";
+import { isValidIcon, safeImageUrl } from "../lib/siteContentUtils";
+import { usePageTitle } from "../lib/usePageTitle";
 import { formatDate } from "../lib/date";
 import { apiUrl } from "../lib/apiUrl";
 import kegiatan1 from "../assets/kegiatan/kegiatan1.jpg";
@@ -41,7 +42,8 @@ const defaultHighlights = [
 ];
 
 const Home = () => {
-  const { hero } = useSiteContent();
+  const { hero, sections } = useSiteContent();
+  usePageTitle();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -95,7 +97,7 @@ const Home = () => {
                   href="#berita-terbaru"
                   className="inline-flex min-h-[44px] items-center gap-2 bg-brand-primary hover:bg-brand-dark text-white text-sm sm:text-base font-medium px-6 py-3 rounded-lg shadow-sm transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
                 >
-                  <span>{hero.buttonLabel || "Lihat Berita Terbaru"}</span>
+                  <span>{hero.buttonLabel}</span>
                   <i className="fa-solid fa-arrow-down text-xs" aria-hidden="true"></i>
                 </a>
               </div>
@@ -105,8 +107,8 @@ const Home = () => {
             <div className="lg:col-span-5">
               <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-gray-100 aspect-[16/10]">
                 <img
-                  src={kegiatan8}
-                  alt="Kegiatan BUMDESMA Podo Rukun"
+                  src={safeImageUrl(hero.imageUrl, kegiatan8)}
+                  alt={`Kegiatan ${hero.subtitle}`}
                   className="w-full h-full object-cover"
                   loading="eager"
                   decoding="async"
@@ -147,26 +149,26 @@ const Home = () => {
         </section>
       )}
 
-      {/* Berita Terbaru Section */}
+      {/* Section berita terbaru */}
       <section id="berita-terbaru" className="bg-white py-12 md:py-20 border-b border-gray-200 scroll-mt-18">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-gray-200 gap-4">
             <div>
               <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
-                Publikasi & Kabar
+                {sections.home.newsEyebrow}
               </span>
               <h2 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight mt-1 break-words">
-                Berita Terbaru
+                {sections.home.newsTitle}
               </h2>
               <p className="text-sm sm:text-base text-gray-600 mt-1">
-                Kabar, pengumuman, dan cerita terkini seputar kegiatan BUMDESMA.
+                {sections.home.newsDescription}
               </p>
             </div>
             <Link
               to="/blog"
               className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors motion-reduce:transition-none"
             >
-              <span>Lihat Semua Blog</span>
+              <span>{sections.home.newsCta}</span>
               <i className="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
             </Link>
           </div>
@@ -226,7 +228,7 @@ const Home = () => {
                           to={featuredArticle.slug ? `/blog/${featuredArticle.slug}` : "/blog"}
                           className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors motion-reduce:transition-none"
                         >
-                          <span>Baca artikel lengkap</span>
+                          <span>{sections.home.readMore}</span>
                           <i className="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
                         </Link>
                       </div>
@@ -278,7 +280,7 @@ const Home = () => {
                           to={item.slug ? `/blog/${item.slug}` : "/blog"}
                           className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors motion-reduce:transition-none"
                         >
-                          <span>Baca selengkapnya</span>
+                          <span>{sections.home.readMoreShort}</span>
                           <i className="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i>
                         </Link>
                       </div>

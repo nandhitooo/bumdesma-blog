@@ -1,18 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiUrl } from "../lib/apiUrl";
+import { useSiteContent } from "../lib/siteContent";
+import { usePageTitle } from "../lib/usePageTitle";
 
 function ServiceList() {
+  const { sections } = useSiteContent();
+  usePageTitle("Layanan");
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    document.title = "Layanan | BUMDESMA Podo Rukun LKD";
-    return () => {
-      document.title = "BUMDESMA Podo Rukun LKD";
-    };
-  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -50,14 +47,13 @@ function ServiceList() {
         {/* Uniform Header */}
         <div className="mb-10 max-w-3xl">
           <span className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
-            Unit Usaha
+            {sections.serviceList.eyebrow}
           </span>
           <h1 className="mt-1 mb-3 text-3xl md:text-5xl font-bold tracking-tight text-gray-900 break-words">
-            Layanan BUMDESMA Podo Rukun
+            {sections.serviceList.title}
           </h1>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            Ringkasan tiap unit usaha beserta syarat dan alur pengajuan yang
-            perlu disiapkan masyarakat.
+            {sections.serviceList.description}
           </p>
         </div>
 
@@ -105,11 +101,10 @@ function ServiceList() {
         ) : (
           <div className="mx-auto max-w-lg rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
             <h2 className="mb-1 text-lg font-bold text-gray-900">
-              Belum ada layanan
+              {sections.serviceList.emptyTitle}
             </h2>
             <p className="text-sm text-gray-600">
-              Detail layanan akan tampil di sini setelah ditambahkan melalui
-              panel admin.
+              {sections.serviceList.emptyText}
             </p>
           </div>
         )}

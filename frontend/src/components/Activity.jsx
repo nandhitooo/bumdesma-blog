@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import ArticleImage from "./ArticleImage";
 import { apiUrl } from "../lib/apiUrl";
+import { useSiteContent } from "../lib/siteContent";
 import kegiatan1 from "../assets/kegiatan/kegiatan1.jpg";
 import kegiatan2 from "../assets/kegiatan/kegiatan2.jpg";
 import kegiatan3 from "../assets/kegiatan/kegiatan3.jpg";
@@ -16,72 +17,94 @@ import kegiatan10 from "../assets/kegiatan/kegiatan10.jpg";
 import kegiatan11 from "../assets/kegiatan/kegiatan11.jpg";
 import kegiatan12 from "../assets/kegiatan/kegiatan12.jpg";
 
-const fallbackItems = [
-  {
-    img: kegiatan1,
-    text: "Evaluasi Kinerja Bumdesma tahun 2023",
-    category: "Internal",
-  },
-  { img: kegiatan2, text: "Bazar Produk Desa", category: "Event" },
-  {
-    img: kegiatan3,
-    text: "Dolan bareng kelembagaan BUMDESMA",
-    category: "Gathering",
-  },
-  {
-    img: kegiatan4,
-    text: "Muasyawarah Antar Desa (MAD)",
-    category: "Internal",
-  },
-  { img: kegiatan5, text: "Penyaluran bantuan sosial", category: "Sosial" },
-  { img: kegiatan6, text: "Pembinaan kelompok SPP/UEP", category: "Edukasi" },
-  { img: kegiatan7, text: "Rapat koordinasi", category: "Internal" },
-  {
-    img: kegiatan8,
-    text: "Launching PT LKM ARTHA TANJUNG MANDIRI",
-    category: "Bisnis",
-  },
-  {
-    img: kegiatan9,
-    text: "Bimtek aplikasi laporan keuangan",
-    category: "Edukasi",
-  },
-  { img: kegiatan10, text: "Rapat koordinasi", category: "Internal" },
-  { img: kegiatan11, text: "Gerak jalan agustusan", category: "Event" },
-  { img: kegiatan12, text: "Pelatihan", category: "Edukasi" },
+// Dipakai hanya saat belum ada artikel maupun foto galeri di panel admin.
+const staticItems = [
+  { img: kegiatan1, text: "Evaluasi Kinerja Bumdesma tahun 2023" },
+  { img: kegiatan2, text: "Bazar Produk Desa" },
+  { img: kegiatan3, text: "Dolan bareng kelembagaan BUMDESMA" },
+  { img: kegiatan4, text: "Muasyawarah Antar Desa (MAD)" },
+  { img: kegiatan5, text: "Penyaluran bantuan sosial" },
+  { img: kegiatan6, text: "Pembinaan kelompok SPP/UEP" },
+  { img: kegiatan7, text: "Rapat koordinasi" },
+  { img: kegiatan8, text: "Launching PT LKM ARTHA TANJUNG MANDIRI" },
+  { img: kegiatan9, text: "Bimtek aplikasi laporan keuangan" },
+  { img: kegiatan10, text: "Rapat koordinasi" },
+  { img: kegiatan11, text: "Gerak jalan agustusan" },
+  { img: kegiatan12, text: "Pelatihan" },
 ];
 
 const Activity = () => {
+  const { sections } = useSiteContent();
   const [currentPage, setCurrentPage] = useState(1);
   const [articles, setArticles] = useState(null);
+  const [gallery, setGallery] = useState([]);
   const [hasLoaded, setHasLoaded] = useState(false);
   const itemsPerPage = 6;
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(apiUrl("/api/articles?limit=6&page=1"), { signal: controller.signal })
+
+    const loadArticles = fetch(apiUrl("/api/articles?limit=6&page=1"), {
+      signal: controller.signal,
+    })
       .then((response) => {
         if (!response.ok) throw new Error("Gagal memuat artikel kegiatan.");
         return response.json();
       })
-      .then((data) => {
-        if (!Array.isArray(data.articles) || data.articles.length === 0) {
-          setArticles(null);
-        } else {
-          setArticles(data.articles);
-        }
-      })
+      .then((data) =>
+        Array.isArray(data.articles) && data.articles.length > 0
+          ? data.articles
+          : null,
+      )
       .catch((error) => {
-        if (error.name !== "AbortError") {
-          setArticles(null);
-        }
+        if (error.name === "AbortError") return null;
+        return null;
+      });
+
+    // Foto kegiatan wajib berasal dari galeri admin; galeri kosong berarti
+    // fallback statis di bawah yang dipakai.
+    const loadGallery = fetch(apiUrl("/api/gallery"), {
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Gagal memuat galeri.");
+        return response.json();
       })
-      .finally(() => setHasLoaded(true));
+      .then((data) => (Array.isArray(data.items) ? data.items : []))
+      .catch((error) => {
+        if (error.name === "AbortError") return [];
+        return [];
+      });
+
+    Promise.all([loadArticles, loadGallery]).then(([articleRows, galleryRows]) => {
+      if (controller.signal.aborted) return;
+      setArticles(articleRows);
+      setGallery(galleryRows);
+      setHasLoaded(true);
+    });
 
     return () => controller.abort();
   }, []);
 
   const usingArticles = hasLoaded && articles !== null && articles.length > 0;
+  const galleryCategory = sections.activity.galleryCategory;
+
+  const fallbackItems = gallery.length
+    ? gallery.map((item) => ({
+        key: `galeri-${item.id}`,
+        image: item.imageUrl,
+        title: item.caption || galleryCategory,
+        category: galleryCategory,
+        to: "/galeri",
+      }))
+    : staticItems.map((item, index) => ({
+        key: `statis-${index}`,
+        image: item.img,
+        title: item.text,
+        category: sections.activity.eyebrow,
+        to: "/blog",
+      }));
+
   const totalPages = usingArticles
     ? 1
     : Math.ceil(fallbackItems.length / itemsPerPage);
@@ -96,36 +119,42 @@ const Activity = () => {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-gray-200 gap-4">
           <div>
             <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
-              Dokumentasi
+              {sections.activity.eyebrow}
             </span>
             <h2 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight mt-1 mb-2 break-words">
-              Kegiatan Terbaru
+              {sections.activity.title}
             </h2>
             <p className="text-base text-gray-600">
-              Dokumentasi berbagai program dan kegiatan operasional BUMDESMA dalam memajukan ekonomi desa.
+              {sections.activity.description}
             </p>
           </div>
           <Link
             to="/galeri"
             className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors motion-reduce:transition-none"
           >
-            <span>Buka Galeri Penuh</span>
+            <span>{sections.activity.cta}</span>
             <i className="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
           </Link>
         </div>
 
         {/* 3 Columns Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {currentItems.map((item, index) => {
+          {currentItems.map((item) => {
             const isArticle = usingArticles;
-            const image = isArticle ? item.coverImageUrl : item.img;
-            const title = isArticle ? item.title : item.text;
-            const category = isArticle ? item.categoryName || "Berita" : item.category;
-            const targetLink = isArticle && item.slug ? `/blog/${item.slug}` : "/blog";
+            const image = isArticle ? item.coverImageUrl : item.image;
+            const title = item.title;
+            const category = isArticle
+              ? item.categoryName || "Berita"
+              : item.category;
+            const targetLink = isArticle
+              ? item.slug
+                ? `/blog/${item.slug}`
+                : "/blog"
+              : item.to;
 
             return (
               <article
-                key={isArticle ? item.id : `${item.text}-${index}`}
+                key={isArticle ? item.id : item.key}
                 className="group bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm hover:border-gray-300 transition-colors motion-reduce:transition-none flex flex-col"
               >
                 <Link to={targetLink} className="flex-1 flex flex-col">
@@ -147,7 +176,7 @@ const Activity = () => {
                       {title}
                     </h3>
                     <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-primary">
-                      <span>Lihat detail</span>
+                      <span>{sections.activity.detailLabel}</span>
                       <i className="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i>
                     </span>
                   </div>

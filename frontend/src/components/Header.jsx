@@ -3,21 +3,25 @@ import { Link, useLocation } from "react-router-dom";
 import podoRukun from "../assets/podo-rukun.png";
 import bumdesmaNganjuk from "../assets/bumdesma-nganjuk.png";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import { useSiteContent } from "../lib/siteContent";
+import { safeImageUrl } from "../lib/siteContentUtils";
 
-const NAV_ITEMS = [
-  { id: "home", label: "Beranda", to: "/#home", icon: "house", group: "primary" },
-  { id: "about", label: "Tentang", to: "/#about", icon: "circle-info", group: "primary" },
-  { id: "services", label: "Layanan", to: "/#services", icon: "gear", group: "primary" },
-  { id: "activity", label: "Kegiatan", to: "/#activity", icon: "calendar", group: "primary" },
-  { id: "contact", label: "Kontak", to: "/#contact", icon: "phone", group: "primary" },
-  { id: "blog", label: "Blog", to: "/blog", icon: "newspaper", group: "primary" },
-  { id: "gallery", label: "Galeri", to: "/galeri", icon: "images", group: "more" },
-  { id: "transparency", label: "Transparansi", to: "/transparansi", icon: "file-lines", group: "more" },
-  { id: "team", label: "Pengurus", to: "/pengurus", icon: "people-group", group: "more" },
+// Rute dan ikon tetap; labelnya berasal dari konten situs (key `site.nav`).
+const NAV_BASE = [
+  { id: "home", to: "/#home", icon: "house", group: "primary" },
+  { id: "about", to: "/#about", icon: "circle-info", group: "primary" },
+  { id: "services", to: "/#services", icon: "gear", group: "primary" },
+  { id: "activity", to: "/#activity", icon: "calendar", group: "primary" },
+  { id: "contact", to: "/#contact", icon: "phone", group: "primary" },
+  { id: "blog", to: "/blog", icon: "newspaper", group: "primary" },
+  { id: "gallery", to: "/galeri", icon: "images", group: "more" },
+  { id: "transparency", to: "/transparansi", icon: "file-lines", group: "more" },
+  { id: "team", to: "/pengurus", icon: "people-group", group: "more" },
 ];
 
-const PRIMARY_ITEMS = NAV_ITEMS.filter((item) => item.group === "primary");
-const MORE_ITEMS = NAV_ITEMS.filter((item) => item.group === "more");
+function buildNavItems(nav = {}) {
+  return NAV_BASE.map((item) => ({ ...item, label: nav[item.id] || item.id }));
+}
 
 function NavItem({ item, active, mobile = false, onClick }) {
   return (
@@ -47,7 +51,7 @@ function NavItem({ item, active, mobile = false, onClick }) {
   );
 }
 
-function DesktopMoreMenu({ items, active, onNavClick }) {
+function DesktopMoreMenu({ items, active, onNavClick, moreLabel }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
@@ -92,7 +96,7 @@ function DesktopMoreMenu({ items, active, onNavClick }) {
             : "border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900"
         }`}
       >
-        <span>Lainnya</span>
+        <span>{moreLabel}</span>
         <i
           className={`fa-solid fa-chevron-down text-[0.65rem] transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
@@ -139,7 +143,7 @@ function scrollToSection(section) {
   });
 }
 
-function MobileNavigation({ active, onNavClick }) {
+function MobileNavigation({ active, onNavClick, items }) {
   const [isOpen, setIsOpen] = useState(false);
   const toggleRef = useRef(null);
 
@@ -198,7 +202,7 @@ function MobileNavigation({ active, onNavClick }) {
           aria-label="Navigasi Utama"
         >
           <ul className="space-y-1">
-            {NAV_ITEMS.map((item) => (
+            {items.map((item) => (
               <li key={item.id}>
                 <NavItem
                   item={item}
@@ -221,6 +225,12 @@ function MobileNavigation({ active, onNavClick }) {
 export default function Header() {
   const [scrollActive, setScrollActive] = useState("home");
   const location = useLocation();
+  const { site } = useSiteContent();
+  const navItems = buildNavItems(site.nav);
+  const primaryItems = navItems.filter((item) => item.group === "primary");
+  const moreItems = navItems.filter((item) => item.group === "more");
+  const logoUrl = safeImageUrl(site.logoUrl, podoRukun);
+  const partnerLogoUrl = safeImageUrl(site.partnerLogoUrl, bumdesmaNganjuk);
   const routeKey = `${location.pathname}${location.hash}`;
   const isBlog = location.pathname.startsWith("/blog");
   const isGallery = location.pathname.startsWith("/galeri");
@@ -310,7 +320,7 @@ export default function Header() {
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           to="/#home"
-          aria-label="BUMDESMA Podo Rukun, Beranda"
+          aria-label={`${site.name}, ${site.nav?.home || "Beranda"}`}
           className="flex min-w-0 shrink items-center gap-3 rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
           onClick={() => {
             if (location.pathname === "/" && location.hash === "#home") {
@@ -319,21 +329,21 @@ export default function Header() {
           }}
         >
           <img
-            src={bumdesmaNganjuk}
-            alt="BUMDESMA Nganjuk"
+            src={partnerLogoUrl}
+            alt={site.legalName}
             className="hidden h-9 w-9 shrink-0 object-contain sm:block"
           />
           <img
-            src={podoRukun}
-            alt="Podo Rukun"
+            src={logoUrl}
+            alt={site.name}
             className="h-9 w-9 shrink-0 object-contain"
           />
           <div className="flex min-w-0 flex-col">
             <span className="truncate text-base font-bold leading-tight tracking-tight text-gray-900">
-              BUMDESMA Podo Rukun
+              {site.name}
             </span>
             <span className="hidden truncate text-[11px] font-medium text-gray-500 sm:block">
-              Kec. Wilangan, Kab. Nganjuk
+              {site.tagline}
             </span>
           </div>
         </Link>
@@ -341,7 +351,7 @@ export default function Header() {
         {/* Desktop Nav */}
         <nav className="hidden xl:flex" aria-label="Navigasi Utama">
           <ul className="flex items-center gap-2 xl:gap-4">
-            {PRIMARY_ITEMS.map((item) => (
+            {primaryItems.map((item) => (
               <li key={item.id}>
                 <NavItem
                   item={item}
@@ -350,20 +360,26 @@ export default function Header() {
                 />
               </li>
             ))}
-            {MORE_ITEMS.length > 0 && (
+            {moreItems.length > 0 && (
               <li>
                 <DesktopMoreMenu
                   key={routeKey}
-                  items={MORE_ITEMS}
+                  items={moreItems}
                   active={active}
                   onNavClick={handleNavClick}
+                  moreLabel={site.nav?.more || "Lainnya"}
                 />
               </li>
             )}
           </ul>
         </nav>
 
-        <MobileNavigation key={routeKey} active={active} onNavClick={handleNavClick} />
+        <MobileNavigation
+          key={routeKey}
+          active={active}
+          onNavClick={handleNavClick}
+          items={navItems}
+        />
       </div>
     </header>
   );

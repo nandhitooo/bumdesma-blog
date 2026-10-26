@@ -310,6 +310,14 @@ async function readSnapshot() {
       referenced.add(path.basename(member.photoUrl));
     }
   }
+  // Logo situs dan gambar hero juga bisa berasal dari panel unggah, jadi
+  // berkasnya harus ikut ke dalam arsip. Pencarian dilakukan pada JSON utuh
+  // karena nilainya bisa berada di kedalaman mana pun.
+  for (const row of siteRows) {
+    for (const url of extractUploadUrls(JSON.stringify(row.content))) {
+      referenced.add(path.basename(url));
+    }
+  }
 
   const files = [];
   const missingFiles = [];
@@ -606,7 +614,7 @@ const backupDataSchema = z.object({
   faqs: z.array(backupFaqSchema).max(5000).optional(),
 });
 
-function validateSiteContent(siteContent) {
+export function validateSiteContent(siteContent) {
   const result = {};
   for (const [key, content] of Object.entries(siteContent)) {
     if (!SITE_CONTENT_KEYS.includes(key)) {

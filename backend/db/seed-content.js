@@ -16,6 +16,11 @@
 // dari ketentuan resmi BUMDESMA. Judul layanan mengikuti lima unit usaha di
 // frontend/src/lib/defaultContent.js.
 import { pool } from "./pool.js";
+import {
+  DEFAULTS,
+  SITE_CONTENT_KEYS,
+  siteContentSchemas,
+} from "../services/siteContent.js";
 
 const FORCE = process.argv.includes("--force");
 
@@ -228,6 +233,21 @@ function assertList(label, list) {
   );
 }
 
+// Isi bawaan konten situs (hero, tentang, layanan, kontak, footer, identitas,
+// dan judul section) ditulis sebagai baris nyata supaya panel admin bisa
+// langsung mengubahnya. DEFAULTS adalah sumber yang sama dengan API publik,
+// jadi tampilan situs tidak berubah setelah seed.
+function assertSiteContentIsValid() {
+  for (const key of SITE_CONTENT_KEYS) {
+    const parsed = siteContentSchemas[key].safeParse(DEFAULTS[key]);
+    if (!parsed.success) {
+      throw new Error(
+        `Konten bawaan "${key}" tidak valid: ${parsed.error.issues[0].message}`,
+      );
+    }
+  }
+}
+
 // Pemeriksaan sederhana supaya data contoh tidak ditolak oleh validasi panel admin.
 function assertDataIsValid() {
   const slugs = new Set();
@@ -301,6 +321,24 @@ async function insertServices(client) {
   return { inserted, skipped };
 }
 
+async function insertSiteContent(client) {
+  let inserted = 0;
+  let skipped = 0;
+
+  for (const key of SITE_CONTENT_KEYS) {
+    const { rowCount } = await client.query(
+      `INSERT INTO site_content (key, content)
+       VALUES ($1, $2::jsonb)
+       ON CONFLICT (key) DO NOTHING`,
+      [key, JSON.stringify(DEFAULTS[key])],
+    );
+    if (rowCount) inserted += 1;
+    else skipped += 1;
+  }
+
+  return { inserted, skipped };
+}
+
 async function insertFaqs(client) {
   let inserted = 0;
   let skipped = 0;
@@ -323,6 +361,7 @@ async function insertFaqs(client) {
 
 async function run() {
   assertAllowedToRun();
+  assertSiteContentIsValid();
   assertDataIsValid();
 
   const client = await pool.connect();
@@ -331,6 +370,7 @@ async function run() {
     await client.query("BEGIN");
     const services = await insertServices(client);
     const faqs = await insertFaqs(client);
+    const siteContent = await insertSiteContent(client);
     await client.query("COMMIT");
 
     console.log(
@@ -339,8 +379,15 @@ async function run() {
     console.log(
       `FAQ    : ${faqs.inserted} dibuat, ${faqs.skipped} dilewati (pertanyaan sudah ada).`,
     );
+    console.log(
+      `Konten : ${siteContent.inserted} bagian dibuat, ${siteContent.skipped} dilewati (sudah ada).`,
+    );
 
-    if (services.inserted === 0 && faqs.inserted === 0) {
+    if (
+      services.inserted === 0 &&
+      faqs.inserted === 0 &&
+      siteContent.inserted === 0
+    ) {
       console.log("Tidak ada data baru: data contoh sudah ada di database.");
     }
   } catch (error) {

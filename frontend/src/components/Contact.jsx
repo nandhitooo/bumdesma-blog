@@ -3,30 +3,31 @@ import { useSiteContent } from "../lib/siteContent";
 import { safeWaLink, safeMailto, safeHttpsUrl } from "../lib/siteContentUtils";
 
 const Contact = () => {
-  const { contact } = useSiteContent();
+  const { contact, sections } = useSiteContent();
+  const labels = sections.contact;
 
   const contactCards = [
     {
-      title: "Alamat Kantor",
+      title: labels.addressTitle,
       content: contact.address,
       icon: "location-dot",
-      linkText: "Buka di Google Maps",
+      linkText: labels.addressCta,
       link: safeHttpsUrl(contact.mapsLink),
       isBrand: false,
     },
     {
-      title: "Surat Elektronik",
+      title: labels.emailTitle,
       content: contact.email,
       icon: "envelope",
-      linkText: "Kirim Email",
+      linkText: labels.emailCta,
       link: safeMailto(contact.email),
       isBrand: false,
     },
     {
-      title: "WhatsApp Layanan",
+      title: labels.whatsappTitle,
       content: contact.whatsappDisplay || contact.whatsapp,
       icon: "whatsapp",
-      linkText: "Kirim Pesan WhatsApp",
+      linkText: labels.whatsappCta,
       link: safeWaLink(contact.whatsapp),
       isBrand: true,
     },
@@ -37,13 +38,13 @@ const Contact = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-12">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
-            Kontak & Lokasi
+            {labels.eyebrow}
           </span>
           <h2 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight mt-1 mb-3 break-words">
-            Hubungi Kami
+            {labels.title}
           </h2>
           <p className="text-base text-gray-600">
-            Kami siap melayani kebutuhan informasi dan konsultasi masyarakat terkait seluruh layanan dan program BUMDESMA.
+            {labels.description}
           </p>
         </div>
 

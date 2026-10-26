@@ -1,15 +1,10 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { usePageTitle } from "../lib/usePageTitle";
 
 function NotFound() {
-  useEffect(() => {
-    document.title = "Halaman tidak ditemukan | BUMDESMA Podo Rukun LKD";
-    return () => {
-      document.title = "BUMDESMA Podo Rukun LKD";
-    };
-  }, []);
+  usePageTitle("Halaman tidak ditemukan");
 
   return (
     <>

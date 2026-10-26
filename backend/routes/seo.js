@@ -2,6 +2,7 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import { env } from "../config/env.js";
 import { pool } from "../db/pool.js";
+import { DEFAULTS, getSiteIdentity } from "../services/siteContent.js";
 
 // Router ini dipasang di ROOT (bukan /api) karena berkas SEO dan pratinjau
 // tautan harus bisa diakses langsung di domain publik, mis. /sitemap.xml.
@@ -126,6 +127,10 @@ router.get("/sitemap.xml", seoLimiter, async (req, res) => {
 });
 
 router.get("/feed.xml", seoLimiter, async (req, res) => {
+  // Judul dan deskripsi saluran ikut panel admin. Kegagalan membaca database
+  // tidak boleh mematikan feed: pakai teks bawaan yang sama dengan API publik.
+  const site = await getSiteIdentity().catch(() => DEFAULTS.site);
+
   // Artikel terbit selalu punya published_at, tetapi COALESCE menjaga data lama
   // yang belum sempat diisi tetap punya tanggal yang valid di feed.
   // Artikel yang masih terjadwal belum masuk feed: pembaca tidak boleh
@@ -158,9 +163,9 @@ router.get("/feed.xml", seoLimiter, async (req, res) => {
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<rss version="2.0">',
     "  <channel>",
-    "    <title>BUMDESMA Podo Rukun</title>",
+    `    <title>${escapeXml(site.feedTitle)}</title>`,
     `    <link>${escapeXml(siteUrl())}</link>`,
-    "    <description>Kegiatan, layanan, dan berita BUMDESMA Podo Rukun LKD.</description>",
+    `    <description>${escapeXml(site.feedDescription)}</description>`,
     "    <language>id</language>",
     items,
     "  </channel>",

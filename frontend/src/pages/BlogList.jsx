@@ -3,8 +3,12 @@ import { Link, useSearchParams } from "react-router-dom";
 import ArticleImage from "../components/ArticleImage";
 import { formatDate } from "../lib/date";
 import { apiUrl } from "../lib/apiUrl";
+import { useSiteContent } from "../lib/siteContent";
+import { usePageTitle } from "../lib/usePageTitle";
 
 function BlogList() {
+  const { sections } = useSiteContent();
+  usePageTitle("Blog");
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("q") || "");
   const [articleResult, setArticleResult] = useState(null);
@@ -26,13 +30,6 @@ function BlogList() {
     articleResult?.key === requestKey
       ? articleResult.error || categoryError
       : categoryError;
-
-  useEffect(() => {
-    document.title = "Blog | BUMDESMA Podo Rukun LKD";
-    return () => {
-      document.title = "BUMDESMA Podo Rukun LKD";
-    };
-  }, []);
 
   useEffect(() => {
     setSearch(query);
@@ -124,13 +121,13 @@ function BlogList() {
         {/* Uniform Page Header */}
         <div className="mb-10 max-w-3xl">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
-            Kabar &amp; Publikasi
+            {sections.blog.eyebrow}
           </span>
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 mt-1 mb-3 break-words">
-            Blog BUMDESMA Podo Rukun
+            {sections.blog.title}
           </h1>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            Informasi, kegiatan, dan cerita terbaru dari BUMDESMA Podo Rukun LKD Kecamatan Wilangan.
+            {sections.blog.description}
           </p>
         </div>
 
@@ -291,10 +288,10 @@ function BlogList() {
         ) : (
           <div className="mx-auto max-w-lg rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
             <h2 className="text-lg font-bold text-gray-900 mb-1">
-              Belum ada artikel
+              {sections.blog.emptyTitle}
             </h2>
             <p className="text-sm text-gray-600 mb-5">
-              Artikel yang sesuai dengan kriteria pencarian atau kategori belum tersedia.
+              {sections.blog.emptyText}
             </p>
             {(category || query) && (
               <button

@@ -1,10 +1,10 @@
 import podorukun from "../assets/podo-rukun.png";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import { useSiteContent } from "../lib/siteContent";
-import { safeHttpsUrl } from "../lib/siteContentUtils";
+import { safeHttpsUrl, safeImageUrl } from "../lib/siteContentUtils";
 
 const About = () => {
-  const { about } = useSiteContent();
+  const { about, sections, site } = useSiteContent();
   const profileUrl = safeHttpsUrl(about.profileUrl);
   const vision = typeof about.vision === "string" ? about.vision.trim() : "";
   const missions = Array.isArray(about.missions)
@@ -16,7 +16,7 @@ const About = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-12">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
-            Tentang BUMDESMA
+            {sections.about.eyebrow}
           </span>
           <h2 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight mt-1 mb-3 break-words">
             {about.heading}
@@ -31,8 +31,8 @@ const About = () => {
           <div className="lg:col-span-4 flex justify-center">
             <div className="w-full max-w-sm p-8 bg-white border border-gray-200 rounded-lg shadow-sm flex items-center justify-center">
               <img
-                src={podorukun}
-                alt="Logo BUMDESMA Podo Rukun"
+                src={safeImageUrl(site.logoUrl, podorukun)}
+                alt={`Logo ${site.name}`}
                 className="aspect-square w-48 object-contain sm:w-56"
                 loading="lazy"
                 decoding="async"
@@ -64,7 +64,7 @@ const About = () => {
                   rel="noopener noreferrer"
                   className="inline-flex min-h-[44px] items-center gap-2.5 bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium px-5 py-2.5 rounded-lg shadow-sm transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
                 >
-                  <span>Unduh Dokumen Profil Resmi</span>
+                  <span>{sections.about.profileCta}</span>
                   <i className="fa-solid fa-file-pdf text-xs" aria-hidden="true"></i>
                 </a>
               </div>
@@ -76,10 +76,10 @@ const About = () => {
           <div className="mt-14 border-t border-gray-200 pt-10 sm:mt-16 sm:pt-12">
             <div className="mb-8 max-w-3xl">
               <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
-                Arah Lembaga
+                {sections.about.visionEyebrow}
               </span>
               <h3 className="mt-1 text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-gray-900">
-                Visi &amp; Misi
+                {sections.about.visionTitle}
               </h3>
             </div>
 
@@ -93,7 +93,7 @@ const About = () => {
                 </div>
                 <div className="min-w-0">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-white/80">
-                    Visi
+                    {sections.about.visionLabel}
                   </h4>
                   <p className="mt-2 break-words text-base font-medium leading-relaxed sm:text-lg">
                     {vision}
@@ -105,7 +105,7 @@ const About = () => {
             {missions.length > 0 && (
               <div className={vision ? "mt-8" : ""}>
                 <h4 className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  Misi
+                  {sections.about.missionLabel}
                 </h4>
                 <ol className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {missions.map((mission, index) => (

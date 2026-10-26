@@ -1,19 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiUrl } from "../lib/apiUrl";
+import { useSiteContent } from "../lib/siteContent";
+import { usePageTitle } from "../lib/usePageTitle";
 
 function Faq() {
+  const { sections } = useSiteContent();
+  usePageTitle("FAQ");
   const [faqs, setFaqs] = useState([]);
   const [openIds, setOpenIds] = useState(() => new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    document.title = "FAQ | BUMDESMA Podo Rukun LKD";
-    return () => {
-      document.title = "BUMDESMA Podo Rukun LKD";
-    };
-  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -63,14 +60,13 @@ function Faq() {
         {/* Uniform Header */}
         <div className="mb-10">
           <span className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
-            Bantuan &amp; Informasi
+            {sections.faq.eyebrow}
           </span>
           <h1 className="mt-1 mb-3 text-3xl md:text-5xl font-bold tracking-tight text-gray-900 break-words">
-            Pertanyaan yang Sering Diajukan
+            {sections.faq.title}
           </h1>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            Jawaban singkat atas pertanyaan umum seputar layanan BUMDESMA Podo
-            Rukun LKD.
+            {sections.faq.description}
           </p>
         </div>
 
@@ -133,11 +129,10 @@ function Faq() {
         ) : (
           <div className="rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
             <h2 className="mb-1 text-lg font-bold text-gray-900">
-              Belum ada FAQ
+              {sections.faq.emptyTitle}
             </h2>
             <p className="text-sm text-gray-600">
-              Pertanyaan umum akan tampil di sini setelah ditambahkan melalui
-              panel admin.
+              {sections.faq.emptyText}
             </p>
           </div>
         )}

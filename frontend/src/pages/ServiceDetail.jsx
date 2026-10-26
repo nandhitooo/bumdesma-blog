@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useSiteContent } from "../lib/siteContent";
 import { safeWaLink } from "../lib/siteContentUtils";
 import { apiUrl } from "../lib/apiUrl";
+import { usePageTitle } from "../lib/usePageTitle";
 
 function ServiceDetail() {
   const { slug } = useParams();
@@ -12,6 +13,13 @@ function ServiceDetail() {
   const service = result?.slug === slug ? result.service : null;
   const error = result?.slug === slug ? result.error : "";
   const notFound = result?.slug === slug && !result.service;
+  usePageTitle(
+    service
+      ? service.title
+      : result?.slug === slug
+        ? "Layanan tidak ditemukan"
+        : "Layanan",
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -27,19 +35,14 @@ function ServiceDetail() {
       })
       .then((data) => {
         setResult({ slug, service: data, error: "" });
-        document.title = `${data.title} | BUMDESMA Podo Rukun LKD`;
       })
       .catch((fetchError) => {
         if (fetchError.name !== "AbortError") {
           setResult({ slug, service: null, error: fetchError.message });
-          document.title = "Layanan tidak ditemukan | BUMDESMA Podo Rukun LKD";
         }
       });
 
-    return () => {
-      controller.abort();
-      document.title = "BUMDESMA Podo Rukun LKD";
-    };
+    return () => controller.abort();
   }, [slug]);
 
   const whatsappLink = safeWaLink(contact.whatsapp);

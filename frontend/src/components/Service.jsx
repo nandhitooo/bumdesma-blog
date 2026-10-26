@@ -4,7 +4,7 @@ import { useSiteContent } from "../lib/siteContent";
 import { isValidIcon } from "../lib/siteContentUtils";
 
 const Service = () => {
-  const { services } = useSiteContent();
+  const { services, sections } = useSiteContent();
   const items = Array.isArray(services?.items) ? services.items : [];
 
   return (
@@ -12,13 +12,13 @@ const Service = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-12">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
-            Unit Usaha
+            {sections.services.eyebrow}
           </span>
           <h2 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight mt-1 mb-3 break-words">
-            Layanan Kami
+            {sections.services.title}
           </h2>
           <p className="text-base text-gray-600">
-            Berbagai layanan profesional untuk mendukung pertumbuhan ekonomi dan kemandirian masyarakat desa.
+            {sections.services.description}
           </p>
         </div>
 
@@ -56,7 +56,7 @@ const Service = () => {
             to="/layanan"
             className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-primary transition-colors motion-reduce:transition-none hover:text-brand-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
           >
-            <span>Lihat syarat dan alur pengajuan</span>
+            <span>{sections.services.cta}</span>
             <i className="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
           </Link>
         </div>

@@ -2,8 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { formatDate } from "../lib/date";
 import { apiUrl } from "../lib/apiUrl";
+import { useSiteContent } from "../lib/siteContent";
+import { usePageTitle } from "../lib/usePageTitle";
 
 function Gallery() {
+  const { sections } = useSiteContent();
+  usePageTitle("Galeri");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -11,13 +15,6 @@ function Gallery() {
   const dialogRef = useRef(null);
   const openerRef = useRef(null);
   const triggers = useRef([]);
-
-  useEffect(() => {
-    document.title = "Galeri | BUMDESMA Podo Rukun LKD";
-    return () => {
-      document.title = "BUMDESMA Podo Rukun LKD";
-    };
-  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -101,14 +98,13 @@ function Gallery() {
         {/* Uniform Header */}
         <div className="mb-10 max-w-3xl">
           <span className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
-            Dokumentasi
+            {sections.gallery.eyebrow}
           </span>
           <h1 className="mt-1 mb-3 text-3xl md:text-5xl font-bold tracking-tight text-gray-900 break-words">
-            Galeri BUMDESMA Podo Rukun
+            {sections.gallery.title}
           </h1>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            Foto kegiatan, pembinaan, dan kebersamaan BUMDESMA Podo Rukun LKD
-            Kecamatan Wilangan.
+            {sections.gallery.description}
           </p>
         </div>
 
@@ -175,11 +171,10 @@ function Gallery() {
         ) : (
           <div className="mx-auto max-w-lg rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
             <h2 className="mb-1 text-lg font-bold text-gray-900">
-              Belum ada foto
+              {sections.gallery.emptyTitle}
             </h2>
             <p className="text-sm text-gray-600">
-              Foto kegiatan akan tampil di sini setelah ditambahkan melalui
-              panel admin.
+              {sections.gallery.emptyText}
             </p>
           </div>
         )}

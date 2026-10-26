@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiUrl } from "../lib/apiUrl";
+import { useSiteContent } from "../lib/siteContent";
+import { usePageTitle } from "../lib/usePageTitle";
 
 function groupByYear(documents) {
   const groups = [];
@@ -16,16 +18,11 @@ function groupByYear(documents) {
 }
 
 function Transparency() {
+  const { sections } = useSiteContent();
+  usePageTitle("Transparansi");
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    document.title = "Transparansi | BUMDESMA Podo Rukun LKD";
-    return () => {
-      document.title = "BUMDESMA Podo Rukun LKD";
-    };
-  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -65,14 +62,13 @@ function Transparency() {
         {/* Uniform Header */}
         <div className="mb-10 max-w-3xl">
           <span className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
-            Keterbukaan Informasi
+            {sections.transparency.eyebrow}
           </span>
           <h1 className="mt-1 mb-3 text-3xl md:text-5xl font-bold tracking-tight text-gray-900 break-words">
-            Transparansi Dokumen Laporan
+            {sections.transparency.title}
           </h1>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            Laporan pertanggungjawaban dan dokumen resmi BUMDESMA Podo Rukun LKD
-            per tahun, disajikan dalam bentuk tautan dokumen resmi.
+            {sections.transparency.description}
           </p>
         </div>
 
@@ -138,11 +134,10 @@ function Transparency() {
         ) : (
           <div className="mx-auto max-w-lg rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
             <h2 className="mb-1 text-lg font-bold text-gray-900">
-              Belum ada dokumen
+              {sections.transparency.emptyTitle}
             </h2>
             <p className="text-sm text-gray-600">
-              Dokumen laporan akan tampil di sini setelah ditambahkan melalui
-              panel admin.
+              {sections.transparency.emptyText}
             </p>
           </div>
         )}

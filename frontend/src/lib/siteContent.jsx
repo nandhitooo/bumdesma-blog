@@ -12,28 +12,25 @@ const SiteContentContext = createContext({
   services: DEFAULT_SITE_CONTENT.services,
   contact: DEFAULT_SITE_CONTENT.contact,
   footer: DEFAULT_SITE_CONTENT.footer,
+  site: DEFAULT_SITE_CONTENT.site,
+  sections: DEFAULT_SITE_CONTENT.sections,
 });
 
-function mergeContent(fetched) {
-  if (!fetched || typeof fetched !== "object") return DEFAULT_SITE_CONTENT;
-  return {
-    hero: { ...DEFAULT_SITE_CONTENT.hero, ...fetched.hero },
-    about: { ...DEFAULT_SITE_CONTENT.about, ...fetched.about },
-    services: {
-      items: Array.isArray(fetched.services?.items)
-        ? fetched.services.items
-        : DEFAULT_SITE_CONTENT.services.items,
-    },
-    contact: { ...DEFAULT_SITE_CONTENT.contact, ...fetched.contact },
-    footer: {
-      ...DEFAULT_SITE_CONTENT.footer,
-      ...fetched.footer,
-      social: {
-        ...DEFAULT_SITE_CONTENT.footer.social,
-        ...fetched.footer?.social,
-      },
-    },
-  };
+// Nilai dari server bisa hanya memuat sebagian field (mis. footer lama tanpa
+// grup tautan). Penggabungan dilakukan bertingkat supaya grup seperti
+// footer.social, site.nav, dan sections.blog tidak hilang seluruhnya; array
+// (highlights, navLinks) diganti utuh karena isinya berasal dari admin.
+function mergeContent(defaults, fetched) {
+  if (!defaults || typeof defaults !== "object" || Array.isArray(defaults)) {
+    return fetched === undefined ? defaults : fetched;
+  }
+  const merged = { ...defaults };
+  if (fetched && typeof fetched === "object" && !Array.isArray(fetched)) {
+    for (const [key, value] of Object.entries(fetched)) {
+      merged[key] = mergeContent(defaults[key], value);
+    }
+  }
+  return merged;
 }
 
 export function SiteContentProvider({ children }) {
@@ -52,7 +49,7 @@ export function SiteContentProvider({ children }) {
       }
       const data = await response.json();
       if (data && data.content) {
-        setContent(mergeContent(data.content));
+        setContent(mergeContent(DEFAULT_SITE_CONTENT, data.content));
       }
       setError(null);
     } catch (err) {
@@ -67,6 +64,15 @@ export function SiteContentProvider({ children }) {
     fetchContent();
   }, [fetchContent]);
 
+  // Deskripsi meta mengikuti identitas situs dari admin. Judul dokumen diatur
+  // per halaman lewat usePageTitle supaya tidak saling menimpa.
+  useEffect(() => {
+    const description = content.site?.metaDescription;
+    if (!description) return;
+    const tag = document.querySelector('meta[name="description"]');
+    if (tag) tag.setAttribute("content", description);
+  }, [content.site?.metaDescription]);
+
   const value = useMemo(
     () => ({
       content,
@@ -78,6 +84,8 @@ export function SiteContentProvider({ children }) {
       services: content.services || DEFAULT_SITE_CONTENT.services,
       contact: content.contact || DEFAULT_SITE_CONTENT.contact,
       footer: content.footer || DEFAULT_SITE_CONTENT.footer,
+      site: content.site || DEFAULT_SITE_CONTENT.site,
+      sections: content.sections || DEFAULT_SITE_CONTENT.sections,
     }),
     [content, loading, error, fetchContent]
   );
