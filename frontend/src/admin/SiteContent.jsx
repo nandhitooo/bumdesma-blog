@@ -54,15 +54,24 @@ function ImageField({ id, label, value, onChange, previewFallback }) {
 
   return (
     <div>
-      <span className="mb-1.5 block text-sm font-bold text-gray-700">{label}</span>
+      <span className="mb-1.5 block text-sm font-bold text-gray-700">
+        {label}
+      </span>
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
           {value ? (
             <img src={value} alt="" className="h-full w-full object-contain" />
           ) : previewFallback ? (
-            <img src={previewFallback} alt="" className="h-full w-full object-contain opacity-60" />
+            <img
+              src={previewFallback}
+              alt=""
+              className="h-full w-full object-contain opacity-60"
+            />
           ) : (
-            <i className="fa-solid fa-image text-gray-400" aria-hidden="true"></i>
+            <i
+              className="fa-solid fa-image text-gray-400"
+              aria-hidden="true"
+            ></i>
           )}
         </div>
         <input
@@ -117,13 +126,16 @@ function LinkGroupEditor({ title, links, onChange, max = 10 }) {
             {title} ({links.length} / {max})
           </span>
           <p className="text-xs text-gray-500">
-            Tujuan diawali &quot;/&quot; untuk halaman situs ini, atau URL https://.
+            Tujuan diawali &quot;/&quot; untuk halaman situs ini, atau URL
+            https://.
           </p>
         </div>
         <button
           type="button"
           disabled={links.length >= max}
-          onClick={() => onChange([...links, { label: "Tautan baru", href: "/" }])}
+          onClick={() =>
+            onChange([...links, { label: "Tautan baru", href: "/" }])
+          }
           className="min-h-[44px] shrink-0 cursor-pointer rounded-lg bg-green-50 px-4 py-2.5 text-sm font-bold text-green-800 hover:bg-green-100 disabled:opacity-50"
         >
           + Tambah Tautan
@@ -259,7 +271,12 @@ const SECTION_FIELDS = [
       { name: "title", label: "Judul halaman", max: 200 },
       { name: "description", label: "Deskripsi", max: 600, textarea: true },
       { name: "emptyTitle", label: "Judul saat kosong", max: 200 },
-      { name: "emptyText", label: "Teks saat kosong", max: 600, textarea: true },
+      {
+        name: "emptyText",
+        label: "Teks saat kosong",
+        max: 600,
+        textarea: true,
+      },
     ],
   },
   {
@@ -270,7 +287,12 @@ const SECTION_FIELDS = [
       { name: "title", label: "Judul halaman", max: 200 },
       { name: "description", label: "Deskripsi", max: 600, textarea: true },
       { name: "emptyTitle", label: "Judul saat kosong", max: 200 },
-      { name: "emptyText", label: "Teks saat kosong", max: 600, textarea: true },
+      {
+        name: "emptyText",
+        label: "Teks saat kosong",
+        max: 600,
+        textarea: true,
+      },
     ],
   },
   {
@@ -281,7 +303,12 @@ const SECTION_FIELDS = [
       { name: "title", label: "Judul halaman", max: 200 },
       { name: "description", label: "Deskripsi", max: 600, textarea: true },
       { name: "emptyTitle", label: "Judul saat kosong", max: 200 },
-      { name: "emptyText", label: "Teks saat kosong", max: 600, textarea: true },
+      {
+        name: "emptyText",
+        label: "Teks saat kosong",
+        max: 600,
+        textarea: true,
+      },
     ],
   },
   {
@@ -292,7 +319,12 @@ const SECTION_FIELDS = [
       { name: "title", label: "Judul halaman", max: 200 },
       { name: "description", label: "Deskripsi", max: 600, textarea: true },
       { name: "emptyTitle", label: "Judul saat kosong", max: 200 },
-      { name: "emptyText", label: "Teks saat kosong", max: 600, textarea: true },
+      {
+        name: "emptyText",
+        label: "Teks saat kosong",
+        max: 600,
+        textarea: true,
+      },
     ],
   },
   {
@@ -303,7 +335,12 @@ const SECTION_FIELDS = [
       { name: "title", label: "Judul halaman", max: 200 },
       { name: "description", label: "Deskripsi", max: 600, textarea: true },
       { name: "emptyTitle", label: "Judul saat kosong", max: 200 },
-      { name: "emptyText", label: "Teks saat kosong", max: 600, textarea: true },
+      {
+        name: "emptyText",
+        label: "Teks saat kosong",
+        max: 600,
+        textarea: true,
+      },
     ],
   },
   {
@@ -314,7 +351,12 @@ const SECTION_FIELDS = [
       { name: "title", label: "Judul halaman", max: 200 },
       { name: "description", label: "Deskripsi", max: 600, textarea: true },
       { name: "emptyTitle", label: "Judul saat kosong", max: 200 },
-      { name: "emptyText", label: "Teks saat kosong", max: 600, textarea: true },
+      {
+        name: "emptyText",
+        label: "Teks saat kosong",
+        max: 600,
+        textarea: true,
+      },
     ],
   },
 ];
@@ -332,7 +374,28 @@ const TABS = [
   { key: "sections", label: "Teks Halaman", preview: "/blog" },
 ];
 
-const FORM_KEYS = ["hero", "about", "services", "contact", "footer", "site", "sections"];
+const FORM_KEYS = [
+  "hero",
+  "about",
+  "services",
+  "contact",
+  "footer",
+  "site",
+  "sections",
+];
+
+// Urutan key objek berubah setelah round-trip jsonb di PostgreSQL, jadi
+// perbandingan harus tidak peka urutan key.
+function stableStringify(value) {
+  return JSON.stringify(value, (_key, val) => {
+    if (val && typeof val === "object" && !Array.isArray(val)) {
+      return Object.fromEntries(
+        Object.entries(val).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+      );
+    }
+    return val;
+  });
+}
 
 const NAV_FIELDS = [
   { name: "home", label: "Beranda" },
@@ -363,11 +426,15 @@ export default function SiteContent() {
   // Individual section states
   const [heroForm, setHeroForm] = useState(DEFAULT_SITE_CONTENT.hero);
   const [aboutForm, setAboutForm] = useState(DEFAULT_SITE_CONTENT.about);
-  const [servicesForm, setServicesForm] = useState(DEFAULT_SITE_CONTENT.services);
+  const [servicesForm, setServicesForm] = useState(
+    DEFAULT_SITE_CONTENT.services,
+  );
   const [contactForm, setContactForm] = useState(DEFAULT_SITE_CONTENT.contact);
   const [footerForm, setFooterForm] = useState(DEFAULT_SITE_CONTENT.footer);
   const [siteForm, setSiteForm] = useState(DEFAULT_SITE_CONTENT.site);
-  const [sectionsForm, setSectionsForm] = useState(DEFAULT_SITE_CONTENT.sections);
+  const [sectionsForm, setSectionsForm] = useState(
+    DEFAULT_SITE_CONTENT.sections,
+  );
   // Cuplikan isi tiap form saat terakhir dimuat/disimpan. Dipakai untuk
   // menandai tab yang belum disimpan tanpa perlu menyimpan salinan objek form.
   const [baseline, setBaseline] = useState(null);
@@ -419,7 +486,7 @@ export default function SiteContent() {
         setSectionsForm(loaded.sections);
         setBaseline(
           Object.fromEntries(
-            FORM_KEYS.map((key) => [key, JSON.stringify(loaded[key])]),
+            FORM_KEYS.map((key) => [key, stableStringify(loaded[key])]),
           ),
         );
         if (data?.updatedAt) {
@@ -449,7 +516,7 @@ export default function SiteContent() {
     sections: sectionsForm,
   };
   const isDirty = (key) =>
-    Boolean(baseline) && JSON.stringify(forms[key]) !== baseline[key];
+    Boolean(baseline) && stableStringify(forms[key]) !== baseline[key];
   const dirtyTabs = TABS.filter((tab) => isDirty(tab.key));
 
   // Peringatan saat pindah halaman/menutup tab selama masih ada perubahan.
@@ -477,9 +544,21 @@ export default function SiteContent() {
       if (res?.updatedAt) {
         setUpdatedAt((prev) => ({ ...prev, [key]: res.updatedAt }));
       }
+      if (res?.content) {
+        const applyToForm = {
+          hero: setHeroForm,
+          about: setAboutForm,
+          services: setServicesForm,
+          contact: setContactForm,
+          footer: setFooterForm,
+          site: setSiteForm,
+          sections: setSectionsForm,
+        }[key];
+        applyToForm?.(res.content);
+      }
       setBaseline((prev) => ({
         ...prev,
-        [key]: JSON.stringify(res?.content ?? payload),
+        [key]: stableStringify(res?.content ?? payload),
       }));
       setSectionStatus(key, {
         saving: false,
@@ -527,7 +606,7 @@ export default function SiteContent() {
       if (key === "site") setSiteForm(defaultData);
       if (key === "sections") setSectionsForm(defaultData);
 
-      setBaseline((prev) => ({ ...prev, [key]: JSON.stringify(defaultData) }));
+      setBaseline((prev) => ({ ...prev, [key]: stableStringify(defaultData) }));
       setUpdatedAt((prev) => ({ ...prev, [key]: null }));
       setSectionStatus(key, {
         saving: false,
@@ -586,7 +665,10 @@ export default function SiteContent() {
           className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 motion-reduce:transition-none"
         >
           <span>Lihat di situs</span>
-          <i className="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
+          <i
+            className="fa-solid fa-arrow-up-right-from-square text-xs"
+            aria-hidden="true"
+          ></i>
         </a>
       </PageHeader>
 
@@ -616,7 +698,9 @@ export default function SiteContent() {
                     aria-hidden="true"
                   ></span>
                 )}
-                {isDirty(tab.key) && <span className="sr-only">(belum disimpan)</span>}
+                {isDirty(tab.key) && (
+                  <span className="sr-only">(belum disimpan)</span>
+                )}
               </button>
             </li>
           ))}
@@ -630,14 +714,17 @@ export default function SiteContent() {
         >
           <p className="font-bold">Ada perubahan yang belum disimpan.</p>
           <p className="mt-1 break-words">
-            Bagian: {dirtyTabs.map((tab) => tab.label).join(", ")}. Buka tabnya lalu tekan
-            tombol Simpan di bagian bawah formulir.
+            Bagian: {dirtyTabs.map((tab) => tab.label).join(", ")}. Buka tabnya
+            lalu tekan tombol Simpan di bagian bawah formulir.
           </p>
         </div>
       )}
 
       {loadError && (
-        <p role="alert" className="rounded-2xl bg-red-50 p-5 text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded-2xl bg-red-50 p-5 text-sm text-red-700"
+        >
           {loadError}
         </p>
       )}
@@ -651,9 +738,12 @@ export default function SiteContent() {
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-5 border-b border-gray-100">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Hero (Beranda Utama)</h2>
+            <h2 className="text-xl font-bold text-gray-900">
+              Hero (Beranda Utama)
+            </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Judul utama, deskripsi pengantar, tombol aksi, dan poin sorotan BUMDESMA.
+              Judul utama, deskripsi pengantar, tombol aksi, dan poin sorotan
+              BUMDESMA.
             </p>
           </div>
           {updatedAt.hero && (
@@ -672,7 +762,10 @@ export default function SiteContent() {
         >
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="hero-subtitle" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="hero-subtitle"
+                className="block text-sm font-bold text-gray-700"
+              >
                 Sub-judul (Kop Kecil)
               </label>
               <CharCounter current={heroForm.subtitle?.length} max={200} />
@@ -682,14 +775,19 @@ export default function SiteContent() {
               required
               maxLength={200}
               value={heroForm.subtitle || ""}
-              onChange={(e) => setHeroForm({ ...heroForm, subtitle: e.target.value })}
+              onChange={(e) =>
+                setHeroForm({ ...heroForm, subtitle: e.target.value })
+              }
               className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="hero-title" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="hero-title"
+                className="block text-sm font-bold text-gray-700"
+              >
                 Judul Utama
               </label>
               <CharCounter current={heroForm.title?.length} max={200} />
@@ -699,14 +797,19 @@ export default function SiteContent() {
               required
               maxLength={200}
               value={heroForm.title || ""}
-              onChange={(e) => setHeroForm({ ...heroForm, title: e.target.value })}
+              onChange={(e) =>
+                setHeroForm({ ...heroForm, title: e.target.value })
+              }
               className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base font-semibold outline-none focus:border-green-700"
             />
           </div>
 
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="hero-desc" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="hero-desc"
+                className="block text-sm font-bold text-gray-700"
+              >
                 Deskripsi
               </label>
               <CharCounter current={heroForm.description?.length} max={1000} />
@@ -717,14 +820,19 @@ export default function SiteContent() {
               rows={3}
               maxLength={1000}
               value={heroForm.description || ""}
-              onChange={(e) => setHeroForm({ ...heroForm, description: e.target.value })}
+              onChange={(e) =>
+                setHeroForm({ ...heroForm, description: e.target.value })
+              }
               className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="hero-btn" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="hero-btn"
+                className="block text-sm font-bold text-gray-700"
+              >
                 Teks Tombol Aksi
               </label>
               <CharCounter current={heroForm.buttonLabel?.length} max={100} />
@@ -734,7 +842,9 @@ export default function SiteContent() {
               required
               maxLength={100}
               value={heroForm.buttonLabel || ""}
-              onChange={(e) => setHeroForm({ ...heroForm, buttonLabel: e.target.value })}
+              onChange={(e) =>
+                setHeroForm({ ...heroForm, buttonLabel: e.target.value })
+              }
               className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
@@ -751,9 +861,12 @@ export default function SiteContent() {
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm font-bold text-gray-800">
-                  Sorotan Hero (Highlights: {heroForm.highlights?.length || 0} / 6)
+                  Sorotan Hero (Highlights: {heroForm.highlights?.length || 0} /
+                  6)
                 </h3>
-                <p className="text-xs text-gray-500">Minimal 1, maksimal 6 sorotan.</p>
+                <p className="text-xs text-gray-500">
+                  Minimal 1, maksimal 6 sorotan.
+                </p>
               </div>
               <button
                 type="button"
@@ -765,7 +878,11 @@ export default function SiteContent() {
                       ...heroForm,
                       highlights: [
                         ...current,
-                        { icon: "star", title: "Sorotan Baru", desc: "Deskripsi sorotan baru." },
+                        {
+                          icon: "star",
+                          title: "Sorotan Baru",
+                          desc: "Deskripsi sorotan baru.",
+                        },
                       ],
                     });
                   }
@@ -783,7 +900,9 @@ export default function SiteContent() {
                   className="p-4 rounded-xl border border-gray-200 bg-gray-50 flex flex-col gap-3"
                 >
                   <div className="flex items-center justify-between gap-2 border-b border-gray-200 pb-2">
-                    <span className="text-xs font-bold text-gray-600">Sorotan #{index + 1}</span>
+                    <span className="text-xs font-bold text-gray-600">
+                      Sorotan #{index + 1}
+                    </span>
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
@@ -820,7 +939,9 @@ export default function SiteContent() {
                         title="Hapus sorotan"
                         disabled={heroForm.highlights.length <= 1}
                         onClick={() => {
-                          const copy = heroForm.highlights.filter((_, i) => i !== index);
+                          const copy = heroForm.highlights.filter(
+                            (_, i) => i !== index,
+                          );
                           setHeroForm({ ...heroForm, highlights: copy });
                         }}
                         className="flex h-11 w-11 items-center justify-center rounded hover:bg-red-100 text-red-600 disabled:opacity-30 cursor-pointer"
@@ -841,7 +962,10 @@ export default function SiteContent() {
                       <div className="flex items-center gap-2">
                         <div className="w-10 h-10 rounded-lg bg-white border border-gray-300 flex items-center justify-center text-brand-primary shrink-0">
                           {isValidIcon(hl.icon) ? (
-                            <i className={`fa-solid fa-${hl.icon}`} aria-hidden="true"></i>
+                            <i
+                              className={`fa-solid fa-${hl.icon}`}
+                              aria-hidden="true"
+                            ></i>
                           ) : (
                             <i className="fa-solid fa-triangle-exclamation text-amber-500"></i>
                           )}
@@ -853,7 +977,10 @@ export default function SiteContent() {
                           value={hl.icon}
                           onChange={(e) => {
                             const copy = [...heroForm.highlights];
-                            copy[index] = { ...copy[index], icon: e.target.value.toLowerCase().trim() };
+                            copy[index] = {
+                              ...copy[index],
+                              icon: e.target.value.toLowerCase().trim(),
+                            };
                             setHeroForm({ ...heroForm, highlights: copy });
                           }}
                           placeholder="mis. calendar-check"
@@ -879,7 +1006,10 @@ export default function SiteContent() {
                         value={hl.title}
                         onChange={(e) => {
                           const copy = [...heroForm.highlights];
-                          copy[index] = { ...copy[index], title: e.target.value };
+                          copy[index] = {
+                            ...copy[index],
+                            title: e.target.value,
+                          };
                           setHeroForm({ ...heroForm, highlights: copy });
                         }}
                         className="min-h-[44px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-base outline-none focus:border-green-700"
@@ -918,12 +1048,18 @@ export default function SiteContent() {
 
           {/* Alert / Status */}
           {status.hero.error && (
-            <p role="alert" className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700">
+            <p
+              role="alert"
+              className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700"
+            >
               {status.hero.error}
             </p>
           )}
           {status.hero.success && (
-            <p role="status" className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800">
+            <p
+              role="status"
+              className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800"
+            >
               {status.hero.success}
             </p>
           )}
@@ -958,9 +1094,12 @@ export default function SiteContent() {
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-5 border-b border-gray-100">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Tentang (Profil Lembaga)</h2>
+            <h2 className="text-xl font-bold text-gray-900">
+              Tentang (Profil Lembaga)
+            </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Judul bagian, teks lokasi, paragraf profil, dan tautan dokumen profil resmi.
+              Judul bagian, teks lokasi, paragraf profil, dan tautan dokumen
+              profil resmi.
             </p>
           </div>
           {updatedAt.about && (
@@ -979,7 +1118,10 @@ export default function SiteContent() {
         >
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="about-heading" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="about-heading"
+                className="block text-sm font-bold text-gray-700"
+              >
                 Judul Utama Bagian
               </label>
               <CharCounter current={aboutForm.heading?.length} max={200} />
@@ -989,14 +1131,19 @@ export default function SiteContent() {
               required
               maxLength={200}
               value={aboutForm.heading || ""}
-              onChange={(e) => setAboutForm({ ...aboutForm, heading: e.target.value })}
+              onChange={(e) =>
+                setAboutForm({ ...aboutForm, heading: e.target.value })
+              }
               className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base font-semibold outline-none focus:border-green-700"
             />
           </div>
 
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="about-location" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="about-location"
+                className="block text-sm font-bold text-gray-700"
+              >
                 Lokasi / Sub-judul
               </label>
               <CharCounter current={aboutForm.location?.length} max={300} />
@@ -1006,7 +1153,9 @@ export default function SiteContent() {
               required
               maxLength={300}
               value={aboutForm.location || ""}
-              onChange={(e) => setAboutForm({ ...aboutForm, location: e.target.value })}
+              onChange={(e) =>
+                setAboutForm({ ...aboutForm, location: e.target.value })
+              }
               className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
@@ -1018,7 +1167,9 @@ export default function SiteContent() {
                 <label className="block text-sm font-bold text-gray-700">
                   Paragraf Tentang ({aboutForm.paragraphs?.length || 0} / 6)
                 </label>
-                <p className="text-xs text-gray-500">Minimal 1, maksimal 6 paragraf.</p>
+                <p className="text-xs text-gray-500">
+                  Minimal 1, maksimal 6 paragraf.
+                </p>
               </div>
               <button
                 type="button"
@@ -1040,7 +1191,10 @@ export default function SiteContent() {
 
             <div className="space-y-3">
               {aboutForm.paragraphs?.map((para, index) => (
-                <div key={index} className="p-3.5 rounded-xl border border-gray-200 bg-gray-50">
+                <div
+                  key={index}
+                  className="p-3.5 rounded-xl border border-gray-200 bg-gray-50"
+                >
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <label
                       htmlFor={`about-paragraph-${index}`}
@@ -1085,7 +1239,9 @@ export default function SiteContent() {
                         title="Hapus paragraf"
                         disabled={aboutForm.paragraphs.length <= 1}
                         onClick={() => {
-                          const copy = aboutForm.paragraphs.filter((_, i) => i !== index);
+                          const copy = aboutForm.paragraphs.filter(
+                            (_, i) => i !== index,
+                          );
                           setAboutForm({ ...aboutForm, paragraphs: copy });
                         }}
                         className="flex h-11 w-11 items-center justify-center rounded hover:bg-red-100 text-red-600 disabled:opacity-30 cursor-pointer"
@@ -1115,7 +1271,10 @@ export default function SiteContent() {
           {/* Visi */}
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="about-vision" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="about-vision"
+                className="block text-sm font-bold text-gray-700"
+              >
                 Visi (opsional)
               </label>
               <CharCounter current={aboutForm.vision?.length} max={500} />
@@ -1125,7 +1284,9 @@ export default function SiteContent() {
               rows={3}
               maxLength={500}
               value={aboutForm.vision || ""}
-              onChange={(e) => setAboutForm({ ...aboutForm, vision: e.target.value })}
+              onChange={(e) =>
+                setAboutForm({ ...aboutForm, vision: e.target.value })
+              }
               className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
@@ -1137,7 +1298,9 @@ export default function SiteContent() {
                 <label className="block text-sm font-bold text-gray-700">
                   Misi ({aboutForm.missions?.length || 0} / 8)
                 </label>
-                <p className="text-xs text-gray-500">Opsional, maksimal 8 butir.</p>
+                <p className="text-xs text-gray-500">
+                  Opsional, maksimal 8 butir.
+                </p>
               </div>
               <button
                 type="button"
@@ -1156,7 +1319,10 @@ export default function SiteContent() {
 
             <div className="space-y-3">
               {(aboutForm.missions || []).map((mission, index) => (
-                <div key={index} className="p-3.5 rounded-xl border border-gray-200 bg-gray-50">
+                <div
+                  key={index}
+                  className="p-3.5 rounded-xl border border-gray-200 bg-gray-50"
+                >
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <label
                       htmlFor={`about-mission-${index}`}
@@ -1170,7 +1336,9 @@ export default function SiteContent() {
                         type="button"
                         title="Hapus misi"
                         onClick={() => {
-                          const copy = aboutForm.missions.filter((_, i) => i !== index);
+                          const copy = aboutForm.missions.filter(
+                            (_, i) => i !== index,
+                          );
                           setAboutForm({ ...aboutForm, missions: copy });
                         }}
                         className="ml-2 flex h-11 w-11 items-center justify-center rounded hover:bg-red-100 text-red-600 cursor-pointer"
@@ -1199,7 +1367,10 @@ export default function SiteContent() {
 
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="about-profile-url" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="about-profile-url"
+                className="block text-sm font-bold text-gray-700"
+              >
                 URL Dokumen Profil (Wajib HTTPS)
               </label>
               <CharCounter current={aboutForm.profileUrl?.length} max={2048} />
@@ -1210,7 +1381,9 @@ export default function SiteContent() {
               required
               maxLength={2048}
               value={aboutForm.profileUrl || ""}
-              onChange={(e) => setAboutForm({ ...aboutForm, profileUrl: e.target.value })}
+              onChange={(e) =>
+                setAboutForm({ ...aboutForm, profileUrl: e.target.value })
+              }
               placeholder="https://..."
               className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
@@ -1218,12 +1391,18 @@ export default function SiteContent() {
 
           {/* Alert / Status */}
           {status.about.error && (
-            <p role="alert" className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700">
+            <p
+              role="alert"
+              className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700"
+            >
               {status.about.error}
             </p>
           )}
           {status.about.success && (
-            <p role="status" className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800">
+            <p
+              role="status"
+              className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800"
+            >
               {status.about.success}
             </p>
           )}
@@ -1281,7 +1460,9 @@ export default function SiteContent() {
               <span className="text-sm font-bold text-gray-800">
                 Daftar Layanan ({servicesForm.items?.length || 0} / 12)
               </span>
-              <p className="text-xs text-gray-500">Minimal 1, maksimal 12 layanan usaha.</p>
+              <p className="text-xs text-gray-500">
+                Minimal 1, maksimal 12 layanan usaha.
+              </p>
             </div>
             <button
               type="button"
@@ -1293,7 +1474,11 @@ export default function SiteContent() {
                     ...servicesForm,
                     items: [
                       ...current,
-                      { icon: "gear", title: "Layanan Baru", desc: "Deskripsi layanan baru." },
+                      {
+                        icon: "gear",
+                        title: "Layanan Baru",
+                        desc: "Deskripsi layanan baru.",
+                      },
                     ],
                   });
                 }
@@ -1311,7 +1496,9 @@ export default function SiteContent() {
                 className="p-4 rounded-xl border border-gray-200 bg-gray-50 flex flex-col gap-3"
               >
                 <div className="flex items-center justify-between gap-2 border-b border-gray-200 pb-2">
-                  <span className="text-xs font-bold text-gray-600">Layanan #{index + 1}</span>
+                  <span className="text-xs font-bold text-gray-600">
+                    Layanan #{index + 1}
+                  </span>
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
@@ -1348,7 +1535,9 @@ export default function SiteContent() {
                       title="Hapus layanan"
                       disabled={servicesForm.items.length <= 1}
                       onClick={() => {
-                        const copy = servicesForm.items.filter((_, i) => i !== index);
+                        const copy = servicesForm.items.filter(
+                          (_, i) => i !== index,
+                        );
                         setServicesForm({ ...servicesForm, items: copy });
                       }}
                       className="flex h-11 w-11 items-center justify-center rounded hover:bg-red-100 text-red-600 disabled:opacity-30 cursor-pointer"
@@ -1369,7 +1558,10 @@ export default function SiteContent() {
                     <div className="flex items-center gap-2">
                       <div className="w-10 h-10 rounded-lg bg-white border border-gray-300 flex items-center justify-center text-brand-primary shrink-0">
                         {isValidIcon(srv.icon) ? (
-                          <i className={`fa-solid fa-${srv.icon}`} aria-hidden="true"></i>
+                          <i
+                            className={`fa-solid fa-${srv.icon}`}
+                            aria-hidden="true"
+                          ></i>
                         ) : (
                           <i className="fa-solid fa-gear text-gray-400"></i>
                         )}
@@ -1381,7 +1573,10 @@ export default function SiteContent() {
                         value={srv.icon}
                         onChange={(e) => {
                           const copy = [...servicesForm.items];
-                          copy[index] = { ...copy[index], icon: e.target.value.toLowerCase().trim() };
+                          copy[index] = {
+                            ...copy[index],
+                            icon: e.target.value.toLowerCase().trim(),
+                          };
                           setServicesForm({ ...servicesForm, items: copy });
                         }}
                         placeholder="mis. coins"
@@ -1445,12 +1640,18 @@ export default function SiteContent() {
 
           {/* Alert / Status */}
           {status.services.error && (
-            <p role="alert" className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700">
+            <p
+              role="alert"
+              className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700"
+            >
               {status.services.error}
             </p>
           )}
           {status.services.success && (
-            <p role="status" className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800">
+            <p
+              role="status"
+              className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800"
+            >
               {status.services.success}
             </p>
           )}
@@ -1486,7 +1687,8 @@ export default function SiteContent() {
           <div>
             <h2 className="text-xl font-bold text-gray-900">Kontak & Lokasi</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Alamat operasional kantor, surel, kontak WhatsApp, dan peta Google Maps.
+              Alamat operasional kantor, surel, kontak WhatsApp, dan peta Google
+              Maps.
             </p>
           </div>
           {updatedAt.contact && (
@@ -1505,7 +1707,10 @@ export default function SiteContent() {
         >
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="contact-address" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="contact-address"
+                className="block text-sm font-bold text-gray-700"
+              >
                 Alamat Lengkap Kantor
               </label>
               <CharCounter current={contactForm.address?.length} max={500} />
@@ -1516,7 +1721,9 @@ export default function SiteContent() {
               rows={2}
               maxLength={500}
               value={contactForm.address || ""}
-              onChange={(e) => setContactForm({ ...contactForm, address: e.target.value })}
+              onChange={(e) =>
+                setContactForm({ ...contactForm, address: e.target.value })
+              }
               className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
@@ -1524,7 +1731,10 @@ export default function SiteContent() {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="contact-email" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="contact-email"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Surat Elektronik (Email)
                 </label>
                 <CharCounter current={contactForm.email?.length} max={254} />
@@ -1535,24 +1745,37 @@ export default function SiteContent() {
                 required
                 maxLength={254}
                 value={contactForm.email || ""}
-                onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                onChange={(e) =>
+                  setContactForm({ ...contactForm, email: e.target.value })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="contact-whatsapp-display" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="contact-whatsapp-display"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Tampilan Nomor WhatsApp
                 </label>
-                <CharCounter current={contactForm.whatsappDisplay?.length} max={40} />
+                <CharCounter
+                  current={contactForm.whatsappDisplay?.length}
+                  max={40}
+                />
               </div>
               <input
                 id="contact-whatsapp-display"
                 required
                 maxLength={40}
                 value={contactForm.whatsappDisplay || ""}
-                onChange={(e) => setContactForm({ ...contactForm, whatsappDisplay: e.target.value })}
+                onChange={(e) =>
+                  setContactForm({
+                    ...contactForm,
+                    whatsappDisplay: e.target.value,
+                  })
+                }
                 placeholder="+62 851-5616-2917"
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
@@ -1561,7 +1784,10 @@ export default function SiteContent() {
 
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="contact-whatsapp" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="contact-whatsapp"
+                className="block text-sm font-bold text-gray-700"
+              >
                 Nomor WhatsApp (Hanya 8–15 Digit Angka, mis. 6285156162917)
               </label>
               <CharCounter current={contactForm.whatsapp?.length} max={15} />
@@ -1573,7 +1799,10 @@ export default function SiteContent() {
               maxLength={15}
               value={contactForm.whatsapp || ""}
               onChange={(e) =>
-                setContactForm({ ...contactForm, whatsapp: e.target.value.replace(/\D/g, "") })
+                setContactForm({
+                  ...contactForm,
+                  whatsapp: e.target.value.replace(/\D/g, ""),
+                })
               }
               placeholder="6285156162917"
               className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
@@ -1582,7 +1811,10 @@ export default function SiteContent() {
 
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="contact-maps-link" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="contact-maps-link"
+                className="block text-sm font-bold text-gray-700"
+              >
                 Tautan Google Maps (HTTPS URL)
               </label>
               <CharCounter current={contactForm.mapsLink?.length} max={2048} />
@@ -1593,7 +1825,9 @@ export default function SiteContent() {
               required
               maxLength={2048}
               value={contactForm.mapsLink || ""}
-              onChange={(e) => setContactForm({ ...contactForm, mapsLink: e.target.value })}
+              onChange={(e) =>
+                setContactForm({ ...contactForm, mapsLink: e.target.value })
+              }
               placeholder="https://maps.app.goo.gl/..."
               className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
@@ -1601,10 +1835,17 @@ export default function SiteContent() {
 
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="contact-maps-embed" className="block text-sm font-bold text-gray-700">
-                URL Embed Google Maps (Harus diawali https://www.google.com/maps/embed)
+              <label
+                htmlFor="contact-maps-embed"
+                className="block text-sm font-bold text-gray-700"
+              >
+                URL Embed Google Maps (Harus diawali
+                https://www.google.com/maps/embed)
               </label>
-              <CharCounter current={contactForm.mapsEmbedUrl?.length} max={2048} />
+              <CharCounter
+                current={contactForm.mapsEmbedUrl?.length}
+                max={2048}
+              />
             </div>
             <input
               id="contact-maps-embed"
@@ -1612,7 +1853,9 @@ export default function SiteContent() {
               required
               maxLength={2048}
               value={contactForm.mapsEmbedUrl || ""}
-              onChange={(e) => setContactForm({ ...contactForm, mapsEmbedUrl: e.target.value })}
+              onChange={(e) =>
+                setContactForm({ ...contactForm, mapsEmbedUrl: e.target.value })
+              }
               placeholder="https://www.google.com/maps/embed?..."
               className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
@@ -1620,12 +1863,18 @@ export default function SiteContent() {
 
           {/* Alert / Status */}
           {status.contact.error && (
-            <p role="alert" className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700">
+            <p
+              role="alert"
+              className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700"
+            >
               {status.contact.error}
             </p>
           )}
           {status.contact.success && (
-            <p role="status" className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800">
+            <p
+              role="status"
+              className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800"
+            >
               {status.contact.success}
             </p>
           )}
@@ -1661,7 +1910,8 @@ export default function SiteContent() {
           <div>
             <h2 className="text-xl font-bold text-gray-900">Footer</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Deskripsi penutup, kontak ringkas kantor, dan tautan jejaring media sosial.
+              Deskripsi penutup, kontak ringkas kantor, dan tautan jejaring
+              media sosial.
             </p>
           </div>
           {updatedAt.footer && (
@@ -1680,10 +1930,16 @@ export default function SiteContent() {
         >
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="footer-desc" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="footer-desc"
+                className="block text-sm font-bold text-gray-700"
+              >
                 Deskripsi Singkat Footer
               </label>
-              <CharCounter current={footerForm.description?.length} max={1000} />
+              <CharCounter
+                current={footerForm.description?.length}
+                max={1000}
+              />
             </div>
             <textarea
               id="footer-desc"
@@ -1691,14 +1947,19 @@ export default function SiteContent() {
               rows={3}
               maxLength={1000}
               value={footerForm.description || ""}
-              onChange={(e) => setFooterForm({ ...footerForm, description: e.target.value })}
+              onChange={(e) =>
+                setFooterForm({ ...footerForm, description: e.target.value })
+              }
               className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
 
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label htmlFor="footer-address" className="block text-sm font-bold text-gray-700">
+              <label
+                htmlFor="footer-address"
+                className="block text-sm font-bold text-gray-700"
+              >
                 Alamat Ringkas
               </label>
               <CharCounter current={footerForm.address?.length} max={500} />
@@ -1708,7 +1969,9 @@ export default function SiteContent() {
               required
               maxLength={500}
               value={footerForm.address || ""}
-              onChange={(e) => setFooterForm({ ...footerForm, address: e.target.value })}
+              onChange={(e) =>
+                setFooterForm({ ...footerForm, address: e.target.value })
+              }
               className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
             />
           </div>
@@ -1716,7 +1979,10 @@ export default function SiteContent() {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="footer-phone" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="footer-phone"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Nomor Telepon
                 </label>
                 <CharCounter current={footerForm.phone?.length} max={40} />
@@ -1726,14 +1992,19 @@ export default function SiteContent() {
                 required
                 maxLength={40}
                 value={footerForm.phone || ""}
-                onChange={(e) => setFooterForm({ ...footerForm, phone: e.target.value })}
+                onChange={(e) =>
+                  setFooterForm({ ...footerForm, phone: e.target.value })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="footer-email" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="footer-email"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Email
                 </label>
                 <CharCounter current={footerForm.email?.length} max={254} />
@@ -1744,7 +2015,9 @@ export default function SiteContent() {
                 required
                 maxLength={254}
                 value={footerForm.email || ""}
-                onChange={(e) => setFooterForm({ ...footerForm, email: e.target.value })}
+                onChange={(e) =>
+                  setFooterForm({ ...footerForm, email: e.target.value })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
@@ -1758,7 +2031,10 @@ export default function SiteContent() {
 
             <div className="space-y-3">
               <div>
-                <label htmlFor="footer-fb" className="block text-xs font-semibold text-gray-600 mb-1">
+                <label
+                  htmlFor="footer-fb"
+                  className="block text-xs font-semibold text-gray-600 mb-1"
+                >
                   Facebook URL (HTTPS)
                 </label>
                 <input
@@ -1769,7 +2045,10 @@ export default function SiteContent() {
                   onChange={(e) =>
                     setFooterForm({
                       ...footerForm,
-                      social: { ...footerForm.social, facebook: e.target.value },
+                      social: {
+                        ...footerForm.social,
+                        facebook: e.target.value,
+                      },
                     })
                   }
                   placeholder="https://facebook.com/..."
@@ -1778,7 +2057,10 @@ export default function SiteContent() {
               </div>
 
               <div>
-                <label htmlFor="footer-ig" className="block text-xs font-semibold text-gray-600 mb-1">
+                <label
+                  htmlFor="footer-ig"
+                  className="block text-xs font-semibold text-gray-600 mb-1"
+                >
                   Instagram URL (HTTPS)
                 </label>
                 <input
@@ -1789,7 +2071,10 @@ export default function SiteContent() {
                   onChange={(e) =>
                     setFooterForm({
                       ...footerForm,
-                      social: { ...footerForm.social, instagram: e.target.value },
+                      social: {
+                        ...footerForm.social,
+                        instagram: e.target.value,
+                      },
                     })
                   }
                   placeholder="https://instagram.com/..."
@@ -1798,7 +2083,10 @@ export default function SiteContent() {
               </div>
 
               <div>
-                <label htmlFor="footer-yt" className="block text-xs font-semibold text-gray-600 mb-1">
+                <label
+                  htmlFor="footer-yt"
+                  className="block text-xs font-semibold text-gray-600 mb-1"
+                >
                   YouTube URL (HTTPS)
                 </label>
                 <input
@@ -1823,24 +2111,35 @@ export default function SiteContent() {
           <div className="grid grid-cols-1 gap-5 pt-3 border-t border-gray-100 md:grid-cols-2">
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="footer-brand-tagline" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="footer-brand-tagline"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Sub-judul Merek
                 </label>
-                <CharCounter current={footerForm.brandTagline?.length} max={160} />
+                <CharCounter
+                  current={footerForm.brandTagline?.length}
+                  max={160}
+                />
               </div>
               <input
                 id="footer-brand-tagline"
                 required
                 maxLength={160}
                 value={footerForm.brandTagline || ""}
-                onChange={(e) => setFooterForm({ ...footerForm, brandTagline: e.target.value })}
+                onChange={(e) =>
+                  setFooterForm({ ...footerForm, brandTagline: e.target.value })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="footer-legal-note" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="footer-legal-note"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Catatan Badan Hukum
                 </label>
                 <CharCounter current={footerForm.legalNote?.length} max={200} />
@@ -1850,58 +2149,90 @@ export default function SiteContent() {
                 required
                 maxLength={200}
                 value={footerForm.legalNote || ""}
-                onChange={(e) => setFooterForm({ ...footerForm, legalNote: e.target.value })}
+                onChange={(e) =>
+                  setFooterForm({ ...footerForm, legalNote: e.target.value })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="footer-nav-heading" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="footer-nav-heading"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Judul Kolom Navigasi
                 </label>
-                <CharCounter current={footerForm.navHeading?.length} max={120} />
+                <CharCounter
+                  current={footerForm.navHeading?.length}
+                  max={120}
+                />
               </div>
               <input
                 id="footer-nav-heading"
                 required
                 maxLength={120}
                 value={footerForm.navHeading || ""}
-                onChange={(e) => setFooterForm({ ...footerForm, navHeading: e.target.value })}
+                onChange={(e) =>
+                  setFooterForm({ ...footerForm, navHeading: e.target.value })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="footer-services-heading" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="footer-services-heading"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Judul Kolom Unit Layanan
                 </label>
-                <CharCounter current={footerForm.servicesHeading?.length} max={120} />
+                <CharCounter
+                  current={footerForm.servicesHeading?.length}
+                  max={120}
+                />
               </div>
               <input
                 id="footer-services-heading"
                 required
                 maxLength={120}
                 value={footerForm.servicesHeading || ""}
-                onChange={(e) => setFooterForm({ ...footerForm, servicesHeading: e.target.value })}
+                onChange={(e) =>
+                  setFooterForm({
+                    ...footerForm,
+                    servicesHeading: e.target.value,
+                  })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div className="md:col-span-2">
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="footer-contact-heading" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="footer-contact-heading"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Judul Kolom Kontak
                 </label>
-                <CharCounter current={footerForm.contactHeading?.length} max={120} />
+                <CharCounter
+                  current={footerForm.contactHeading?.length}
+                  max={120}
+                />
               </div>
               <input
                 id="footer-contact-heading"
                 required
                 maxLength={120}
                 value={footerForm.contactHeading || ""}
-                onChange={(e) => setFooterForm({ ...footerForm, contactHeading: e.target.value })}
+                onChange={(e) =>
+                  setFooterForm({
+                    ...footerForm,
+                    contactHeading: e.target.value,
+                  })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
@@ -1910,23 +2241,33 @@ export default function SiteContent() {
           <LinkGroupEditor
             title="Tautan Navigasi Footer"
             links={footerForm.navLinks || []}
-            onChange={(links) => setFooterForm({ ...footerForm, navLinks: links })}
+            onChange={(links) =>
+              setFooterForm({ ...footerForm, navLinks: links })
+            }
           />
 
           <LinkGroupEditor
             title="Tautan Unit Layanan Footer"
             links={footerForm.serviceLinks || []}
-            onChange={(links) => setFooterForm({ ...footerForm, serviceLinks: links })}
+            onChange={(links) =>
+              setFooterForm({ ...footerForm, serviceLinks: links })
+            }
           />
 
           {/* Alert / Status */}
           {status.footer.error && (
-            <p role="alert" className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700">
+            <p
+              role="alert"
+              className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700"
+            >
               {status.footer.error}
             </p>
           )}
           {status.footer.success && (
-            <p role="status" className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800">
+            <p
+              role="status"
+              className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800"
+            >
               {status.footer.success}
             </p>
           )}
@@ -1960,9 +2301,12 @@ export default function SiteContent() {
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-5 border-b border-gray-100">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Identitas Situs & SEO</h2>
+            <h2 className="text-xl font-bold text-gray-900">
+              Identitas Situs & SEO
+            </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Nama lembaga, logo, label menu, judul tab, serta meta deskripsi dan feed.
+              Nama lembaga, logo, label menu, judul tab, serta meta deskripsi
+              dan feed.
             </p>
           </div>
           {updatedAt.site && (
@@ -1982,7 +2326,10 @@ export default function SiteContent() {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="site-name" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="site-name"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Nama Lembaga
                 </label>
                 <CharCounter current={siteForm.name?.length} max={120} />
@@ -1992,14 +2339,19 @@ export default function SiteContent() {
                 required
                 maxLength={120}
                 value={siteForm.name || ""}
-                onChange={(e) => setSiteForm({ ...siteForm, name: e.target.value })}
+                onChange={(e) =>
+                  setSiteForm({ ...siteForm, name: e.target.value })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base font-semibold outline-none focus:border-green-700"
               />
             </div>
 
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="site-legal-name" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="site-legal-name"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Nama Lengkap / Badan Hukum
                 </label>
                 <CharCounter current={siteForm.legalName?.length} max={160} />
@@ -2009,14 +2361,19 @@ export default function SiteContent() {
                 required
                 maxLength={160}
                 value={siteForm.legalName || ""}
-                onChange={(e) => setSiteForm({ ...siteForm, legalName: e.target.value })}
+                onChange={(e) =>
+                  setSiteForm({ ...siteForm, legalName: e.target.value })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="site-tagline" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="site-tagline"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Tagline Header
                 </label>
                 <CharCounter current={siteForm.tagline?.length} max={160} />
@@ -2026,24 +2383,34 @@ export default function SiteContent() {
                 required
                 maxLength={160}
                 value={siteForm.tagline || ""}
-                onChange={(e) => setSiteForm({ ...siteForm, tagline: e.target.value })}
+                onChange={(e) =>
+                  setSiteForm({ ...siteForm, tagline: e.target.value })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="site-admin-label" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="site-admin-label"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Label Tautan Portal Pengelola
                 </label>
-                <CharCounter current={siteForm.adminPortalLabel?.length} max={60} />
+                <CharCounter
+                  current={siteForm.adminPortalLabel?.length}
+                  max={60}
+                />
               </div>
               <input
                 id="site-admin-label"
                 required
                 maxLength={60}
                 value={siteForm.adminPortalLabel || ""}
-                onChange={(e) => setSiteForm({ ...siteForm, adminPortalLabel: e.target.value })}
+                onChange={(e) =>
+                  setSiteForm({ ...siteForm, adminPortalLabel: e.target.value })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
@@ -2061,14 +2428,19 @@ export default function SiteContent() {
               id="site-partner-logo"
               label="Logo Pendamping"
               value={siteForm.partnerLogoUrl || ""}
-              onChange={(url) => setSiteForm({ ...siteForm, partnerLogoUrl: url })}
+              onChange={(url) =>
+                setSiteForm({ ...siteForm, partnerLogoUrl: url })
+              }
             />
           </div>
 
           <div className="pt-3 border-t border-gray-100 space-y-5">
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="site-meta-title" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="site-meta-title"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Judul Tab / Meta Title
                 </label>
                 <CharCounter current={siteForm.metaTitle?.length} max={200} />
@@ -2078,17 +2450,25 @@ export default function SiteContent() {
                 required
                 maxLength={200}
                 value={siteForm.metaTitle || ""}
-                onChange={(e) => setSiteForm({ ...siteForm, metaTitle: e.target.value })}
+                onChange={(e) =>
+                  setSiteForm({ ...siteForm, metaTitle: e.target.value })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="site-meta-description" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="site-meta-description"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Meta Deskripsi
                 </label>
-                <CharCounter current={siteForm.metaDescription?.length} max={400} />
+                <CharCounter
+                  current={siteForm.metaDescription?.length}
+                  max={400}
+                />
               </div>
               <textarea
                 id="site-meta-description"
@@ -2096,14 +2476,19 @@ export default function SiteContent() {
                 rows={3}
                 maxLength={400}
                 value={siteForm.metaDescription || ""}
-                onChange={(e) => setSiteForm({ ...siteForm, metaDescription: e.target.value })}
+                onChange={(e) =>
+                  setSiteForm({ ...siteForm, metaDescription: e.target.value })
+                }
                 className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="site-feed-title" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="site-feed-title"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Judul Feed RSS
                 </label>
                 <CharCounter current={siteForm.feedTitle?.length} max={200} />
@@ -2113,17 +2498,25 @@ export default function SiteContent() {
                 required
                 maxLength={200}
                 value={siteForm.feedTitle || ""}
-                onChange={(e) => setSiteForm({ ...siteForm, feedTitle: e.target.value })}
+                onChange={(e) =>
+                  setSiteForm({ ...siteForm, feedTitle: e.target.value })
+                }
                 className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
 
             <div>
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="site-feed-description" className="block text-sm font-bold text-gray-700">
+                <label
+                  htmlFor="site-feed-description"
+                  className="block text-sm font-bold text-gray-700"
+                >
                   Deskripsi Feed RSS
                 </label>
-                <CharCounter current={siteForm.feedDescription?.length} max={400} />
+                <CharCounter
+                  current={siteForm.feedDescription?.length}
+                  max={400}
+                />
               </div>
               <textarea
                 id="site-feed-description"
@@ -2131,7 +2524,9 @@ export default function SiteContent() {
                 rows={2}
                 maxLength={400}
                 value={siteForm.feedDescription || ""}
-                onChange={(e) => setSiteForm({ ...siteForm, feedDescription: e.target.value })}
+                onChange={(e) =>
+                  setSiteForm({ ...siteForm, feedDescription: e.target.value })
+                }
                 className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
               />
             </div>
@@ -2139,7 +2534,10 @@ export default function SiteContent() {
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div>
                 <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                  <label htmlFor="site-copyright" className="block text-sm font-bold text-gray-700">
+                  <label
+                    htmlFor="site-copyright"
+                    className="block text-sm font-bold text-gray-700"
+                  >
                     Teks Hak Cipta
                   </label>
                   <CharCounter current={siteForm.copyright?.length} max={200} />
@@ -2149,24 +2547,34 @@ export default function SiteContent() {
                   required
                   maxLength={200}
                   value={siteForm.copyright || ""}
-                  onChange={(e) => setSiteForm({ ...siteForm, copyright: e.target.value })}
+                  onChange={(e) =>
+                    setSiteForm({ ...siteForm, copyright: e.target.value })
+                  }
                   className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
                 />
               </div>
 
               <div>
                 <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                  <label htmlFor="site-location-line" className="block text-sm font-bold text-gray-700">
+                  <label
+                    htmlFor="site-location-line"
+                    className="block text-sm font-bold text-gray-700"
+                  >
                     Baris Lokasi Sub-footer
                   </label>
-                  <CharCounter current={siteForm.locationLine?.length} max={160} />
+                  <CharCounter
+                    current={siteForm.locationLine?.length}
+                    max={160}
+                  />
                 </div>
                 <input
                   id="site-location-line"
                   required
                   maxLength={160}
                   value={siteForm.locationLine || ""}
-                  onChange={(e) => setSiteForm({ ...siteForm, locationLine: e.target.value })}
+                  onChange={(e) =>
+                    setSiteForm({ ...siteForm, locationLine: e.target.value })
+                  }
                   className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
                 />
               </div>
@@ -2174,7 +2582,9 @@ export default function SiteContent() {
           </div>
 
           <div className="pt-3 border-t border-gray-100">
-            <h3 className="text-sm font-bold text-gray-800 mb-3">Label Menu Navigasi</h3>
+            <h3 className="text-sm font-bold text-gray-800 mb-3">
+              Label Menu Navigasi
+            </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {NAV_FIELDS.map((field) => (
                 <div key={field.name}>
@@ -2185,7 +2595,10 @@ export default function SiteContent() {
                     >
                       {field.label}
                     </label>
-                    <CharCounter current={siteForm.nav?.[field.name]?.length} max={40} />
+                    <CharCounter
+                      current={siteForm.nav?.[field.name]?.length}
+                      max={40}
+                    />
                   </div>
                   <input
                     id={`site-nav-${field.name}`}
@@ -2206,12 +2619,18 @@ export default function SiteContent() {
           </div>
 
           {status.site.error && (
-            <p role="alert" className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700">
+            <p
+              role="alert"
+              className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700"
+            >
               {status.site.error}
             </p>
           )}
           {status.site.success && (
-            <p role="status" className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800">
+            <p
+              role="status"
+              className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800"
+            >
               {status.site.success}
             </p>
           )}
@@ -2247,7 +2666,8 @@ export default function SiteContent() {
           <div>
             <h2 className="text-xl font-bold text-gray-900">Teks Halaman</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Eyebrow, judul, deskripsi, dan teks saat daftar kosong untuk tiap section dan halaman publik.
+              Eyebrow, judul, deskripsi, dan teks saat daftar kosong untuk tiap
+              section dan halaman publik.
             </p>
           </div>
           {updatedAt.sections && (
@@ -2265,7 +2685,10 @@ export default function SiteContent() {
           className="mt-6 space-y-8"
         >
           {SECTION_FIELDS.map((group) => (
-            <fieldset key={group.key} className="rounded-2xl border border-gray-200 p-4 sm:p-5">
+            <fieldset
+              key={group.key}
+              className="rounded-2xl border border-gray-200 p-4 sm:p-5"
+            >
               <legend className="px-2 text-sm font-bold text-gray-800">
                 {group.title}
               </legend>
@@ -2274,9 +2697,15 @@ export default function SiteContent() {
                   const value = sectionsForm[group.key]?.[field.name] || "";
                   const inputId = `section-${group.key}-${field.name}`;
                   return (
-                    <div key={field.name} className={field.textarea ? "md:col-span-2" : ""}>
+                    <div
+                      key={field.name}
+                      className={field.textarea ? "md:col-span-2" : ""}
+                    >
                       <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                        <label htmlFor={inputId} className="block text-sm font-bold text-gray-700">
+                        <label
+                          htmlFor={inputId}
+                          className="block text-sm font-bold text-gray-700"
+                        >
                           {field.label}
                         </label>
                         <CharCounter current={value.length} max={field.max} />
@@ -2289,7 +2718,11 @@ export default function SiteContent() {
                           maxLength={field.max}
                           value={value}
                           onChange={(e) =>
-                            updateSectionField(group.key, field.name, e.target.value)
+                            updateSectionField(
+                              group.key,
+                              field.name,
+                              e.target.value,
+                            )
                           }
                           className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-2.5 text-base outline-none focus:border-green-700"
                         />
@@ -2300,7 +2733,11 @@ export default function SiteContent() {
                           maxLength={field.max}
                           value={value}
                           onChange={(e) =>
-                            updateSectionField(group.key, field.name, e.target.value)
+                            updateSectionField(
+                              group.key,
+                              field.name,
+                              e.target.value,
+                            )
                           }
                           className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base outline-none focus:border-green-700"
                         />
@@ -2313,12 +2750,18 @@ export default function SiteContent() {
           ))}
 
           {status.sections.error && (
-            <p role="alert" className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700">
+            <p
+              role="alert"
+              className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700"
+            >
               {status.sections.error}
             </p>
           )}
           {status.sections.success && (
-            <p role="status" className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800">
+            <p
+              role="status"
+              className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800"
+            >
               {status.sections.success}
             </p>
           )}
@@ -2356,4 +2799,3 @@ export default function SiteContent() {
     </div>
   );
 }
-
