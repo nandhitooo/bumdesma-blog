@@ -91,22 +91,31 @@ const Activity = () => {
     : fallbackItems.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <section className="py-10 sm:py-14 lg:py-16 bg-white scroll-mt-18" id="activity">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="max-w-3xl mb-12">
-          <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
-            Dokumentasi
-          </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3 break-words">
-            Kegiatan Terbaru
-          </h2>
-          <p className="text-sm sm:text-base text-gray-600">
-            Dokumentasi berbagai program dan kegiatan operasional BUMDESMA dalam memajukan ekonomi desa.
-          </p>
+    <section className="py-12 md:py-20 bg-gray-50 border-b border-gray-200 scroll-mt-18" id="activity">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-gray-200 gap-4">
+          <div>
+            <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
+              Dokumentasi
+            </span>
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight mt-1 mb-2 break-words">
+              Kegiatan Terbaru
+            </h2>
+            <p className="text-base text-gray-600">
+              Dokumentasi berbagai program dan kegiatan operasional BUMDESMA dalam memajukan ekonomi desa.
+            </p>
+          </div>
+          <Link
+            to="/galeri"
+            className="inline-flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-primary hover:text-brand-dark transition-colors motion-reduce:transition-none"
+          >
+            <span>Buka Galeri Penuh</span>
+            <i className="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+          </Link>
         </div>
 
-        {/* Max 3 columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* 3 Columns Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {currentItems.map((item, index) => {
             const isArticle = usingArticles;
             const image = isArticle ? item.coverImageUrl : item.img;
@@ -117,10 +126,10 @@ const Activity = () => {
             return (
               <article
                 key={isArticle ? item.id : `${item.text}-${index}`}
-                className="group bg-white rounded-xl overflow-hidden border border-gray-200 hover:border-gray-300 transition-colors motion-reduce:transition-none flex flex-col"
+                className="group bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm hover:border-gray-300 transition-colors motion-reduce:transition-none flex flex-col"
               >
                 <Link to={targetLink} className="flex-1 flex flex-col">
-                  <div className="relative h-52 bg-gray-100 overflow-hidden">
+                  <div className="relative h-48 bg-gray-100 overflow-hidden">
                     <ArticleImage
                       src={image}
                       alt={title}
@@ -128,12 +137,12 @@ const Activity = () => {
                       className="transition-opacity motion-reduce:transition-none duration-300 group-hover:opacity-90"
                     />
                     <div className="absolute top-3 left-3 z-10">
-                      <span className="bg-white/95 text-brand-primary text-xs font-semibold px-2.5 py-1 rounded border border-gray-200">
+                      <span className="bg-white text-brand-primary text-xs font-semibold px-2.5 py-1 rounded shadow-sm border border-gray-200">
                         {category}
                       </span>
                     </div>
                   </div>
-                  <div className="min-w-0 p-5 flex-1 flex flex-col justify-between">
+                  <div className="min-w-0 p-5 sm:p-6 flex-1 flex flex-col justify-between">
                     <h3 className="text-base font-bold text-gray-900 group-hover:text-brand-primary transition-colors motion-reduce:transition-none leading-snug break-words">
                       {title}
                     </h3>
@@ -155,7 +164,7 @@ const Activity = () => {
               type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
-              className="inline-flex min-h-[44px] items-center justify-center px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors motion-reduce:transition-none cursor-pointer"
+              className="inline-flex min-h-[44px] items-center justify-center px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-colors motion-reduce:transition-none cursor-pointer"
             >
               Sebelumnya
             </button>
@@ -166,7 +175,7 @@ const Activity = () => {
               type="button"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(currentPage + 1)}
-              className="inline-flex min-h-[44px] items-center justify-center px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors motion-reduce:transition-none cursor-pointer"
+              className="inline-flex min-h-[44px] items-center justify-center px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-colors motion-reduce:transition-none cursor-pointer"
             >
               Selanjutnya
             </button>

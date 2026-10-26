@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
-// Daftar fitur modul CMS. Semua fitur di bawah tersedia di panel /admin.
 const features = [
   {
     icon: "fa-pen-to-square",
@@ -65,13 +64,13 @@ function CmsLanding() {
   return (
     <main>
       {/* Hero */}
-      <section className="bg-white pt-8 sm:pt-10 lg:pt-12 pb-16 sm:pb-24 border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <section className="bg-white py-12 md:py-20 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
-            <span className="inline-block text-xs font-semibold tracking-wider text-brand-primary uppercase mb-4">
+            <span className="inline-block text-xs font-semibold tracking-wider text-brand-primary uppercase mb-3">
               Modul CMS
             </span>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 leading-tight mb-6">
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 leading-tight mb-5">
               Kelola Konten Situs BUMDESMA dari Satu Panel
             </h1>
             <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
@@ -82,14 +81,14 @@ function CmsLanding() {
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <Link
                 to="/admin/login"
-                className="inline-flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-dark text-white text-sm sm:text-base font-medium px-6 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+                className="inline-flex min-h-[44px] items-center justify-center gap-2 bg-brand-primary hover:bg-brand-dark text-white text-sm sm:text-base font-medium px-6 py-3 rounded-lg shadow-sm transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
               >
                 <span>Masuk ke Panel CMS</span>
                 <i className="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
               </Link>
               <Link
                 to="/blog"
-                className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 text-sm sm:text-base font-medium px-6 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+                className="inline-flex min-h-[44px] items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 text-sm sm:text-base font-medium px-6 py-3 rounded-lg shadow-sm transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
               >
                 <span>Lihat Blog Publik</span>
               </Link>
@@ -103,16 +102,16 @@ function CmsLanding() {
       </section>
 
       {/* Fitur */}
-      <section className="bg-gray-50 pt-8 sm:pt-10 lg:pt-12 pb-16 sm:pb-20 border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <section className="bg-gray-50 py-12 md:py-20 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mb-12">
             <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
               Fitur Utama
             </span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3">
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight mt-1 mb-3">
               Semua yang Dibutuhkan Pengelola
             </h2>
-            <p className="text-sm sm:text-base text-gray-600">
+            <p className="text-base text-gray-600">
               Fitur disusun sederhana supaya pengurus desa dapat mengelola
               publikasi secara mandiri dan konsisten.
             </p>
@@ -122,7 +121,7 @@ function CmsLanding() {
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="bg-white p-6 sm:p-7 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors"
+                className="bg-white p-6 sm:p-7 rounded-lg border border-gray-200 shadow-sm hover:border-gray-300 transition-colors"
               >
                 <div className="w-11 h-11 bg-brand-light rounded-lg flex items-center justify-center text-brand-primary mb-5">
                   <i
@@ -143,16 +142,16 @@ function CmsLanding() {
       </section>
 
       {/* Cara kerja */}
-      <section className="bg-white pt-8 sm:pt-10 lg:pt-12 pb-16 sm:pb-20 border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <section className="bg-white py-12 md:py-20 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mb-12">
             <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
               Cara Kerja
             </span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3">
+            <h2 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight mt-1 mb-3">
               Tiga Langkah Menerbitkan Artikel
             </h2>
-            <p className="text-sm sm:text-base text-gray-600">
+            <p className="text-base text-gray-600">
               Dari login sampai artikel tampil di halaman blog publik.
             </p>
           </div>
@@ -161,7 +160,7 @@ function CmsLanding() {
             {steps.map((step) => (
               <li
                 key={step.number}
-                className="bg-gray-50 p-6 sm:p-7 rounded-xl border border-gray-200"
+                className="bg-gray-50 p-6 sm:p-7 rounded-lg border border-gray-200 shadow-sm"
               >
                 <span className="w-9 h-9 rounded-lg bg-brand-primary text-white text-sm font-bold flex items-center justify-center mb-5">
                   {step.number}
@@ -179,14 +178,14 @@ function CmsLanding() {
       </section>
 
       {/* Ajakan */}
-      <section className="bg-brand-primary pt-8 sm:pt-10 lg:pt-12 pb-14 sm:pb-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-7">
+      <section className="bg-brand-primary py-12 md:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
             <div className="max-w-2xl">
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-3">
                 Siap Mengelola Konten Desa?
               </h2>
-              <p className="text-sm sm:text-base text-brand-light leading-relaxed">
+              <p className="text-base text-brand-light leading-relaxed">
                 Masuk ke panel CMS untuk mulai menulis artikel, mengatur
                 kategori, dan menerbitkan kabar terbaru BUMDESMA.
               </p>
@@ -194,7 +193,7 @@ function CmsLanding() {
             <div className="shrink-0">
               <Link
                 to="/admin/login"
-                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-white hover:bg-gray-50 text-brand-dark text-sm sm:text-base font-semibold px-6 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand-primary"
+                className="inline-flex min-h-[44px] w-full sm:w-auto items-center justify-center gap-2 bg-white hover:bg-gray-50 text-brand-dark text-sm sm:text-base font-semibold px-6 py-3 rounded-lg shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-primary"
               >
                 <i className="fa-solid fa-right-to-bracket text-xs" aria-hidden="true"></i>
                 <span>Masuk ke Panel CMS</span>

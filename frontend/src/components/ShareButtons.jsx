@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-// Salinan cadangan untuk browser lama / konteks non-secure: navigator.clipboard
-// hanya tersedia di HTTPS (atau localhost). Textarea sementara dipakai karena
-// document.execCommand("copy") menyalin dari elemen yang sedang terseleksi.
 function copyWithFallback(text) {
   const field = document.createElement("textarea");
   field.value = text;
@@ -30,8 +27,6 @@ function ShareButtons({ title, slug }) {
     [],
   );
 
-  // Tautan bagikan memakai halaman pratinjau /share/:slug supaya gambar dan
-  // ringkasannya ikut muncul saat tautan ditempel di media sosial.
   const shareUrl = `${window.location.origin}/share/${slug}`;
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${title} ${shareUrl}`)}`;
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
@@ -50,7 +45,7 @@ function ShareButtons({ title, slug }) {
   };
 
   const buttonClass =
-    "inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors motion-reduce:transition-none hover:border-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2";
+    "inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors motion-reduce:transition-none hover:border-gray-300 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2";
 
   return (
     <section className="mt-12 border-t border-gray-200 pt-8" aria-labelledby="bagikan-judul">
@@ -82,7 +77,7 @@ function ShareButtons({ title, slug }) {
         </button>
       </div>
       <p aria-live="polite" className="mt-3 text-sm font-semibold text-brand-primary">
-        {copied ? "Tautan disalin" : ""}
+        {copied ? "Tautan berhasil disalin ke papan klip" : ""}
       </p>
     </section>
   );

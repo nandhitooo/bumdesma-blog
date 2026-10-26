@@ -8,28 +8,28 @@ const Service = () => {
   const items = Array.isArray(services?.items) ? services.items : [];
 
   return (
-    <section className="py-10 sm:py-14 lg:py-16 bg-gray-50 border-t border-gray-200 scroll-mt-18" id="services">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+    <section className="py-12 md:py-20 bg-white border-b border-gray-200 scroll-mt-18" id="services">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-12">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
             Unit Usaha
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3 break-words">
+          <h2 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight mt-1 mb-3 break-words">
             Layanan Kami
           </h2>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-base text-gray-600">
             Berbagai layanan profesional untuk mendukung pertumbuhan ekonomi dan kemandirian masyarakat desa.
           </p>
         </div>
 
-        {/* Max 3 columns grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* 3 Columns Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((service, index) => {
             const hasValidIcon = isValidIcon(service.icon);
             return (
               <div
                 key={index}
-                className="min-w-0 bg-white p-6 sm:p-7 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors motion-reduce:transition-none flex flex-col justify-between"
+                className="min-w-0 bg-gray-50 p-6 sm:p-7 rounded-lg border border-gray-200 shadow-sm hover:border-gray-300 transition-colors motion-reduce:transition-none flex flex-col justify-between"
               >
                 <div>
                   <div className="w-11 h-11 bg-brand-light rounded-lg flex items-center justify-center text-brand-primary mb-5">

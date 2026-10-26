@@ -10,8 +10,6 @@ function BlogList() {
   const [articleResult, setArticleResult] = useState(null);
   const [categories, setCategories] = useState([]);
   const [categoryError, setCategoryError] = useState("");
-  // ?page=abc atau angka negatif tidak diteruskan ke API; nilai yang tidak
-  // masuk akal dianggap halaman pertama.
   const pageParam = Number.parseInt(searchParams.get("page") || "1", 10);
   const page = Number.isInteger(pageParam) && pageParam >= 1 ? pageParam : 1;
   const category = searchParams.get("category") || "";
@@ -36,8 +34,6 @@ function BlogList() {
     };
   }, []);
 
-  // Kotak pencarian mengikuti ?q= di URL, termasuk saat pengguna menekan tombol
-  // Back/Forward browser.
   useEffect(() => {
     setSearch(query);
   }, [query]);
@@ -109,29 +105,42 @@ function BlogList() {
     updateFilters({ q: search.trim() });
   };
 
+  const showFeatured = page === 1 && !query && !category && articles.length > 0;
+  const featuredArticle = showFeatured ? articles[0] : null;
+  const gridArticles = showFeatured ? articles.slice(1) : articles;
+
   return (
-    <main className="min-h-dvh bg-gray-50 py-10 sm:py-14 lg:py-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        {/* Header */}
-        <div className="mb-10 max-w-2xl">
+    <main className="min-h-dvh bg-gray-50 py-12 md:py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-2 text-xs text-gray-500">
+          <Link to="/" className="hover:text-brand-primary transition-colors motion-reduce:transition-none">
+            Beranda
+          </Link>
+          <i className="fa-solid fa-chevron-right text-[9px] text-gray-400" aria-hidden="true"></i>
+          <span className="text-gray-900 font-medium">Blog</span>
+        </nav>
+
+        {/* Uniform Page Header */}
+        <div className="mb-10 max-w-3xl">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
-            Kabar & Publikasi
+            Kabar &amp; Publikasi
           </span>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mt-2 mb-3 break-words">
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 mt-1 mb-3 break-words">
             Blog BUMDESMA Podo Rukun
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
             Informasi, kegiatan, dan cerita terbaru dari BUMDESMA Podo Rukun LKD Kecamatan Wilangan.
           </p>
         </div>
 
         {/* Filter and Search Bar */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 mb-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2 overflow-x-auto pb-1 md:pb-0" aria-label="Filter kategori">
             <button
               type="button"
               onClick={() => updateFilters({ category: "" })}
-              className={`min-h-[44px] px-3.5 py-2 text-sm font-medium rounded-lg transition-colors motion-reduce:transition-none cursor-pointer flex items-center ${
+              className={`min-h-[44px] px-4 py-2 text-sm font-medium rounded-lg transition-colors motion-reduce:transition-none cursor-pointer flex items-center ${
                 !category
                   ? "bg-brand-primary text-white"
                   : "bg-gray-100 hover:bg-gray-200 text-gray-700"
@@ -144,7 +153,7 @@ function BlogList() {
                 key={item.id}
                 type="button"
                 onClick={() => updateFilters({ category: item.slug })}
-                className={`min-h-[44px] px-3.5 py-2 text-sm font-medium rounded-lg transition-colors motion-reduce:transition-none cursor-pointer flex items-center ${
+                className={`min-h-[44px] px-4 py-2 text-sm font-medium rounded-lg transition-colors motion-reduce:transition-none cursor-pointer flex items-center ${
                   category === item.slug
                     ? "bg-brand-primary text-white"
                     : "bg-gray-100 hover:bg-gray-200 text-gray-700"
@@ -165,11 +174,11 @@ function BlogList() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Cari artikel..."
-              className="w-full sm:w-56 min-h-[44px] px-3.5 py-2 text-sm bg-white border border-gray-300 rounded-lg outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-colors motion-reduce:transition-none text-gray-900"
+              className="w-full sm:w-60 min-h-[44px] px-3.5 py-2 text-sm bg-white border border-gray-300 rounded-lg outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-colors motion-reduce:transition-none text-gray-900"
             />
             <button
               type="submit"
-              className="min-h-[44px] bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors motion-reduce:transition-none cursor-pointer flex items-center justify-center shrink-0"
+              className="min-h-[44px] bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium px-5 py-2 rounded-lg shadow-sm transition-colors motion-reduce:transition-none cursor-pointer flex items-center justify-center shrink-0"
             >
               Cari
             </button>
@@ -188,54 +197,99 @@ function BlogList() {
             Memuat artikel...
           </div>
         ) : articles.length ? (
-          /* At most 3 columns */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {articles.map((article) => (
-              <article
-                key={article.id}
-                className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors motion-reduce:transition-none flex flex-col"
-              >
-                <Link to={`/blog/${article.slug}`} className="flex-1 flex flex-col">
-                  <ArticleImage
-                    src={article.coverImageUrl}
-                    alt={article.title}
-                    containerClassName="h-48 w-full bg-gray-100"
-                    className="transition-opacity motion-reduce:transition-none duration-300 group-hover:opacity-90"
-                  />
-
-                  <div className="min-w-0 p-5 flex-1 flex flex-col justify-between">
+          <div className="space-y-8">
+            {/* 1 Artikel Unggulan Besar di Atas */}
+            {featuredArticle && (
+              <article className="group bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:border-gray-300 transition-colors motion-reduce:transition-none">
+                <Link to={`/blog/${featuredArticle.slug}`} className="grid grid-cols-1 lg:grid-cols-12 gap-0">
+                  <div className="lg:col-span-7 h-64 sm:h-80 lg:h-auto bg-gray-100 overflow-hidden">
+                    <ArticleImage
+                      src={featuredArticle.coverImageUrl}
+                      alt={featuredArticle.title}
+                      containerClassName="w-full h-full min-h-[260px]"
+                      className="transition-opacity motion-reduce:transition-none duration-300 group-hover:opacity-90"
+                    />
+                  </div>
+                  <div className="lg:col-span-5 min-w-0 p-6 sm:p-8 flex flex-col justify-between">
                     <div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mb-2.5">
-                        {article.categoryName && (
-                          <span className="bg-brand-light text-brand-primary font-semibold px-2 py-0.5 rounded">
-                            {article.categoryName}
-                          </span>
-                        )}
-                        {article.publishedAt && (
-                          <time dateTime={article.publishedAt}>
-                            {formatDate(article.publishedAt)}
+                      <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
+                        <span className="bg-brand-light text-brand-primary font-semibold px-2.5 py-1 rounded">
+                          {featuredArticle.categoryName || "Umum"}
+                        </span>
+                        {featuredArticle.publishedAt && (
+                          <time dateTime={featuredArticle.publishedAt}>
+                            {formatDate(featuredArticle.publishedAt)}
                           </time>
                         )}
                       </div>
-                      <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-brand-primary transition-colors motion-reduce:transition-none leading-snug mb-2 break-words">
-                        {article.title}
+                      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 group-hover:text-brand-primary transition-colors motion-reduce:transition-none leading-snug mb-3 break-words line-clamp-2">
+                        {featuredArticle.title}
                       </h2>
-                      <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed mb-4 break-words">
-                        {article.excerpt}
+                      <p className="text-sm text-gray-600 leading-relaxed mb-6 break-words line-clamp-3">
+                        {featuredArticle.excerpt}
                       </p>
                     </div>
-
-                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-primary">
-                      <span>Baca selengkapnya</span>
-                      <i className="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i>
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-brand-primary group-hover:text-brand-dark transition-colors motion-reduce:transition-none">
+                      <span>Baca artikel lengkap</span>
+                      <i className="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
                     </span>
                   </div>
                 </Link>
               </article>
-            ))}
+            )}
+
+            {/* Grid Kartu: 1 kolom (mobile) / 2 kolom (tablet) / 3 kolom (desktop) */}
+            {gridArticles.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {gridArticles.map((article) => (
+                  <article
+                    key={article.id}
+                    className="group bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:border-gray-300 transition-colors motion-reduce:transition-none flex flex-col"
+                  >
+                    <Link to={`/blog/${article.slug}`} className="flex-1 flex flex-col">
+                      <ArticleImage
+                        src={article.coverImageUrl}
+                        alt={article.title}
+                        aspectRatio="aspect-[16/9]"
+                        containerClassName="w-full bg-gray-100"
+                        className="transition-opacity motion-reduce:transition-none duration-300 group-hover:opacity-90"
+                      />
+
+                      <div className="min-w-0 p-5 sm:p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 text-xs text-gray-500 mb-2.5">
+                            {article.categoryName && (
+                              <span className="bg-brand-light text-brand-primary font-semibold px-2 py-0.5 rounded">
+                                {article.categoryName}
+                              </span>
+                            )}
+                            {article.publishedAt && (
+                              <time dateTime={article.publishedAt}>
+                                {formatDate(article.publishedAt)}
+                              </time>
+                            )}
+                          </div>
+                          <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-brand-primary transition-colors motion-reduce:transition-none leading-snug mb-2 break-words line-clamp-2">
+                            {article.title}
+                          </h2>
+                          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed mb-4 break-words">
+                            {article.excerpt}
+                          </p>
+                        </div>
+
+                        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-primary">
+                          <span>Baca selengkapnya</span>
+                          <i className="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i>
+                        </span>
+                      </div>
+                    </Link>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
-          <div className="mx-auto max-w-lg rounded-xl border border-gray-200 bg-white p-6 text-center sm:p-12">
+          <div className="mx-auto max-w-lg rounded-lg border border-gray-200 bg-white p-8 text-center shadow-sm">
             <h2 className="text-lg font-bold text-gray-900 mb-1">
               Belum ada artikel
             </h2>
@@ -267,7 +321,7 @@ function BlogList() {
               type="button"
               disabled={pagination.page <= 1}
               onClick={() => updateFilters({ page: String(pagination.page - 1) })}
-              className="min-h-[44px] px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors motion-reduce:transition-none cursor-pointer flex items-center"
+              className="min-h-[44px] px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-colors motion-reduce:transition-none cursor-pointer flex items-center"
             >
               Sebelumnya
             </button>
@@ -278,7 +332,7 @@ function BlogList() {
               type="button"
               disabled={pagination.page >= pagination.totalPages}
               onClick={() => updateFilters({ page: String(pagination.page + 1) })}
-              className="min-h-[44px] px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors motion-reduce:transition-none cursor-pointer flex items-center"
+              className="min-h-[44px] px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-colors motion-reduce:transition-none cursor-pointer flex items-center"
             >
               Selanjutnya
             </button>

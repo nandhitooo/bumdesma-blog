@@ -16,9 +16,8 @@ const defaultHighlights = [
     title: "Launching PT LKM ARTHA TANJUNG MANDIRI",
     categoryName: "Bisnis",
     coverImageUrl: kegiatan8,
-    excerpt: "Langkah strategis pengembangan layanan keuangan mikro desa untuk mendukung permodalan dan penguatan usaha warga.",
-    // Tanpa publishedAt: kartu ini bukan berita sungguhan, jadi tidak boleh
-    // menampilkan tanggal seolah-olah artikel terbit pada tanggal tersebut.
+    excerpt:
+      "Langkah strategis pengembangan layanan keuangan mikro desa untuk mendukung permodalan dan penguatan usaha warga.",
     slug: "",
   },
   {
@@ -26,7 +25,8 @@ const defaultHighlights = [
     title: "Evaluasi Kinerja Tahunan BUMDESMA Podo Rukun",
     categoryName: "Internal",
     coverImageUrl: kegiatan1,
-    excerpt: "Pertanggungjawaban pengelolaan unit usaha desa dan perencanaan program kerja berkelanjutan.",
+    excerpt:
+      "Pertanggungjawaban pengelolaan unit usaha desa dan perencanaan program kerja berkelanjutan.",
     slug: "",
   },
   {
@@ -34,7 +34,8 @@ const defaultHighlights = [
     title: "Bazar Produk Desa & Pemberdayaan Ekonomi Warga",
     categoryName: "Event",
     coverImageUrl: kegiatan2,
-    excerpt: "Mendorong promosi produk unggulan masyarakat desa Wilangan agar memiliki daya saing lebih luas.",
+    excerpt:
+      "Mendorong promosi produk unggulan masyarakat desa Wilangan agar memiliki daya saing lebih luas.",
     slug: "",
   },
 ];
@@ -74,37 +75,57 @@ const Home = () => {
 
   return (
     <div id="home" className="scroll-mt-18">
-      {/* Hero Section */}
-      <section className="bg-white py-10 sm:py-14 lg:py-16 border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="max-w-3xl">
-            <span className="inline-block text-xs font-semibold tracking-wider text-brand-primary uppercase mb-4">
-              {hero.subtitle}
-            </span>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900 leading-tight mb-6 break-words">
-              {hero.title}
-            </h1>
-            <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8">
-              {hero.description}
-            </p>
-            <div>
-              <a
-                href="#berita-terbaru"
-                className="inline-flex min-h-[44px] items-center gap-2 bg-brand-primary hover:bg-brand-dark text-white text-sm sm:text-base font-medium px-6 py-3 rounded-lg transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
-              >
-                <span>{hero.buttonLabel || "Lihat Berita Terbaru"}</span>
-                <i className="fa-solid fa-arrow-down text-xs" aria-hidden="true"></i>
-              </a>
+      {/* Hero Section: 2 Columns */}
+      <section className="bg-white py-12 md:py-20 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            {/* Left: Headline & Single CTA */}
+            <div className="lg:col-span-7">
+              <span className="inline-block text-xs font-semibold tracking-wider text-brand-primary uppercase mb-3">
+                {hero.subtitle}
+              </span>
+              <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 leading-tight mb-5 break-words">
+                {hero.title}
+              </h1>
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-8 max-w-2xl">
+                {hero.description}
+              </p>
+              <div>
+                <a
+                  href="#berita-terbaru"
+                  className="inline-flex min-h-[44px] items-center gap-2 bg-brand-primary hover:bg-brand-dark text-white text-sm sm:text-base font-medium px-6 py-3 rounded-lg shadow-sm transition-colors motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+                >
+                  <span>{hero.buttonLabel || "Lihat Berita Terbaru"}</span>
+                  <i className="fa-solid fa-arrow-down text-xs" aria-hidden="true"></i>
+                </a>
+              </div>
+            </div>
+
+            {/* Right: Featured Visual / Photo */}
+            <div className="lg:col-span-5">
+              <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm bg-gray-100 aspect-[16/10]">
+                <img
+                  src={kegiatan8}
+                  alt="Kegiatan BUMDESMA Podo Rukun"
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                  decoding="async"
+                />
+              </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Hero Highlights */}
-          {Array.isArray(hero.highlights) && hero.highlights.length > 0 && (
-            <div className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 pt-10 border-t border-gray-100">
+      {/* Hero Highlights: 3 Cards Strip */}
+      {Array.isArray(hero.highlights) && hero.highlights.length > 0 && (
+        <section className="bg-gray-50 py-10 md:py-14 border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {hero.highlights.map((item, index) => (
                 <div
                   key={index}
-                  className="bg-gray-50 p-5 sm:p-6 rounded-xl border border-gray-200 flex flex-col justify-between"
+                  className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-between"
                 >
                   <div>
                     <div className="w-10 h-10 bg-brand-light rounded-lg flex items-center justify-center text-brand-primary mb-4">
@@ -122,19 +143,22 @@ const Home = () => {
                 </div>
               ))}
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       {/* Berita Terbaru Section */}
-      <section id="berita-terbaru" className="bg-gray-50 py-10 sm:py-14 lg:py-16 scroll-mt-18">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <section id="berita-terbaru" className="bg-white py-12 md:py-20 border-b border-gray-200 scroll-mt-18">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-4 border-b border-gray-200 gap-4">
             <div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight break-words">
+              <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
+                Publikasi & Kabar
+              </span>
+              <h2 className="text-2xl md:text-4xl font-bold text-gray-900 tracking-tight mt-1 break-words">
                 Berita Terbaru
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm sm:text-base text-gray-600 mt-1">
                 Kabar, pengumuman, dan cerita terkini seputar kegiatan BUMDESMA.
               </p>
             </div>
@@ -155,7 +179,7 @@ const Home = () => {
             <div className="space-y-8">
               {/* Featured Article */}
               {featuredArticle && (
-                <article className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors motion-reduce:transition-none">
+                <article className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:border-gray-300 transition-colors motion-reduce:transition-none">
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
                     <div className="lg:col-span-7 h-64 sm:h-80 lg:h-auto bg-gray-100 overflow-hidden">
                       <ArticleImage
@@ -180,20 +204,20 @@ const Home = () => {
                           {featuredArticle.slug ? (
                             <Link
                               to={`/blog/${featuredArticle.slug}`}
-                              className="inline-flex min-h-[44px] items-center hover:text-brand-primary transition-colors motion-reduce:transition-none"
+                              className="hover:text-brand-primary transition-colors motion-reduce:transition-none"
                             >
                               {featuredArticle.title}
                             </Link>
                           ) : (
                             <Link
                               to="/blog"
-                              className="inline-flex min-h-[44px] items-center hover:text-brand-primary transition-colors motion-reduce:transition-none"
+                              className="hover:text-brand-primary transition-colors motion-reduce:transition-none"
                             >
                               {featuredArticle.title}
                             </Link>
                           )}
                         </h3>
-                        <p className="text-sm text-gray-600 leading-relaxed mb-6 break-words">
+                        <p className="text-sm text-gray-600 leading-relaxed mb-6 break-words line-clamp-3">
                           {featuredArticle.excerpt}
                         </p>
                       </div>
@@ -211,24 +235,24 @@ const Home = () => {
                 </article>
               )}
 
-              {/* Small Article Grid (At most 3 columns) */}
+              {/* Small Article Grid: 3 Columns */}
               {gridArticles.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {gridArticles.map((item) => (
                     <article
                       key={item.id}
-                      className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 transition-colors motion-reduce:transition-none flex flex-col"
+                      className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:border-gray-300 transition-colors motion-reduce:transition-none flex flex-col"
                     >
-                      <div className="h-44 bg-gray-100 overflow-hidden">
+                      <div className="h-48 bg-gray-100 overflow-hidden">
                         <ArticleImage
                           src={item.coverImageUrl}
                           alt={item.title}
                           containerClassName="w-full h-full"
                         />
                       </div>
-                      <div className="min-w-0 p-5 flex-1 flex flex-col justify-between">
+                      <div className="min-w-0 p-5 sm:p-6 flex-1 flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                          <div className="flex items-center gap-2 text-xs text-gray-500 mb-2.5">
                             <span className="bg-brand-light text-brand-primary font-semibold px-2 py-0.5 rounded">
                               {item.categoryName || "Umum"}
                             </span>
@@ -238,14 +262,14 @@ const Home = () => {
                               </time>
                             )}
                           </div>
-                          <h4 className="text-base font-bold text-gray-900 leading-snug mb-2 break-words">
+                          <h3 className="text-base font-bold text-gray-900 leading-snug mb-2 break-words line-clamp-2">
                             <Link
                               to={item.slug ? `/blog/${item.slug}` : "/blog"}
-                              className="inline-flex min-h-[44px] items-center hover:text-brand-primary transition-colors motion-reduce:transition-none"
+                              className="hover:text-brand-primary transition-colors motion-reduce:transition-none"
                             >
                               {item.title}
                             </Link>
-                          </h4>
+                          </h3>
                           <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed mb-4 break-words">
                             {item.excerpt}
                           </p>

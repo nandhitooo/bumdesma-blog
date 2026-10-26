@@ -40,15 +40,33 @@ function BlogDetail() {
   }, [slug]);
 
   return (
-    <main className="min-h-dvh bg-white py-10 sm:py-14 lg:py-16">
-      <div className="max-w-[720px] mx-auto px-4 sm:px-6">
+    <main className="min-h-dvh bg-white py-12 md:py-20">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+          <Link to="/" className="hover:text-brand-primary transition-colors motion-reduce:transition-none">
+            Beranda
+          </Link>
+          <i className="fa-solid fa-chevron-right text-[9px] text-gray-400" aria-hidden="true"></i>
+          <Link to="/blog" className="hover:text-brand-primary transition-colors motion-reduce:transition-none">
+            Blog
+          </Link>
+          {article?.title && (
+            <>
+              <i className="fa-solid fa-chevron-right text-[9px] text-gray-400" aria-hidden="true"></i>
+              <span className="truncate max-w-[200px] sm:max-w-xs text-gray-900 font-medium">
+                {article.title}
+              </span>
+            </>
+          )}
+        </nav>
+
         {loading ? (
           <div className="py-20 text-center text-sm font-medium text-gray-500">
             Memuat artikel...
           </div>
         ) : article ? (
           <article>
-            {/* Back link */}
             <div className="mb-6">
               <Link
                 to="/blog"
@@ -76,7 +94,7 @@ function BlogDetail() {
             </div>
           </article>
         ) : (
-          <div className="border border-gray-200 rounded-xl p-10 text-center">
+          <div className="border border-gray-200 rounded-lg p-8 sm:p-12 text-center bg-gray-50 shadow-sm">
             <h1 className="text-2xl font-bold text-gray-900 mb-2 break-words">
               Artikel tidak ditemukan
             </h1>
@@ -85,7 +103,7 @@ function BlogDetail() {
             </p>
             <Link
               to="/blog"
-              className="inline-flex min-h-[44px] items-center justify-center bg-brand-primary px-5 py-2.5 text-sm font-medium text-white transition-colors motion-reduce:transition-none hover:bg-brand-dark"
+              className="inline-flex min-h-[44px] items-center justify-center bg-brand-primary px-5 py-2.5 text-sm font-medium text-white rounded-lg shadow-sm transition-colors motion-reduce:transition-none hover:bg-brand-dark"
             >
               Kembali ke Blog
             </Link>

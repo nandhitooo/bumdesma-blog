@@ -25,22 +25,22 @@ function NavItem({ item, active, mobile = false, onClick }) {
       to={item.to}
       onClick={onClick}
       aria-current={active ? "location" : undefined}
-      className={`flex min-h-[44px] items-center text-sm font-medium leading-5 transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
+      className={`flex min-h-[44px] items-center text-sm font-medium transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
         mobile
-          ? `w-full gap-3 rounded-lg px-3 ${
+          ? `w-full gap-3 rounded-lg px-3.5 py-2.5 ${
               active
-                ? "bg-brand-primary/10 font-semibold text-brand-primary"
+                ? "bg-brand-light font-semibold text-brand-primary"
                 : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
             }`
-          : `border-b-2 px-2 ${
+          : `border-b-2 px-3 py-1 ${
               active
-                ? "border-brand-primary text-brand-primary"
-                : "border-transparent text-gray-600 hover:text-gray-900"
+                ? "border-brand-primary font-semibold text-brand-primary"
+                : "border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900"
             }`
       }`}
     >
       {mobile && (
-        <i className={`fa-solid fa-${item.icon} w-5 text-center`} aria-hidden="true"></i>
+        <i className={`fa-solid fa-${item.icon} w-5 text-center text-sm`} aria-hidden="true"></i>
       )}
       <span>{item.label}</span>
     </Link>
@@ -54,7 +54,6 @@ function DesktopMoreMenu({ items, active, onNavClick }) {
   const menuId = "desktop-more-menu";
   const moreActive = items.some((item) => item.id === active);
 
-  // Klik di luar dan Escape hanya dipasang selama dropdown terbuka.
   useEffect(() => {
     if (!isOpen) return undefined;
 
@@ -87,10 +86,10 @@ function DesktopMoreMenu({ items, active, onNavClick }) {
         aria-controls={menuId}
         aria-haspopup="true"
         onClick={() => setIsOpen((open) => !open)}
-        className={`flex min-h-[44px] items-center gap-2 border-b-2 px-2 text-sm font-medium leading-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
+        className={`flex min-h-[44px] items-center gap-1.5 border-b-2 px-3 py-1 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
           moreActive
-            ? "border-brand-primary text-brand-primary"
-            : "border-transparent text-gray-600 hover:text-gray-900"
+            ? "border-brand-primary font-semibold text-brand-primary"
+            : "border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900"
         }`}
       >
         <span>Lainnya</span>
@@ -105,7 +104,7 @@ function DesktopMoreMenu({ items, active, onNavClick }) {
       {isOpen && (
         <ul
           id={menuId}
-          className="absolute right-0 top-full mt-1 w-52 rounded-lg border border-gray-200 bg-white py-1 shadow-sm"
+          className="absolute right-0 top-full mt-2 w-52 rounded-lg border border-gray-200 bg-white py-1.5 shadow-sm"
         >
           {items.map((item) => (
             <li key={item.id}>
@@ -118,7 +117,7 @@ function DesktopMoreMenu({ items, active, onNavClick }) {
                 }}
                 className={`flex min-h-[44px] items-center px-4 text-sm font-medium transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-inset ${
                   active === item.id
-                    ? "text-brand-primary"
+                    ? "bg-brand-light font-semibold text-brand-primary"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }`}
               >
@@ -165,7 +164,6 @@ function MobileNavigation({ active, onNavClick }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
 
-  // Drawer tidak boleh tertinggal terbuka saat layar melewati breakpoint xl.
   useEffect(() => {
     if (!isOpen) return undefined;
     const desktopQuery = window.matchMedia("(min-width: 1280px)");
@@ -181,24 +179,22 @@ function MobileNavigation({ active, onNavClick }) {
 
   return (
     <>
-      {/* Mobile Toggle */}
       <button
         type="button"
         ref={toggleRef}
         aria-label={isOpen ? "Tutup menu" : "Buka menu"}
         aria-expanded={isOpen}
         aria-controls="mobile-nav-drawer"
-        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-xl text-gray-700 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 xl:hidden"
+        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-xl text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 xl:hidden"
         onClick={() => setIsOpen((open) => !open)}
       >
         <i className={`fa-solid ${isOpen ? "fa-xmark" : "fa-bars"}`} aria-hidden="true"></i>
       </button>
 
-      {/* Mobile Drawer */}
       {isOpen && (
         <nav
           id="mobile-nav-drawer"
-          className="absolute left-0 right-0 top-full max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-b border-t border-gray-200 bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-sm xl:hidden"
+          className="absolute left-0 right-0 top-full max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-b border-t border-gray-200 bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-sm xl:hidden"
           aria-label="Navigasi Utama"
         >
           <ul className="space-y-1">
@@ -242,7 +238,6 @@ export default function Header() {
             ? scrollActive
             : "";
 
-  // Track active scroll position on homepage.
   useEffect(() => {
     if (location.pathname !== "/") return undefined;
 
@@ -269,7 +264,6 @@ export default function Header() {
     };
   }, [location.pathname]);
 
-  // Handle scroll to hash upon navigation to /.
   useEffect(() => {
     if (location.pathname !== "/" || !location.hash) return undefined;
 
@@ -279,11 +273,11 @@ export default function Header() {
 
     const preceding = Array.from(section.parentElement?.children || []);
     const sectionIndex = preceding.indexOf(section);
+    let correctionTimer;
     const observer = new ResizeObserver(() => {
       window.clearTimeout(correctionTimer);
       correctionTimer = window.setTimeout(() => scrollToSection(section), 80);
     });
-    let correctionTimer;
     preceding
       .slice(0, sectionIndex)
       .forEach((element) => observer.observe(element));
@@ -313,11 +307,11 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white pt-[env(safe-area-inset-top)]">
-      <div className="mx-auto flex h-18 max-w-6xl items-center justify-between px-4 sm:px-6">
+      <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           to="/#home"
           aria-label="BUMDESMA Podo Rukun, Beranda"
-          className="flex min-w-0 shrink items-center gap-2 rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 sm:gap-3"
+          className="flex min-w-0 shrink items-center gap-3 rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
           onClick={() => {
             if (location.pathname === "/" && location.hash === "#home") {
               scrollToSection(document.getElementById("home"));
@@ -327,21 +321,26 @@ export default function Header() {
           <img
             src={bumdesmaNganjuk}
             alt="BUMDESMA Nganjuk"
-            className="hidden h-8 w-8 shrink-0 object-contain sm:block sm:h-9 sm:w-9"
+            className="hidden h-9 w-9 shrink-0 object-contain sm:block"
           />
           <img
             src={podoRukun}
             alt="Podo Rukun"
-            className="h-8 w-8 shrink-0 object-contain sm:h-9 sm:w-9"
+            className="h-9 w-9 shrink-0 object-contain"
           />
-          <span className="min-w-0 text-sm font-bold leading-tight tracking-tight text-gray-900 sm:text-base">
-            BUMDESMA
-          </span>
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-base font-bold leading-tight tracking-tight text-gray-900">
+              BUMDESMA Podo Rukun
+            </span>
+            <span className="hidden truncate text-[11px] font-medium text-gray-500 sm:block">
+              Kec. Wilangan, Kab. Nganjuk
+            </span>
+          </div>
         </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden xl:flex" aria-label="Navigasi Utama">
-          <ul className="flex items-center gap-3 xl:gap-5">
+          <ul className="flex items-center gap-2 xl:gap-4">
             {PRIMARY_ITEMS.map((item) => (
               <li key={item.id}>
                 <NavItem

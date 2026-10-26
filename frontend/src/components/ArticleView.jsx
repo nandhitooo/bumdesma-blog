@@ -1,17 +1,6 @@
 import ArticleImage from "./ArticleImage";
 import { formatDate } from "../lib/date";
 
-// Tata letak badan artikel dipakai bersama oleh halaman blog publik
-// (pages/BlogDetail.jsx) dan pratinjau di editor, supaya penulis melihat hasil
-// yang persis sama dengan yang nanti terbit. Pembungkus <article> dan tautan
-// navigasi tetap milik masing-masing halaman.
-//
-// showPlaceholders hanya dipakai pratinjau: isi yang masih kosong ditandai
-// dengan teks abu-abu, bukan dibiarkan sebagai area kosong. Halaman publik
-// memakai nilai bawaan (false) sehingga tampilannya tidak berubah.
-// Editor yang masih kosong tetap menghasilkan "<p></p>", jadi isi dianggap
-// kosong hanya bila tidak ada teks sama sekali (gambar/garis pemisah tetap
-// dihitung sebagai isi).
 function hasVisibleContent(html) {
   if (!html) return false;
   const text = html
@@ -62,19 +51,19 @@ function ArticleView({ article, showPlaceholders = false }) {
 
       {/* Excerpt */}
       {hasExcerpt ? (
-        <p className="text-base sm:text-lg text-gray-600 leading-relaxed pl-4 border-l-2 border-brand-primary mb-8 italic break-words">
+        <p className="text-base sm:text-lg text-gray-600 leading-relaxed pl-4 border-l-2 border-brand-primary mb-8 italic break-words bg-gray-50 py-3.5 pr-4 rounded-r-lg">
           {excerpt}
         </p>
       ) : (
         showPlaceholders && (
-          <p className="text-base sm:text-lg text-gray-400 leading-relaxed pl-4 border-l-2 border-gray-300 mb-8 italic">
+          <p className="text-base sm:text-lg text-gray-400 leading-relaxed pl-4 border-l-2 border-gray-300 mb-8 italic bg-gray-50 py-3.5 pr-4 rounded-r-lg">
             Ringkasan belum diisi
           </p>
         )
       )}
 
       {/* Cover Image */}
-      <div className="mb-8 overflow-hidden rounded-xl border border-gray-200">
+      <div className="mb-8 overflow-hidden rounded-lg border border-gray-200 shadow-sm">
         <ArticleImage
           src={coverImageUrl}
           alt={title || ""}
@@ -91,7 +80,7 @@ function ArticleView({ article, showPlaceholders = false }) {
           dangerouslySetInnerHTML={{ __html: contentHtml }}
         />
       ) : showPlaceholders ? (
-        <p className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm font-medium text-gray-400">
+        <p className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm font-medium text-gray-400">
           Isi artikel belum diisi
         </p>
       ) : (

@@ -4,9 +4,6 @@ import ArticleImage from "./ArticleImage";
 import { formatDate } from "../lib/date";
 import { apiUrl } from "../lib/apiUrl";
 
-// Bila tidak ada artikel terkait (atau permintaannya gagal), komponen ini
-// sengaja tidak menampilkan apa pun: bagian "Artikel Terkait" yang kosong
-// hanya menambah derau di halaman detail.
 function RelatedArticles({ slug }) {
   const [articles, setArticles] = useState([]);
 
@@ -37,23 +34,24 @@ function RelatedArticles({ slug }) {
     <section className="mt-12 border-t border-gray-200 pt-8" aria-labelledby="artikel-terkait-judul">
       <h2
         id="artikel-terkait-judul"
-        className="text-sm font-bold text-gray-900 sm:text-base"
+        className="text-base font-bold text-gray-900"
       >
         Artikel Terkait
       </h2>
-      <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+      <ul className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {articles.map((article) => (
           <li key={article.id}>
-            <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-colors motion-reduce:transition-none hover:border-gray-300">
+            <article className="group flex h-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-colors motion-reduce:transition-none hover:border-gray-300">
               <Link to={`/blog/${article.slug}`} className="flex h-full flex-col">
                 <ArticleImage
                   src={article.coverImageUrl}
                   alt={article.title}
-                  containerClassName="h-36 w-full bg-gray-100"
+                  aspectRatio="aspect-[16/9]"
+                  containerClassName="w-full bg-gray-100"
                   className="transition-opacity motion-reduce:transition-none duration-300 group-hover:opacity-90"
                 />
-                <div className="flex min-w-0 flex-1 flex-col p-4">
-                  <h3 className="text-sm font-bold leading-snug text-gray-900 transition-colors motion-reduce:transition-none group-hover:text-brand-primary break-words">
+                <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
+                  <h3 className="text-sm font-bold leading-snug text-gray-900 transition-colors motion-reduce:transition-none group-hover:text-brand-primary break-words line-clamp-2">
                     {article.title}
                   </h3>
                   {article.publishedAt && (
