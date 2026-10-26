@@ -82,7 +82,10 @@ const Footer = () => {
   const serviceLinks = Array.isArray(footer.serviceLinks) ? footer.serviceLinks : [];
 
   return (
-    <footer className="bg-brand-dark text-gray-300 border-t border-emerald-950">
+    <footer
+      id="site-footer"
+      className="bg-brand-dark text-gray-300 border-t border-emerald-950"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* 4 Columns in Desktop, 1 Column in Mobile */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 mb-12">

@@ -8,6 +8,7 @@ import LoadingSkeleton from "./components/LoadingSkeleton";
 import PageHeader from "./components/PageHeader";
 import { useConfirm } from "./components/ConfirmDialog";
 import { useUnsavedChangesGuard } from "./components/useUnsavedChangesGuard";
+import PreviewPanel from "./site-content/PreviewPanel";
 
 function CharCounter({ current = 0, max }) {
   return (
@@ -352,6 +353,9 @@ export default function SiteContent() {
   const confirm = useConfirm();
 
   const [activeTab, setActiveTab] = useState("site");
+  // Pratinjau langsung: iframe hanya dipasang selama panel terbuka.
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const previewTrigger = useRef(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [updatedAt, setUpdatedAt] = useState({});
@@ -564,6 +568,17 @@ export default function SiteContent() {
         title="Konten Situs"
         description="Kelola teks, gambar, dan tautan yang tampil di situs publik. Pilih bagian lewat tab, lalu simpan tab tersebut."
       >
+        <button
+          ref={previewTrigger}
+          type="button"
+          onClick={() => setPreviewOpen(true)}
+          aria-expanded={previewOpen}
+          aria-controls="site-content-preview"
+          className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-green-700 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-green-800 motion-reduce:transition-none"
+        >
+          <i className="fa-solid fa-eye" aria-hidden="true"></i>
+          <span>Pratinjau</span>
+        </button>
         <a
           href={activeTabConfig.preview}
           target="_blank"
@@ -2327,6 +2342,17 @@ export default function SiteContent() {
           </div>
         </form>
       </section>
+
+      {previewOpen && (
+        <PreviewPanel
+          activeKey={activeTab}
+          activeLabel={activeTabConfig.label}
+          forms={forms}
+          dirtyKeys={dirtyTabs.map((tab) => tab.key)}
+          onClose={() => setPreviewOpen(false)}
+          triggerRef={previewTrigger}
+        />
+      )}
     </div>
   );
 }
