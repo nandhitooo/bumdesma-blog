@@ -50,7 +50,9 @@ function escapeHtml(value) {
 // dokumen ditolak parser, jadi dibuang sebelum escape.
 const XML_INVALID_CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g;
 
-function escapeXml(value) {
+// Diekspor agar aturan pembuangan karakter kontrol bisa diuji langsung tanpa
+// database (lihat backend/test/seo.test.js).
+export function escapeXml(value) {
   return String(value ?? "")
     .replace(XML_INVALID_CONTROL, "")
     .replace(/[&<>"']/g, (char) => XML_ESCAPES[char]);
