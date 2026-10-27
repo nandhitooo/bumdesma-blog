@@ -3,6 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import { adminApi, dateFormatter } from "./api";
 import EmptyState from "./components/EmptyState";
 import LoadingSkeleton from "./components/LoadingSkeleton";
+import Modal from "./components/Modal";
 import PageHeader from "./components/PageHeader";
 import { useConfirm } from "./components/ConfirmDialog";
 import { useToast } from "./components/Toast";
@@ -120,6 +121,80 @@ function AdminUsers() {
     }
   };
 
+  const formElement = (
+    <form onSubmit={submit} className={`${
+        editingId ? "" : "mb-7 rounded-3xl bg-white p-5 shadow-sm sm:p-7"
+      } grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4`}>
+      <div>
+        <label htmlFor="user-name" className="mb-2 block font-bold text-gray-700">Nama</label>
+        <input
+          id="user-name"
+          required
+          maxLength={150}
+          value={form.name}
+          onChange={(event) => setForm({ ...form, name: event.target.value })}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+      </div>
+      <div>
+        <label htmlFor="user-email" className="mb-2 block font-bold text-gray-700">Email</label>
+        <input
+          id="user-email"
+          type="email"
+          required
+          value={form.email}
+          onChange={(event) => setForm({ ...form, email: event.target.value })}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+      </div>
+      <div>
+        <label htmlFor="user-password" className="mb-2 block font-bold text-gray-700">
+          {editingId ? "Kata sandi baru (opsional)" : "Kata sandi"}
+        </label>
+        <input
+          id="user-password"
+          type="password"
+          autoComplete="new-password"
+          required={!editingId}
+          minLength={8}
+          value={form.password}
+          onChange={(event) => setForm({ ...form, password: event.target.value })}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+      </div>
+      <div>
+        <label htmlFor="user-role" className="mb-2 block font-bold text-gray-700">Peran</label>
+        <select
+          id="user-role"
+          value={form.role}
+          onChange={(event) => setForm({ ...form, role: event.target.value })}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base outline-none focus:border-green-700"
+        >
+          <option value="editor">Editor</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2 lg:col-span-4">
+        <button
+          type="submit"
+          disabled={saving}
+          className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
+        >
+          {saving ? "Menyimpan..." : editingId ? "Simpan perubahan" : "Tambah pengguna"}
+        </button>
+        {editingId && (
+          <button
+            type="button"
+            onClick={resetForm}
+            className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
+          >
+            Batal
+          </button>
+        )}
+      </div>
+    </form>
+  );
+
   return (
     <section className="mx-auto max-w-6xl">
       <PageHeader
@@ -134,75 +209,13 @@ function AdminUsers() {
         </p>
       )}
 
-      <form onSubmit={submit} className="mb-7 grid grid-cols-1 gap-4 rounded-3xl bg-white p-5 shadow-sm md:grid-cols-2 lg:grid-cols-4 sm:p-7">
-        <div>
-          <label htmlFor="user-name" className="mb-2 block font-bold text-gray-700">Nama</label>
-          <input
-            id="user-name"
-            required
-            maxLength={150}
-            value={form.name}
-            onChange={(event) => setForm({ ...form, name: event.target.value })}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-        </div>
-        <div>
-          <label htmlFor="user-email" className="mb-2 block font-bold text-gray-700">Email</label>
-          <input
-            id="user-email"
-            type="email"
-            required
-            value={form.email}
-            onChange={(event) => setForm({ ...form, email: event.target.value })}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-        </div>
-        <div>
-          <label htmlFor="user-password" className="mb-2 block font-bold text-gray-700">
-            {editingId ? "Kata sandi baru (opsional)" : "Kata sandi"}
-          </label>
-          <input
-            id="user-password"
-            type="password"
-            autoComplete="new-password"
-            required={!editingId}
-            minLength={8}
-            value={form.password}
-            onChange={(event) => setForm({ ...form, password: event.target.value })}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-        </div>
-        <div>
-          <label htmlFor="user-role" className="mb-2 block font-bold text-gray-700">Peran</label>
-          <select
-            id="user-role"
-            value={form.role}
-            onChange={(event) => setForm({ ...form, role: event.target.value })}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base outline-none focus:border-green-700"
-          >
-            <option value="editor">Editor</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2 lg:col-span-4">
-          <button
-            type="submit"
-            disabled={saving}
-            className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
-          >
-            {saving ? "Menyimpan..." : editingId ? "Simpan perubahan" : "Tambah pengguna"}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
-            >
-              Batal
-            </button>
-          )}
-        </div>
-      </form>
+      {editingId ? (
+        <Modal title="Ubah pengguna" error={error} onClose={resetForm}>
+          {formElement}
+        </Modal>
+      ) : (
+        formElement
+      )}
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
@@ -257,3 +270,4 @@ function AdminUsers() {
 }
 
 export default AdminUsers;
+

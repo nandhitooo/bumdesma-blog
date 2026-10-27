@@ -3,6 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import { adminApi } from "./api";
 import EmptyState from "./components/EmptyState";
 import LoadingSkeleton from "./components/LoadingSkeleton";
+import Modal from "./components/Modal";
 import PageHeader from "./components/PageHeader";
 import { useConfirm } from "./components/ConfirmDialog";
 import { useToast } from "./components/Toast";
@@ -126,6 +127,109 @@ function AdminDocuments() {
     }
   };
 
+  const formElement = (
+    <form
+      onSubmit={submit}
+      className={`${
+        editingId ? "" : "mb-7 rounded-3xl bg-white p-5 shadow-sm sm:p-7"
+      } grid grid-cols-1 gap-4 md:grid-cols-2`}
+    >
+      <div className="md:col-span-2">
+        <label
+          htmlFor="document-title"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Judul dokumen
+        </label>
+        <input
+          id="document-title"
+          required
+          maxLength={200}
+          value={form.title}
+          onChange={(event) => setField("title", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="document-year"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Tahun
+        </label>
+        <input
+          id="document-year"
+          type="number"
+          required
+          min={2000}
+          max={2100}
+          step={1}
+          value={form.year}
+          onChange={(event) => setField("year", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="document-url"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Tautan dokumen (HTTPS)
+        </label>
+        <input
+          id="document-url"
+          type="url"
+          required
+          maxLength={2048}
+          pattern="https://.*"
+          placeholder="https://drive.google.com/..."
+          value={form.url}
+          onChange={(event) => setField("url", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+      </div>
+      <div className="md:col-span-2">
+        <label
+          htmlFor="document-description"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Deskripsi
+        </label>
+        <textarea
+          id="document-description"
+          rows={3}
+          maxLength={500}
+          value={form.description}
+          onChange={(event) => setField("description", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+        <p className="mt-1 text-xs text-gray-500">Maksimal 500 karakter.</p>
+      </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2">
+        <button
+          type="submit"
+          disabled={saving}
+          className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
+        >
+          {saving
+            ? "Menyimpan..."
+            : editingId
+              ? "Simpan perubahan"
+              : "Tambah dokumen"}
+        </button>
+        {editingId && (
+          <button
+            type="button"
+            onClick={resetForm}
+            className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
+          >
+            Batal
+          </button>
+        )}
+      </div>
+    </form>
+  );
+
   return (
     <section className="mx-auto max-w-5xl">
       <PageHeader
@@ -140,104 +244,13 @@ function AdminDocuments() {
         </p>
       )}
 
-      <form
-        onSubmit={submit}
-        className="mb-7 grid grid-cols-1 gap-4 rounded-3xl bg-white p-5 shadow-sm md:grid-cols-2 sm:p-7"
-      >
-        <div className="md:col-span-2">
-          <label
-            htmlFor="document-title"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Judul dokumen
-          </label>
-          <input
-            id="document-title"
-            required
-            maxLength={200}
-            value={form.title}
-            onChange={(event) => setField("title", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="document-year"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Tahun
-          </label>
-          <input
-            id="document-year"
-            type="number"
-            required
-            min={2000}
-            max={2100}
-            step={1}
-            value={form.year}
-            onChange={(event) => setField("year", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="document-url"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Tautan dokumen (HTTPS)
-          </label>
-          <input
-            id="document-url"
-            type="url"
-            required
-            maxLength={2048}
-            pattern="https://.*"
-            placeholder="https://drive.google.com/..."
-            value={form.url}
-            onChange={(event) => setField("url", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-        </div>
-        <div className="md:col-span-2">
-          <label
-            htmlFor="document-description"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Deskripsi
-          </label>
-          <textarea
-            id="document-description"
-            rows={3}
-            maxLength={500}
-            value={form.description}
-            onChange={(event) => setField("description", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-          <p className="mt-1 text-xs text-gray-500">Maksimal 500 karakter.</p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
-          >
-            {saving
-              ? "Menyimpan..."
-              : editingId
-                ? "Simpan perubahan"
-                : "Tambah dokumen"}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
-            >
-              Batal
-            </button>
-          )}
-        </div>
-      </form>
+      {editingId ? (
+        <Modal title="Ubah dokumen" error={error} onClose={resetForm}>
+          {formElement}
+        </Modal>
+      ) : (
+        formElement
+      )}
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
@@ -302,3 +315,4 @@ function AdminDocuments() {
 }
 
 export default AdminDocuments;
+

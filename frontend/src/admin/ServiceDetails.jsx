@@ -3,6 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import { adminApi, toSlug } from "./api";
 import EmptyState from "./components/EmptyState";
 import LoadingSkeleton from "./components/LoadingSkeleton";
+import Modal from "./components/Modal";
 import PageHeader from "./components/PageHeader";
 import { useConfirm } from "./components/ConfirmDialog";
 import { useToast } from "./components/Toast";
@@ -151,6 +152,164 @@ function AdminServiceDetails() {
     }
   };
 
+  const formElement = (
+    <form
+      onSubmit={submit}
+      className={`${
+        editingId ? "" : "mb-7 rounded-3xl bg-white p-5 shadow-sm sm:p-7"
+      } grid grid-cols-1 gap-4 md:grid-cols-2`}
+    >
+      <div>
+        <label
+          htmlFor="service-title"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Judul layanan
+        </label>
+        <input
+          id="service-title"
+          required
+          maxLength={150}
+          value={form.title}
+          onChange={(event) => {
+            const value = event.target.value;
+            setForm((current) => ({
+              ...current,
+              title: value,
+              ...(!slugEdited ? { slug: toSlug(value) } : {}),
+            }));
+          }}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="service-slug"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Alamat halaman
+        </label>
+        <input
+          id="service-slug"
+          required
+          maxLength={120}
+          pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+          value={form.slug}
+          onChange={(event) => {
+            setSlugEdited(true);
+            setField("slug", event.target.value.toLowerCase().replace(/\s+/g, "-"));
+          }}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Dipakai di alamat halaman layanan, mis. “dana-bergulir”. Dibuat otomatis dari judul.
+        </p>
+      </div>
+
+      <div className="md:col-span-2">
+        <label
+          htmlFor="service-summary"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Ringkasan
+        </label>
+        <textarea
+          id="service-summary"
+          rows={3}
+          maxLength={600}
+          value={form.summary}
+          onChange={(event) => setField("summary", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+        <p className="mt-1 text-xs text-gray-500">Maksimal 600 karakter.</p>
+      </div>
+
+      <div>
+        <label
+          htmlFor="service-requirements"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Syarat
+        </label>
+        <textarea
+          id="service-requirements"
+          rows={6}
+          value={form.requirements}
+          onChange={(event) => setField("requirements", event.target.value)}
+          placeholder={"Satu syarat per baris\nContoh: Fotokopi KTP"}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Satu butir per baris, maksimal 20 butir.
+        </p>
+      </div>
+
+      <div>
+        <label
+          htmlFor="service-steps"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Alur pengajuan
+        </label>
+        <textarea
+          id="service-steps"
+          rows={6}
+          value={form.steps}
+          onChange={(event) => setField("steps", event.target.value)}
+          placeholder={"Satu langkah per baris\nContoh: Menyerahkan berkas"}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Satu langkah per baris, urut dari atas, maksimal 20 langkah.
+        </p>
+      </div>
+
+      <div>
+        <label
+          htmlFor="service-sort"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Urutan
+        </label>
+        <input
+          id="service-sort"
+          type="number"
+          step={1}
+          value={form.sortOrder}
+          onChange={(event) => setField("sortOrder", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Angka kecil tampil lebih dulu.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2">
+        <button
+          type="submit"
+          disabled={saving}
+          className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
+        >
+          {saving
+            ? "Menyimpan..."
+            : editingId
+              ? "Simpan perubahan"
+              : "Tambah detail layanan"}
+        </button>
+        {editingId && (
+          <button
+            type="button"
+            onClick={resetForm}
+            className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
+          >
+            Batal
+          </button>
+        )}
+      </div>
+    </form>
+  );
+
   return (
     <section className="mx-auto max-w-5xl">
       <PageHeader
@@ -165,159 +324,13 @@ function AdminServiceDetails() {
         </p>
       )}
 
-      <form
-        onSubmit={submit}
-        className="mb-7 grid grid-cols-1 gap-4 rounded-3xl bg-white p-5 shadow-sm md:grid-cols-2 sm:p-7"
-      >
-        <div>
-          <label
-            htmlFor="service-title"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Judul layanan
-          </label>
-          <input
-            id="service-title"
-            required
-            maxLength={150}
-            value={form.title}
-            onChange={(event) => {
-              const value = event.target.value;
-              setForm((current) => ({
-                ...current,
-                title: value,
-                ...(!slugEdited ? { slug: toSlug(value) } : {}),
-              }));
-            }}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="service-slug"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Alamat halaman
-          </label>
-          <input
-            id="service-slug"
-            required
-            maxLength={120}
-            pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-            value={form.slug}
-            onChange={(event) => {
-              setSlugEdited(true);
-              setField("slug", event.target.value.toLowerCase().replace(/\s+/g, "-"));
-            }}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Dipakai di alamat halaman layanan, mis. “dana-bergulir”. Dibuat otomatis dari judul.
-          </p>
-        </div>
-
-        <div className="md:col-span-2">
-          <label
-            htmlFor="service-summary"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Ringkasan
-          </label>
-          <textarea
-            id="service-summary"
-            rows={3}
-            maxLength={600}
-            value={form.summary}
-            onChange={(event) => setField("summary", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-          <p className="mt-1 text-xs text-gray-500">Maksimal 600 karakter.</p>
-        </div>
-
-        <div>
-          <label
-            htmlFor="service-requirements"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Syarat
-          </label>
-          <textarea
-            id="service-requirements"
-            rows={6}
-            value={form.requirements}
-            onChange={(event) => setField("requirements", event.target.value)}
-            placeholder={"Satu syarat per baris\nContoh: Fotokopi KTP"}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Satu butir per baris, maksimal 20 butir.
-          </p>
-        </div>
-
-        <div>
-          <label
-            htmlFor="service-steps"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Alur pengajuan
-          </label>
-          <textarea
-            id="service-steps"
-            rows={6}
-            value={form.steps}
-            onChange={(event) => setField("steps", event.target.value)}
-            placeholder={"Satu langkah per baris\nContoh: Menyerahkan berkas"}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Satu langkah per baris, urut dari atas, maksimal 20 langkah.
-          </p>
-        </div>
-
-        <div>
-          <label
-            htmlFor="service-sort"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Urutan
-          </label>
-          <input
-            id="service-sort"
-            type="number"
-            step={1}
-            value={form.sortOrder}
-            onChange={(event) => setField("sortOrder", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Angka kecil tampil lebih dulu.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
-          >
-            {saving
-              ? "Menyimpan..."
-              : editingId
-                ? "Simpan perubahan"
-                : "Tambah detail layanan"}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
-            >
-              Batal
-            </button>
-          )}
-        </div>
-      </form>
+      {editingId ? (
+        <Modal title="Ubah detail layanan" error={error} onClose={resetForm}>
+          {formElement}
+        </Modal>
+      ) : (
+        formElement
+      )}
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
@@ -375,3 +388,4 @@ function AdminServiceDetails() {
 }
 
 export default AdminServiceDetails;
+

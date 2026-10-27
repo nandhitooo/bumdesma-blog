@@ -3,6 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import { adminApi } from "./api";
 import EmptyState from "./components/EmptyState";
 import LoadingSkeleton from "./components/LoadingSkeleton";
+import Modal from "./components/Modal";
 import PageHeader from "./components/PageHeader";
 import { useConfirm } from "./components/ConfirmDialog";
 import { useToast } from "./components/Toast";
@@ -161,6 +162,158 @@ function AdminTeam() {
     }
   };
 
+  const formElement = (
+    <form
+      onSubmit={submit}
+      className={`${
+        editingId ? "" : "mb-7 rounded-3xl bg-white p-5 shadow-sm sm:p-7"
+      } grid grid-cols-1 gap-5 md:grid-cols-2`}
+    >
+      <div className="md:col-span-2">
+        <span className="mb-2 block font-bold text-gray-700">Foto</span>
+        <div className="mb-3 aspect-[4/3] w-full max-w-xs overflow-hidden rounded-2xl border border-gray-200 bg-gray-100">
+          {form.photoUrl ? (
+            <img
+              src={form.photoUrl}
+              alt="Pratinjau foto pengurus"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-4xl text-green-700">
+              <i className="fa-solid fa-user-tie" aria-hidden="true"></i>
+            </div>
+          )}
+        </div>
+        <input
+          ref={fileInput}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={pickPhoto}
+          className="sr-only"
+          aria-label="Unggah foto pengurus"
+        />
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => fileInput.current?.click()}
+            disabled={uploading}
+            className="min-h-[44px] rounded-xl bg-green-50 px-4 py-3 font-bold text-green-800 hover:bg-green-100 disabled:opacity-60"
+          >
+            {uploading ? "Mengunggah..." : "Pilih foto"}
+          </button>
+          {form.photoUrl && (
+            <button
+              type="button"
+              onClick={() => setField("photoUrl", "")}
+              className="min-h-[44px] rounded-xl px-4 py-3 font-bold text-red-700 hover:bg-red-50"
+            >
+              Hapus pilihan
+            </button>
+          )}
+          <span className="text-sm text-gray-500">
+            JPG, PNG, WebP. Maksimal 2 MB.
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <label
+          htmlFor="team-name"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Nama
+        </label>
+        <input
+          id="team-name"
+          required
+          maxLength={150}
+          value={form.name}
+          onChange={(event) => setField("name", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="team-position"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Jabatan
+        </label>
+        <input
+          id="team-position"
+          required
+          maxLength={150}
+          value={form.position}
+          onChange={(event) => setField("position", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="team-term"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Masa bakti
+        </label>
+        <input
+          id="team-term"
+          maxLength={50}
+          placeholder="mis. 2023–2028"
+          value={form.termLabel}
+          onChange={(event) => setField("termLabel", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="team-sort"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Urutan
+        </label>
+        <input
+          id="team-sort"
+          type="number"
+          min={0}
+          max={9999}
+          step={1}
+          value={form.sortOrder}
+          onChange={(event) => setField("sortOrder", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Angka kecil tampil lebih dulu.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2">
+        <button
+          type="submit"
+          disabled={saving || uploading}
+          className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
+        >
+          {saving
+            ? "Menyimpan..."
+            : editingId
+              ? "Simpan perubahan"
+              : "Tambah pengurus"}
+        </button>
+        {editingId && (
+          <button
+            type="button"
+            onClick={resetForm}
+            className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
+          >
+            Batal
+          </button>
+        )}
+      </div>
+    </form>
+  );
+
   return (
     <section className="mx-auto max-w-6xl">
       <PageHeader
@@ -175,153 +328,13 @@ function AdminTeam() {
         </p>
       )}
 
-      <form
-        onSubmit={submit}
-        className="mb-7 grid grid-cols-1 gap-5 rounded-3xl bg-white p-5 shadow-sm md:grid-cols-2 sm:p-7"
-      >
-        <div className="md:col-span-2">
-          <span className="mb-2 block font-bold text-gray-700">Foto</span>
-          <div className="mb-3 aspect-[4/3] w-full max-w-xs overflow-hidden rounded-2xl border border-gray-200 bg-gray-100">
-            {form.photoUrl ? (
-              <img
-                src={form.photoUrl}
-                alt="Pratinjau foto pengurus"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-4xl text-green-700">
-                <i className="fa-solid fa-user-tie" aria-hidden="true"></i>
-              </div>
-            )}
-          </div>
-          <input
-            ref={fileInput}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={pickPhoto}
-            className="sr-only"
-            aria-label="Unggah foto pengurus"
-          />
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => fileInput.current?.click()}
-              disabled={uploading}
-              className="min-h-[44px] rounded-xl bg-green-50 px-4 py-3 font-bold text-green-800 hover:bg-green-100 disabled:opacity-60"
-            >
-              {uploading ? "Mengunggah..." : "Pilih foto"}
-            </button>
-            {form.photoUrl && (
-              <button
-                type="button"
-                onClick={() => setField("photoUrl", "")}
-                className="min-h-[44px] rounded-xl px-4 py-3 font-bold text-red-700 hover:bg-red-50"
-              >
-                Hapus pilihan
-              </button>
-            )}
-            <span className="text-sm text-gray-500">
-              JPG, PNG, WebP. Maksimal 2 MB.
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <label
-            htmlFor="team-name"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Nama
-          </label>
-          <input
-            id="team-name"
-            required
-            maxLength={150}
-            value={form.name}
-            onChange={(event) => setField("name", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="team-position"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Jabatan
-          </label>
-          <input
-            id="team-position"
-            required
-            maxLength={150}
-            value={form.position}
-            onChange={(event) => setField("position", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="team-term"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Masa bakti
-          </label>
-          <input
-            id="team-term"
-            maxLength={50}
-            placeholder="mis. 2023–2028"
-            value={form.termLabel}
-            onChange={(event) => setField("termLabel", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="team-sort"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Urutan
-          </label>
-          <input
-            id="team-sort"
-            type="number"
-            min={0}
-            max={9999}
-            step={1}
-            value={form.sortOrder}
-            onChange={(event) => setField("sortOrder", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Angka kecil tampil lebih dulu.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2">
-          <button
-            type="submit"
-            disabled={saving || uploading}
-            className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
-          >
-            {saving
-              ? "Menyimpan..."
-              : editingId
-                ? "Simpan perubahan"
-                : "Tambah pengurus"}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
-            >
-              Batal
-            </button>
-          )}
-        </div>
-      </form>
+      {editingId ? (
+        <Modal title="Ubah data pengurus" error={error} onClose={resetForm}>
+          {formElement}
+        </Modal>
+      ) : (
+        formElement
+      )}
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
@@ -389,3 +402,4 @@ function AdminTeam() {
 }
 
 export default AdminTeam;
+

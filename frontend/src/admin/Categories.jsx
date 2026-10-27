@@ -3,6 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import { adminApi, toSlug } from "./api";
 import EmptyState from "./components/EmptyState";
 import LoadingSkeleton from "./components/LoadingSkeleton";
+import Modal from "./components/Modal";
 import PageHeader from "./components/PageHeader";
 import { useConfirm } from "./components/ConfirmDialog";
 import { useToast } from "./components/Toast";
@@ -113,6 +114,73 @@ function AdminCategories() {
     }
   };
 
+  const formElement = (
+    <form onSubmit={submit} className={`${
+        editingId ? "" : "mb-7 rounded-3xl bg-white p-5 shadow-sm sm:p-7"
+      } grid grid-cols-1 gap-4 md:grid-cols-2`}>
+      <div>
+        <label htmlFor="category-name" className="mb-2 block font-bold text-gray-700">
+          Nama kategori
+        </label>
+        <input
+          id="category-name"
+          required
+          maxLength={100}
+          value={form.name}
+          onChange={(event) =>
+            setForm((current) => ({
+              ...current,
+              name: event.target.value,
+              ...(!slugEdited ? { slug: toSlug(event.target.value) } : {}),
+            }))
+          }
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+      </div>
+      <div>
+        <label htmlFor="category-slug" className="mb-2 block font-bold text-gray-700">
+          Alamat halaman
+        </label>
+        <input
+          id="category-slug"
+          required
+          maxLength={120}
+          pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+          value={form.slug}
+          onChange={(event) => {
+            setSlugEdited(true);
+            setForm((current) => ({
+              ...current,
+              slug: event.target.value.toLowerCase().replace(/\s+/g, "-"),
+            }));
+          }}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Bagian alamat yang dipakai filter blog, mis. “berita-desa”. Dibuat otomatis dari nama.
+        </p>
+      </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2">
+        <button
+          type="submit"
+          disabled={saving}
+          className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
+        >
+          {saving ? "Menyimpan..." : editingId ? "Simpan perubahan" : "Tambah kategori"}
+        </button>
+        {editingId && (
+          <button
+            type="button"
+            onClick={resetForm}
+            className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
+          >
+            Batal
+          </button>
+        )}
+      </div>
+    </form>
+  );
+
   return (
     <section className="mx-auto max-w-5xl">
       <PageHeader
@@ -127,68 +195,13 @@ function AdminCategories() {
         </p>
       )}
 
-      <form onSubmit={submit} className="mb-7 grid grid-cols-1 gap-4 rounded-3xl bg-white p-5 shadow-sm md:grid-cols-2 sm:p-7">
-        <div>
-          <label htmlFor="category-name" className="mb-2 block font-bold text-gray-700">
-            Nama kategori
-          </label>
-          <input
-            id="category-name"
-            required
-            maxLength={100}
-            value={form.name}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                name: event.target.value,
-                ...(!slugEdited ? { slug: toSlug(event.target.value) } : {}),
-              }))
-            }
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-        </div>
-        <div>
-          <label htmlFor="category-slug" className="mb-2 block font-bold text-gray-700">
-            Alamat halaman
-          </label>
-          <input
-            id="category-slug"
-            required
-            maxLength={120}
-            pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-            value={form.slug}
-            onChange={(event) => {
-              setSlugEdited(true);
-              setForm((current) => ({
-                ...current,
-                slug: event.target.value.toLowerCase().replace(/\s+/g, "-"),
-              }));
-            }}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Bagian alamat yang dipakai filter blog, mis. “berita-desa”. Dibuat otomatis dari nama.
-          </p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
-          >
-            {saving ? "Menyimpan..." : editingId ? "Simpan perubahan" : "Tambah kategori"}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
-            >
-              Batal
-            </button>
-          )}
-        </div>
-      </form>
+      {editingId ? (
+        <Modal title="Ubah kategori" error={error} onClose={resetForm}>
+          {formElement}
+        </Modal>
+      ) : (
+        formElement
+      )}
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
@@ -236,3 +249,4 @@ function AdminCategories() {
 }
 
 export default AdminCategories;
+

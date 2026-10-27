@@ -3,6 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import { adminApi } from "./api";
 import EmptyState from "./components/EmptyState";
 import LoadingSkeleton from "./components/LoadingSkeleton";
+import Modal from "./components/Modal";
 import PageHeader from "./components/PageHeader";
 import { useConfirm } from "./components/ConfirmDialog";
 import { useToast } from "./components/Toast";
@@ -116,6 +117,98 @@ function AdminFaqs() {
     }
   };
 
+  const formElement = (
+    <form
+      onSubmit={submit}
+      className={`${
+        editingId ? "" : "mb-7 rounded-3xl bg-white p-5 shadow-sm sm:p-7"
+      } grid grid-cols-1 gap-4 md:grid-cols-2`}
+    >
+      <div className="md:col-span-2">
+        <label
+          htmlFor="faq-question"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Pertanyaan
+        </label>
+        <input
+          id="faq-question"
+          required
+          maxLength={300}
+          value={form.question}
+          onChange={(event) => setField("question", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+      </div>
+
+      <div className="md:col-span-2">
+        <label
+          htmlFor="faq-answer"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Jawaban
+        </label>
+        <textarea
+          id="faq-answer"
+          required
+          rows={5}
+          maxLength={2000}
+          value={form.answer}
+          onChange={(event) => setField("answer", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Maksimal 2000 karakter. Baris baru dipertahankan saat ditampilkan.
+        </p>
+      </div>
+
+      <div>
+        <label
+          htmlFor="faq-sort"
+          className="mb-2 block font-bold text-gray-700"
+        >
+          Urutan
+        </label>
+        <input
+          id="faq-sort"
+          type="number"
+          min={0}
+          max={9999}
+          step={1}
+          value={form.sortOrder}
+          onChange={(event) => setField("sortOrder", event.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Angka kecil tampil lebih dulu.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2">
+        <button
+          type="submit"
+          disabled={saving}
+          className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
+        >
+          {saving
+            ? "Menyimpan..."
+            : editingId
+              ? "Simpan perubahan"
+              : "Tambah FAQ"}
+        </button>
+        {editingId && (
+          <button
+            type="button"
+            onClick={resetForm}
+            className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
+          >
+            Batal
+          </button>
+        )}
+      </div>
+    </form>
+  );
+
   return (
     <section className="mx-auto max-w-5xl">
       <PageHeader
@@ -130,93 +223,13 @@ function AdminFaqs() {
         </p>
       )}
 
-      <form
-        onSubmit={submit}
-        className="mb-7 grid grid-cols-1 gap-4 rounded-3xl bg-white p-5 shadow-sm md:grid-cols-2 sm:p-7"
-      >
-        <div className="md:col-span-2">
-          <label
-            htmlFor="faq-question"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Pertanyaan
-          </label>
-          <input
-            id="faq-question"
-            required
-            maxLength={300}
-            value={form.question}
-            onChange={(event) => setField("question", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <label
-            htmlFor="faq-answer"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Jawaban
-          </label>
-          <textarea
-            id="faq-answer"
-            required
-            rows={5}
-            maxLength={2000}
-            value={form.answer}
-            onChange={(event) => setField("answer", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Maksimal 2000 karakter. Baris baru dipertahankan saat ditampilkan.
-          </p>
-        </div>
-
-        <div>
-          <label
-            htmlFor="faq-sort"
-            className="mb-2 block font-bold text-gray-700"
-          >
-            Urutan
-          </label>
-          <input
-            id="faq-sort"
-            type="number"
-            min={0}
-            max={9999}
-            step={1}
-            value={form.sortOrder}
-            onChange={(event) => setField("sortOrder", event.target.value)}
-            className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Angka kecil tampil lebih dulu.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:col-span-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="min-h-[44px] w-full rounded-xl bg-green-700 px-5 py-3 font-bold text-white hover:bg-green-800 disabled:opacity-60 sm:w-auto"
-          >
-            {saving
-              ? "Menyimpan..."
-              : editingId
-                ? "Simpan perubahan"
-                : "Tambah FAQ"}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="min-h-[44px] w-full rounded-xl bg-gray-100 px-5 py-3 font-bold text-gray-700 hover:bg-gray-200 sm:w-auto"
-            >
-              Batal
-            </button>
-          )}
-        </div>
-      </form>
+      {editingId ? (
+        <Modal title="Ubah FAQ" error={error} onClose={resetForm}>
+          {formElement}
+        </Modal>
+      ) : (
+        formElement
+      )}
 
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         {loading ? (
@@ -269,3 +282,4 @@ function AdminFaqs() {
 }
 
 export default AdminFaqs;
+
