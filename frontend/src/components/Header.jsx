@@ -36,7 +36,7 @@ function NavItem({ item, active, mobile = false, onClick }) {
                 ? "bg-brand-light font-semibold text-brand-primary"
                 : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
             }`
-          : `border-b-2 px-3 py-1 ${
+          : `whitespace-nowrap border-b-2 px-3 py-1 ${
               active
                 ? "border-brand-primary font-semibold text-brand-primary"
                 : "border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900"
@@ -90,7 +90,7 @@ function DesktopMoreMenu({ items, active, onNavClick, moreLabel }) {
         aria-controls={menuId}
         aria-haspopup="true"
         onClick={() => setIsOpen((open) => !open)}
-        className={`flex min-h-[44px] items-center gap-1.5 border-b-2 px-3 py-1 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
+        className={`flex min-h-[44px] items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-1 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ${
           moreActive
             ? "border-brand-primary font-semibold text-brand-primary"
             : "border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900"
@@ -161,7 +161,7 @@ function MobileNavigation({ active, onNavClick, items }) {
 
   useEffect(() => {
     if (!isOpen) return undefined;
-    const desktopQuery = window.matchMedia("(min-width: 1536px)");
+    const desktopQuery = window.matchMedia("(min-width: 1280px)");
     const handleChange = (event) => {
       if (event.matches) {
         setIsOpen(false);
@@ -180,7 +180,7 @@ function MobileNavigation({ active, onNavClick, items }) {
         aria-label={isOpen ? "Tutup menu" : "Buka menu"}
         aria-expanded={isOpen}
         aria-controls="mobile-nav-drawer"
-        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-xl text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 2xl:hidden"
+        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-xl text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 xl:hidden"
         onClick={() => setIsOpen((open) => !open)}
       >
         <i className={`fa-solid ${isOpen ? "fa-xmark" : "fa-bars"}`} aria-hidden="true"></i>
@@ -189,7 +189,7 @@ function MobileNavigation({ active, onNavClick, items }) {
       {isOpen && (
         <nav
           id="mobile-nav-drawer"
-          className="absolute left-0 right-0 top-full max-h-[calc(100dvh-5rem-env(safe-area-inset-top))] overflow-y-auto overscroll-contain border-b border-t border-gray-200 bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-sm 2xl:hidden"
+          className="absolute left-0 right-0 top-full max-h-[calc(100dvh-5rem-env(safe-area-inset-top))] overflow-y-auto overscroll-contain border-b border-t border-gray-200 bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-sm xl:hidden"
           aria-label="Navigasi Utama"
         >
           <ul className="space-y-1">
@@ -340,8 +340,8 @@ export default function Header() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden 2xl:flex" aria-label="Navigasi Utama">
-          <ul className="flex items-center gap-2 2xl:gap-4">
+        <nav className="hidden xl:flex" aria-label="Navigasi Utama">
+          <ul className="flex items-center xl:gap-2 2xl:gap-4">
             {primaryItems.map((item) => (
               <li key={item.id}>
                 <NavItem
