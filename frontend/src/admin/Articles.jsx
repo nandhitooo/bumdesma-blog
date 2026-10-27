@@ -21,6 +21,7 @@ const STATUS_FILTERS = [
   { value: "all", label: "Semua" },
   { value: "draft", label: "Draf" },
   { value: "published", label: "Terbit" },
+  { value: "scheduled", label: "Terjadwal" },
 ];
 
 // Artikel berstatus terbit yang tanggal terbitnya masih di masa depan belum

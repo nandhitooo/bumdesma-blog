@@ -72,6 +72,21 @@ function toDateTimeLocal(value) {
   )}T${padDatePart(date.getHours())}:${padDatePart(date.getMinutes())}`;
 }
 
+// Form memakai tiga pilihan status, sedangkan backend hanya mengenal draft dan
+// published: artikel "terjadwal" adalah artikel terbit yang tanggal terbitnya
+// masih di masa depan, sehingga tidak butuh kolom status baru di database.
+function isFutureDate(value) {
+  if (!value) return false;
+  const time = new Date(value).getTime();
+  return !Number.isNaN(time) && time > Date.now();
+}
+
+function statusForForm(article) {
+  return article.status === "published" && isFutureDate(article.publishedAt)
+    ? "scheduled"
+    : article.status;
+}
+
 function ArticleEditor() {
   const { user } = useOutletContext();
   const { id } = useParams();
@@ -164,7 +179,9 @@ function ArticleEditor() {
             excerpt: article.excerpt || "",
             categoryId: article.categoryId ? String(article.categoryId) : "",
             coverImageUrl: article.coverImageUrl || "",
-            status: article.status,
+            // Artikel terbit bertanggal masa depan dibuka sebagai "Terjadwal"
+            // supaya pilihan statusnya sesuai kenyataan, bukan "Terbit".
+            status: statusForForm(article),
             publishedAt: toDateTimeLocal(article.publishedAt),
           };
           setForm(loadedForm);
@@ -405,6 +422,16 @@ function ArticleEditor() {
     event.preventDefault();
     setError("");
     if (!editor) return;
+    // Tanpa tanggal yang benar, mode "Jadwalkan" akan langsung menerbitkan
+    // artikel dan tombolnya jadi menyesatkan.
+    if (
+      user.role === "admin" &&
+      form.status === "scheduled" &&
+      !isFutureDate(form.publishedAt)
+    ) {
+      setError("Tanggal terbit artikel terjadwal harus di masa depan.");
+      return;
+    }
     setSaving(true);
     const payload = {
       title: form.title,
@@ -415,9 +442,16 @@ function ArticleEditor() {
       categoryId: form.categoryId ? Number(form.categoryId) : null,
     };
     if (user.role === "admin") {
-      payload.status = form.status;
-      if (form.status === "published" && form.publishedAt) {
+      if (form.status === "scheduled") {
+        // Dikirim sebagai terbit + tanggal masa depan; server menyembunyikannya
+        // dari situs publik sampai waktu itu tiba.
+        payload.status = "published";
         payload.publishedAt = new Date(form.publishedAt).toISOString();
+      } else {
+        payload.status = form.status;
+        if (form.status === "published" && form.publishedAt) {
+          payload.publishedAt = new Date(form.publishedAt).toISOString();
+        }
       }
     }
 
@@ -487,7 +521,7 @@ function ArticleEditor() {
         </div>
         <p className="mt-2 max-w-2xl text-sm text-gray-600">
           {user.role === "admin"
-            ? "Simpan sebagai draf untuk ditinjau, atau terbitkan langsung ke halaman blog."
+            ? "Simpan sebagai draf untuk ditinjau, terbitkan langsung, atau jadwalkan waktu terbitnya."
             : "Penerbitan dilakukan oleh admin. Simpan pekerjaan Anda sebagai draf."}
         </p>
       </header>
@@ -583,6 +617,7 @@ function ArticleEditor() {
                 >
                   <option value="draft">Draf</option>
                   <option value="published">Terbit</option>
+                  <option value="scheduled">Jadwalkan</option>
                 </select>
               </div>
             ) : (
@@ -592,30 +627,38 @@ function ArticleEditor() {
                   <StatusBadge status={form.status} />
                 </div>
                 <p className="mt-2 text-xs text-gray-600">
-                  {form.status === "published"
-                    ? "Artikel ini sudah terbit. Simpan perubahan Anda; penerbitan ulang diatur admin."
-                    : "Penerbitan dilakukan oleh admin. Setelah disimpan, artikel berstatus draf."}
+                  {form.status === "draft"
+                    ? "Penerbitan dilakukan oleh admin. Setelah disimpan, artikel berstatus draf."
+                    : form.status === "scheduled"
+                      ? "Artikel ini dijadwalkan terbit oleh admin. Simpan perubahan Anda untuk memperbarui drafnya."
+                      : "Artikel ini sudah terbit. Simpan perubahan Anda; penerbitan ulang diatur admin."}
                 </p>
               </div>
             )}
           </div>
-          {user.role === "admin" && form.status === "published" && (
-            <div>
-              <label htmlFor="article-published-at" className="mb-2 block font-bold text-gray-700">
-                Tanggal terbit (opsional)
-              </label>
-              <input
-                id="article-published-at"
-                type="datetime-local"
-                value={form.publishedAt}
-                onChange={(event) => setField("publishedAt", event.target.value)}
-                className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-              />
-              <p className="mt-2 text-xs text-gray-500">
-                Kosongkan untuk memakai waktu sekarang saat artikel diterbitkan.
-              </p>
-            </div>
-          )}
+          {user.role === "admin" &&
+            (form.status === "published" || form.status === "scheduled") && (
+              <div>
+                <label htmlFor="article-published-at" className="mb-2 block font-bold text-gray-700">
+                  {form.status === "scheduled"
+                    ? "Tanggal dan jam terbit"
+                    : "Tanggal terbit (opsional)"}
+                </label>
+                <input
+                  id="article-published-at"
+                  type="datetime-local"
+                  required={form.status === "scheduled"}
+                  value={form.publishedAt}
+                  onChange={(event) => setField("publishedAt", event.target.value)}
+                  className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+                />
+                <p className="mt-2 text-xs text-gray-500">
+                  {form.status === "scheduled"
+                    ? "Artikel akan tampil di situs publik pada waktu ini. Waktu mengikuti zona waktu perangkat Anda dan harus di masa depan."
+                    : "Kosongkan untuk memakai waktu sekarang saat artikel diterbitkan."}
+                </p>
+              </div>
+            )}
 
           <div>
             <span className="mb-2 block font-bold text-gray-700">Gambar sampul</span>
@@ -717,7 +760,9 @@ function ArticleEditor() {
               ? "Menyimpan..."
               : user.role === "admin" && form.status === "published"
                 ? "Simpan dan terbitkan"
-                : "Simpan draf"}
+                : user.role === "admin" && form.status === "scheduled"
+                  ? "Simpan dan jadwalkan"
+                  : "Simpan draf"}
           </button>
         </div>
       </form>

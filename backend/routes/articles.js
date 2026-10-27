@@ -46,7 +46,9 @@ const publicQuerySchema = z.object({
 // tabel sekaligus; jumlah default (200) jauh di atas kebutuhan panel dan bentuk
 // responsnya tetap sama.
 const adminListQuerySchema = z.object({
-  status: z.enum(["all", "draft", "published"]).default("all"),
+  // "scheduled" bukan nilai kolom: itu artikel terbit yang jam terbitnya belum
+  // tiba. Diterjemahkan menjadi filter di handler, jadi bentuk respons sama.
+  status: z.enum(["all", "draft", "published", "scheduled"]).default("all"),
   limit: z.coerce.number().int().min(1).max(500).default(200),
 });
 
@@ -307,7 +309,11 @@ adminRouter.get(
     const values = [];
     const filters = [];
 
-    if (status !== "all") {
+    if (status === "scheduled") {
+      // Sama seperti daftar publik: status 'published' saja tidak cukup, jam
+      // terbitnya yang menentukan artikel sudah bisa dibaca atau belum.
+      filters.push("a.status = 'published'", "a.published_at > now()");
+    } else if (status !== "all") {
       values.push(status);
       filters.push(`a.status = $${values.length}`);
     }
