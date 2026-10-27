@@ -16,6 +16,7 @@ function AdminBackup() {
 
   const [file, setFile] = useState(null);
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [restoring, setRestoring] = useState(false);
   const [restoreError, setRestoreError] = useState("");
@@ -87,6 +88,12 @@ function AdminBackup() {
       setRestoreError("Isi password Anda untuk melanjutkan pemulihan.");
       return;
     }
+    // Kolom kode hanya muncul bila /api/auth/me melaporkan 2FA aktif, dan
+    // server tetap memverifikasinya sendiri.
+    if (user.totpEnabled && !code.trim()) {
+      setRestoreError("Isi kode verifikasi dari aplikasi authenticator Anda.");
+      return;
+    }
     if (confirmation !== CONFIRMATION_WORD) {
       setRestoreError(`Ketik ${CONFIRMATION_WORD} untuk mengonfirmasi.`);
       return;
@@ -95,6 +102,7 @@ function AdminBackup() {
     const formData = new FormData();
     formData.append("backup", file);
     formData.append("password", password);
+    if (user.totpEnabled) formData.append("code", code.trim());
 
     setRestoring(true);
     try {
@@ -112,6 +120,7 @@ function AdminBackup() {
       // Formulir dikosongkan supaya isi backup tidak terkirim ulang tanpa sengaja.
       setFile(null);
       setPassword("");
+      setCode("");
       setConfirmation("");
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (requestError) {
@@ -169,6 +178,11 @@ function AdminBackup() {
             situs</strong> dengan isi backup. Sebelum mengganti, server menyimpan
             snapshot data terbaru di server (tiga snapshot terakhir disimpan).
             Gambar yang sudah ada tidak dihapus.
+          </p>
+          <p className="mt-2 text-sm">
+            <strong>Riwayat revisi artikel juga akan dihapus</strong> karena
+            revisi menempel pada artikel yang diganti. Riwayat ini tidak bisa
+            dikembalikan dari backup.
           </p>
         </div>
 
@@ -248,6 +262,31 @@ function AdminBackup() {
               login.
             </p>
           </div>
+
+          {user.totpEnabled && (
+            <div>
+              <label
+                htmlFor="restore-code"
+                className="mb-2 block font-bold text-gray-700"
+              >
+                Kode verifikasi dua langkah
+              </label>
+              <input
+                id="restore-code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                required
+                value={code}
+                onChange={(event) => setCode(event.target.value)}
+                className={inputClass}
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                Akun Anda memakai verifikasi dua langkah. Masukkan kode 6 digit
+                dari aplikasi authenticator.
+              </p>
+            </div>
+          )}
 
           <div>
             <label

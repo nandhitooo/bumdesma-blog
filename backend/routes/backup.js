@@ -33,6 +33,7 @@ import { requireAdmin } from "../middleware/auth.js";
 import { cleanContent } from "../services/articles.js";
 import { logAudit } from "../services/audit.js";
 import { SITE_CONTENT_KEYS, siteContentSchemas } from "../services/siteContent.js";
+import { decryptSecret, verifyCode } from "../services/totp.js";
 import {
   detectImage,
   extractUploadUrls,
@@ -136,6 +137,14 @@ function fileTimestamp(date = new Date()) {
 }
 
 const toIso = (value) => (value ? new Date(value).toISOString() : null);
+
+// bigint dari Postgres dikembalikan pg sebagai string; otplib membutuhkan
+// number untuk afterTimeStep. Nilai kosong berarti belum ada langkah tersimpan.
+function toTimeStep(value) {
+  if (value === null || value === undefined) return null;
+  const step = Number(value);
+  return Number.isSafeInteger(step) ? step : null;
+}
 
 async function fileExists(target) {
   try {
@@ -839,6 +848,18 @@ async function replaceData(client, data, adminId) {
     userRows.map((row) => [row.email.toLowerCase(), row.id]),
   );
 
+  // Riwayat revisi ikut hilang bersama artikelnya (ON DELETE CASCADE), jadi
+  // jumlahnya dihitung lebih dulu agar bisa dilaporkan ke admin di respons.
+  // Tabel yang belum ada dianggap kosong, sama seperti tabel opsional lain.
+  let revisionsCleared = 0;
+  const revisionTables = await detectTables(client, ["article_revisions"]);
+  if (revisionTables.has("article_revisions")) {
+    const { rows } = await client.query(
+      "SELECT count(*)::int AS count FROM article_revisions",
+    );
+    revisionsCleared = rows[0]?.count ?? 0;
+  }
+
   await client.query("DELETE FROM articles");
   await client.query("DELETE FROM categories");
   await client.query("DELETE FROM site_content");
@@ -974,6 +995,8 @@ async function replaceData(client, data, adminId) {
       );
     }
   }
+
+  return revisionsCleared;
 }
 
 // Menyalin gambar yang sudah divalidasi dari folder staging ke uploads/.
@@ -1026,15 +1049,46 @@ router.post(
       // memuat hash). Password salah selalu 400: 401 akan membuat frontend
       // mengira sesi berakhir dan mengalihkan admin ke halaman login.
       const { rows } = await pool.query(
-        "SELECT password_hash FROM users WHERE id = $1",
+        `SELECT password_hash, totp_enabled, totp_secret, totp_last_step
+         FROM users WHERE id = $1`,
         [req.user.id],
       );
+      const user = rows[0];
       const passwordMatches =
-        Boolean(rows[0]) &&
+        Boolean(user) &&
         password.length > 0 &&
-        (await bcrypt.compare(password, rows[0].password_hash));
+        (await bcrypt.compare(password, user.password_hash));
       if (!passwordMatches) {
         return res.status(400).json({ message: "Password salah." });
+      }
+
+      // Bila 2FA aktif, pemulihan juga wajib membuktikan kode authenticator:
+      // satu password yang bocor tidak cukup untuk mengganti seluruh isi situs.
+      // Kode diverifikasi sebelum berkas backup dibaca. Kode salah tetap 400
+      // (bukan 401) karena 401 akan membuat frontend mengira sesi berakhir.
+      if (user.totp_enabled) {
+        const code = typeof req.body?.code === "string" ? req.body.code : "";
+        // Secret yang hilang diperlakukan sebagai kode salah, bukan 500.
+        const verified = user.totp_secret
+          ? await verifyCode(decryptSecret(user.totp_secret), code, {
+              afterStep: toTimeStep(user.totp_last_step),
+            })
+          : { ok: false, step: null };
+        if (!verified.ok) {
+          return res.status(400).json({ message: "Kode verifikasi salah." });
+        }
+
+        // Langkah kode disimpan secara atomik seperti saat login, sehingga satu
+        // kode tidak bisa dipakai dua kali untuk dua permintaan pemulihan.
+        const claimed = await pool.query(
+          `UPDATE users SET totp_last_step = $1
+           WHERE id = $2 AND (totp_last_step IS NULL OR totp_last_step < $1)
+           RETURNING id`,
+          [verified.step, req.user.id],
+        );
+        if (!claimed.rowCount) {
+          return res.status(400).json({ message: "Kode verifikasi salah." });
+        }
       }
 
       stagingDir = await mkdtemp(path.join(os.tmpdir(), "bumdesma-restore-"));
@@ -1044,13 +1098,14 @@ router.post(
       // pun data diubah.
       await writePreRestoreSnapshot(req.user.id);
 
+      let revisionsCleared = 0;
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
         await client.query("SELECT pg_advisory_xact_lock($1)", [
           RESTORE_LOCK_KEY,
         ]);
-        await replaceData(client, backup.data, req.user.id);
+        revisionsCleared = await replaceData(client, backup.data, req.user.id);
         await client.query("COMMIT");
       } catch (error) {
         await client.query("ROLLBACK").catch(() => {});
@@ -1079,19 +1134,33 @@ router.post(
           `${counts.articles} artikel, ${counts.siteContent} konten situs, ` +
           `${counts.gallery} galeri, ${counts.team} pengurus, ` +
           `${counts.documents} dokumen, ${counts.serviceDetails} layanan, ` +
-          `${counts.faqs} FAQ, ${counts.files} gambar, ${failedFiles.length} gagal.`,
+          `${counts.faqs} FAQ, ${counts.files} gambar, ${failedFiles.length} gagal, ` +
+          `${revisionsCleared} revisi dihapus.`,
       );
 
-      await logAudit(req, "restore", "backup", null, { counts });
+      await logAudit(req, "restore", "backup", null, {
+        counts,
+        revisionsCleared,
+      });
 
       return res.json({
         message: "Backup berhasil dipulihkan.",
         counts,
+        revisionsCleared,
         failedFiles,
       });
     } catch (error) {
       if (error.status === 400) {
         return res.status(400).json({ message: error.message });
+      }
+
+      // 23505 = unique violation, mis. dua kategori atau artikel dengan slug
+      // yang sama di dalam berkas backup. Itu masalah isi berkas, bukan
+      // kegagalan server.
+      if (error.code === "23505") {
+        return res.status(400).json({
+          message: "Backup berisi data duplikat (mis. slug kembar).",
+        });
       }
 
       console.error(

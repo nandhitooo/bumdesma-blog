@@ -207,7 +207,20 @@ function collectEnvProblems() {
   return problems;
 }
 
+// Tanpa TRUST_PROXY, req.ip adalah IP soket — yaitu reverse proxy-nya, bukan
+// klien. Akibatnya semua klien terlihat sebagai satu IP oleh rate limiter.
+// Keadaan ini tidak boleh menghentikan server (deploy tanpa proxy tetap sah),
+// jadi cukup diperingatkan sekali saat start.
+function warnTrustProxyInProduction() {
+  if (env.isProduction && !stringEnv("TRUST_PROXY")) {
+    console.warn(
+      "TRUST_PROXY belum diisi padahal NODE_ENV=production. Bila server berada di belakang reverse proxy, semua klien akan dianggap satu IP sehingga rate limiter bisa ikut memblokir pengguna lain. Isi TRUST_PROXY dengan jumlah hop (contoh: 1) atau nama subnet tepercaya (contoh: loopback).",
+    );
+  }
+}
+
 export function validateEnv() {
+  warnTrustProxyInProduction();
   const problems = collectEnvProblems();
   if (problems.length > 0) {
     throw new Error(

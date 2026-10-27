@@ -19,6 +19,7 @@ import { fileURLToPath } from "node:url";
 import { ZipArchive } from "archiver";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import { generate } from "otplib";
 import yauzl from "yauzl";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -110,9 +111,11 @@ async function withBackupZip(entries, run) {
   }
 }
 
-async function restoreBackup(cookie, password, zipPath) {
+async function restoreBackup(cookie, password, zipPath, code) {
   const form = new FormData();
   form.append("password", password);
+  // Kode TOTP hanya wajib bila admin yang memulihkan mengaktifkan 2FA.
+  if (code) form.append("code", code);
   form.append(
     "backup",
     new Blob([await readFile(zipPath)], { type: "application/zip" }),
@@ -975,6 +978,177 @@ describe("Uji backup dan pemulihan", { skip: skipWhenApiDown || (ADMIN_EMAIL && 
     assert.match(result.data.message, /gambar/i);
   });
 });
+
+/* --------------------------------- uji 2FA login dan pemulihan backup ------ */
+
+const epochNow = () => Math.floor(Date.now() / 1000);
+
+// Kode untuk langkah berikutnya (30 detik ke depan) masih diterima otplib dalam
+// toleransi satu langkah, dan langkahnya selalu lebih besar dari langkah yang
+// terakhir dipakai — itulah yang membuatnya lolos anti pakai ulang.
+async function nextStepCode(secret) {
+  return generate({ secret, epoch: epochNow() + 30 });
+}
+
+async function loginWithTotpCode(email, password, code) {
+  return request("/api/auth/login", {
+    method: "POST",
+    body: { email, password, code },
+  });
+}
+
+// Mengaktifkan 2FA pada sesi yang sudah login dan mengembalikan secret-nya.
+async function enableTotp(cookie) {
+  const setup = await request("/api/auth/2fa/setup", {
+    method: "POST",
+    cookie,
+  });
+  assert.equal(setup.status, 200, "mulai pengaturan 2FA harus berhasil");
+
+  // Aktivasi memakai kode langkah saat ini, sehingga pengujian berikutnya bisa
+  // memakai langkah +1 tanpa menunggu jendela 30 detik berganti.
+  const enabled = await request("/api/auth/2fa/enable", {
+    method: "POST",
+    cookie,
+    body: { code: await generate({ secret: setup.data.secret, epoch: epochNow() }) },
+  });
+  assert.equal(enabled.status, 200, "aktivasi 2FA harus berhasil");
+  return setup.data.secret;
+}
+
+// Dua admin sementara dipakai supaya langkah TOTP satu pengujian tidak
+// menghabiskan jatah langkah pengujian berikutnya.
+describe(
+  "Uji 2FA pada login dan pemulihan backup",
+  {
+    skip:
+      skipWhenApiDown ||
+      (ADMIN_EMAIL && ADMIN_PASSWORD ? false : SKIP_WITHOUT_ADMIN),
+  },
+  () => {
+    let adminCookie = "";
+    const tempUserIds = [];
+    let loginAccount = null;
+    let restoreAccount = null;
+
+    async function createTotpAdmin(label) {
+      const password = randomBytes(24).toString("base64url");
+      const created = await request("/api/admin/users", {
+        method: "POST",
+        cookie: adminCookie,
+        body: {
+          name: `Admin Uji 2FA ${label}`,
+          email: `zz-uji-2fa-${randomUUID()}@localhost.test`,
+          password,
+          role: "admin",
+        },
+      });
+      assert.equal(created.status, 201, `gagal membuat admin sementara ${label}`);
+      tempUserIds.push(created.data.user.id);
+
+      const session = await login(created.data.user.email, password);
+      const cookie = sessionCookie(session.response);
+      const secret = await enableTotp(cookie);
+      return { ...created.data.user, password, cookie, secret };
+    }
+
+    before(async () => {
+      const adminLogin = await login(ADMIN_EMAIL, ADMIN_PASSWORD);
+      adminCookie = sessionCookie(adminLogin.response);
+      loginAccount = await createTotpAdmin("login");
+      restoreAccount = await createTotpAdmin("restore");
+    });
+
+    after(async () => {
+      for (const id of tempUserIds) {
+        await request(`/api/admin/users/${id}`, {
+          method: "DELETE",
+          cookie: adminCookie,
+        });
+      }
+    });
+
+    it("kode TOTP yang dipakai ulang untuk login kedua ditolak (401)", async () => {
+      const code = await nextStepCode(loginAccount.secret);
+
+      const first = await loginWithTotpCode(
+        loginAccount.email,
+        loginAccount.password,
+        code,
+      );
+      assert.equal(first.status, 200, "login pertama dengan kode harus berhasil");
+      sessionCookie(first.response);
+
+      const replay = await loginWithTotpCode(
+        loginAccount.email,
+        loginAccount.password,
+        code,
+      );
+      assert.equal(replay.status, 401, "kode yang sama tidak boleh lolos dua kali");
+      assert.equal(replay.data.message, "Kode verifikasi salah.");
+    });
+
+    it("pemulihan tanpa kode dan dengan kode salah ditolak (400)", async () => {
+      // Kode enam digit yang tidak sah pada langkah sekitar sekarang, supaya uji
+      // tidak bergantung pada keberuntungan memilih angka.
+      const validCodes = new Set();
+      for (let offset = -1; offset <= 1; offset += 1) {
+        validCodes.add(
+          await generate({
+            secret: restoreAccount.secret,
+            epoch: epochNow() + offset * 30,
+          }),
+        );
+      }
+      let invalidCode = "000000";
+      for (let value = 0; value < 10; value += 1) {
+        const candidate = String(value).padStart(6, "0");
+        if (!validCodes.has(candidate)) {
+          invalidCode = candidate;
+          break;
+        }
+      }
+
+      await withBackupZip([["data.json", backupData()]], async (zipPath) => {
+        const missing = await restoreBackup(
+          restoreAccount.cookie,
+          restoreAccount.password,
+          zipPath,
+        );
+        assert.equal(missing.status, 400, "kode yang tidak dikirim harus ditolak");
+        assert.equal(missing.data.message, "Kode verifikasi salah.");
+
+        const wrong = await restoreBackup(
+          restoreAccount.cookie,
+          restoreAccount.password,
+          zipPath,
+          invalidCode,
+        );
+        assert.equal(wrong.status, 400, "kode salah harus ditolak");
+        assert.equal(wrong.data.message, "Kode verifikasi salah.");
+      });
+    });
+
+    it("kode benar lolos gerbang 2FA, lalu isi zip yang salah tetap ditolak (400)", async () => {
+      // Pesan yang berbeda dari "Kode verifikasi salah." membuktikan gerbang TOTP
+      // sudah terlewati dan penolakan datang dari isi berkas backup.
+      const code = await nextStepCode(restoreAccount.secret);
+      await withBackupZip(
+        [["data.json", JSON.stringify({ formatVersion: 99 })]],
+        async (zipPath) => {
+          const result = await restoreBackup(
+            restoreAccount.cookie,
+            restoreAccount.password,
+            zipPath,
+            code,
+          );
+          assert.equal(result.status, 400);
+          assert.match(result.data.message, /format backup/i);
+        },
+      );
+    });
+  },
+);
 
 /* --------------------------------------- uji destruktif (opt-in saja) ------ */
 

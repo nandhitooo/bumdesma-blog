@@ -3,6 +3,7 @@ import { z } from "zod";
 import { pool } from "../db/pool.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
+import { logAudit } from "../services/audit.js";
 import { deleteUnreferencedUploads } from "../services/uploads.js";
 
 // Router publik dan admin dipisah mengikuti pola routes/categories.js: daftar
@@ -83,6 +84,7 @@ adminRouter.post("/", validate(createGallerySchema), async (req, res) => {
      RETURNING ${GALLERY_COLUMNS}`,
     [imageUrl, caption, eventDate ?? null],
   );
+  await logAudit(req, "create", "gallery", rows[0].id);
   return res.status(201).json({ item: rows[0] });
 });
 
@@ -124,6 +126,11 @@ adminRouter.put(
       values,
     );
 
+    // Hanya nama field yang dicatat, bukan nilainya.
+    await logAudit(req, "update", "gallery", rows[0].id, {
+      fields: Object.keys(fields),
+    });
+
     // Gambar lama hanya boleh dihapus bila sudah tidak dirujuk artikel atau
     // item galeri lain; deleteUnreferencedUploads yang memutuskannya.
     if (fields.imageUrl && fields.imageUrl !== previous.rows[0].image_url) {
@@ -146,6 +153,7 @@ adminRouter.delete(
       return res.status(404).json({ message: "Item galeri tidak ditemukan." });
     }
 
+    await logAudit(req, "delete", "gallery", req.validated.params.id);
     await deleteUnreferencedUploads([rows[0].image_url]);
     return res.status(204).end();
   },

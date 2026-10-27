@@ -3,6 +3,7 @@ import { z } from "zod";
 import { pool } from "../db/pool.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
+import { logAudit } from "../services/audit.js";
 import { deleteUnreferencedUploads } from "../services/uploads.js";
 
 // Router publik dan admin dipisah mengikuti pola routes/categories.js: susunan
@@ -110,6 +111,7 @@ adminRouter.post("/", validate(createTeamSchema), async (req, res) => {
      RETURNING ${TEAM_COLUMNS}`,
     [name, position, termLabel, photoUrl ?? null, sortOrder],
   );
+  await logAudit(req, "create", "team", rows[0].id);
   return res.status(201).json({ member: rows[0] });
 });
 
@@ -153,6 +155,11 @@ adminRouter.put(
       values,
     );
 
+    // Hanya nama field yang dicatat, bukan nilainya.
+    await logAudit(req, "update", "team", rows[0].id, {
+      fields: Object.keys(fields),
+    });
+
     // Foto lama hanya boleh dihapus bila sudah tidak dirujuk artikel, item
     // galeri, atau pengurus lain; deleteUnreferencedUploads yang memutuskannya.
     if ("photoUrl" in fields && previous.rows[0].photo_url !== fields.photoUrl) {
@@ -175,6 +182,7 @@ adminRouter.delete(
       return res.status(404).json({ message: "Pengurus tidak ditemukan." });
     }
 
+    await logAudit(req, "delete", "team", req.validated.params.id);
     await deleteUnreferencedUploads([rows[0].photo_url]);
     return res.status(204).end();
   },

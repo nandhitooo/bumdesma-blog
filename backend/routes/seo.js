@@ -46,8 +46,14 @@ function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
 }
 
+// Karakter kontrol yang tidak sah di XML 1.0 (termasuk NUL) membuat seluruh
+// dokumen ditolak parser, jadi dibuang sebelum escape.
+const XML_INVALID_CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g;
+
 function escapeXml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => XML_ESCAPES[char]);
+  return String(value ?? "")
+    .replace(XML_INVALID_CONTROL, "")
+    .replace(/[&<>"']/g, (char) => XML_ESCAPES[char]);
 }
 
 function siteUrl() {
@@ -179,10 +185,11 @@ router.get("/feed.xml", seoLimiter, async (req, res) => {
 });
 
 router.get("/share/:slug", seoLimiter, async (req, res) => {
-  res.setHeader("Cache-Control", "public, max-age=300");
-
   const { slug } = req.params;
   if (!isValidSlug(slug)) {
+    // 404 tidak boleh ikut tersimpan di cache perantara: slug itu bisa dibuat
+    // kapan saja, dan pratinjau basi akan terus disajikan setelahnya.
+    res.setHeader("Cache-Control", "no-store");
     return res
       .status(404)
       .type("html")
@@ -201,6 +208,7 @@ router.get("/share/:slug", seoLimiter, async (req, res) => {
   );
   const article = rows[0];
   if (!article) {
+    res.setHeader("Cache-Control", "no-store");
     return res
       .status(404)
       .type("html")
@@ -246,6 +254,8 @@ router.get("/share/:slug", seoLimiter, async (req, res) => {
 </html>
 `;
 
+  // Hanya pratinjau yang benar-benar ada yang boleh di-cache singkat.
+  res.setHeader("Cache-Control", "public, max-age=300");
   return res.type("html").send(body);
 });
 

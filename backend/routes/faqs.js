@@ -3,6 +3,7 @@ import { z } from "zod";
 import { pool } from "../db/pool.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
+import { logAudit } from "../services/audit.js";
 
 // Router publik dan admin dipisah mengikuti pola routes/categories.js: daftar
 // FAQ boleh dibaca siapa saja, sedangkan perubahan data hanya untuk admin.
@@ -86,6 +87,7 @@ adminRouter.post("/", validate(createFaqSchema), async (req, res) => {
      RETURNING ${FAQ_COLUMNS}`,
     [question, answer, sortOrder],
   );
+  await logAudit(req, "create", "faq", rows[0].id);
   return res.status(201).json({ faq: rows[0] });
 });
 
@@ -121,6 +123,10 @@ adminRouter.put(
     if (!rows[0]) {
       return res.status(404).json({ message: "FAQ tidak ditemukan." });
     }
+    // Hanya nama field yang dicatat, bukan nilainya.
+    await logAudit(req, "update", "faq", rows[0].id, {
+      fields: Object.keys(fields),
+    });
     return res.json({ faq: rows[0] });
   },
 );
@@ -135,6 +141,7 @@ adminRouter.delete(
     if (!rowCount) {
       return res.status(404).json({ message: "FAQ tidak ditemukan." });
     }
+    await logAudit(req, "delete", "faq", req.validated.params.id);
     return res.status(204).end();
   },
 );

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { pool } from "../db/pool.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
+import { logAudit } from "../services/audit.js";
 import { slugParamSchema } from "../services/slug.js";
 
 // Router publik dan admin dipisah mengikuti pola routes/categories.js: daftar
@@ -138,6 +139,7 @@ adminRouter.post("/", validate(createServiceSchema), async (req, res) => {
      RETURNING ${SERVICE_COLUMNS}`,
     [slug, title, summary, JSON.stringify(requirements), JSON.stringify(steps), sortOrder],
   );
+  await logAudit(req, "create", "service_detail", rows[0].id);
   return res.status(201).json({ service: rows[0] });
 });
 
@@ -180,6 +182,10 @@ adminRouter.put(
     if (!rows[0]) {
       return res.status(404).json({ message: "Layanan tidak ditemukan." });
     }
+    // Hanya nama field yang dicatat, bukan nilainya.
+    await logAudit(req, "update", "service_detail", rows[0].id, {
+      fields: Object.keys(fields),
+    });
     return res.json({ service: rows[0] });
   },
 );
@@ -195,6 +201,7 @@ adminRouter.delete(
     if (!rowCount) {
       return res.status(404).json({ message: "Layanan tidak ditemukan." });
     }
+    await logAudit(req, "delete", "service_detail", req.validated.params.id);
     return res.status(204).end();
   },
 );

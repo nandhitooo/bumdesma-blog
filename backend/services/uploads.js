@@ -68,12 +68,19 @@ export function detectImage(buffer) {
   return null;
 }
 
+// Batas jumlah piksel masukan. Gambar "bom dekompresi" berukuran berkas kecil
+// (mis. PNG 2 MB) bisa mengembang jadi ratusan juta piksel dan menghabiskan
+// memori saat didekode; sharp menolaknya bila melewati batas ini.
+const MAX_INPUT_PIXELS = 24_000_000;
+
 // Memperbaiki orientasi berdasarkan EXIF, mengecilkan lebar maksimal 1600 px
 // tanpa memperbesar gambar kecil, lalu mengonversi ke WebP. Metadata tidak ikut
 // ditulis karena sharp hanya menyertakannya bila diminta secara eksplisit.
 export async function processUploadedImage(buffer) {
   try {
-    const processed = await sharp(buffer)
+    const processed = await sharp(buffer, {
+      limitInputPixels: MAX_INPUT_PIXELS,
+    })
       .rotate()
       .resize({ width: 1600, withoutEnlargement: true })
       .webp({ quality: 80 })

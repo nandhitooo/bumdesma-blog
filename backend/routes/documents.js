@@ -3,6 +3,7 @@ import { z } from "zod";
 import { pool } from "../db/pool.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
+import { logAudit } from "../services/audit.js";
 
 const publicRouter = express.Router();
 const adminRouter = express.Router();
@@ -83,6 +84,7 @@ adminRouter.post("/", validate(documentSchema), async (req, res) => {
      RETURNING ${SELECT_COLUMNS}`,
     [title, year, description, url],
   );
+  await logAudit(req, "create", "document", rows[0].id);
   return res.status(201).json({ document: rows[0] });
 });
 
@@ -111,6 +113,10 @@ adminRouter.put(
     if (!rows[0]) {
       return res.status(404).json({ message: "Dokumen tidak ditemukan." });
     }
+    // Hanya nama field yang dicatat, bukan nilainya.
+    await logAudit(req, "update", "document", rows[0].id, {
+      fields: Object.keys(req.validated.body),
+    });
     return res.json({ document: rows[0] });
   },
 );
@@ -126,6 +132,7 @@ adminRouter.delete(
     if (!rowCount) {
       return res.status(404).json({ message: "Dokumen tidak ditemukan." });
     }
+    await logAudit(req, "delete", "document", req.validated.params.id);
     return res.status(204).end();
   },
 );

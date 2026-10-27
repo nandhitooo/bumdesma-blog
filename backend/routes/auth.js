@@ -82,6 +82,31 @@ const loginLimiter = rateLimit({
   },
 });
 
+// Limiter kedua yang dikunci pada akun, bukan IP: satu email hanya boleh salah
+// password 10 kali per 15 menit walau penyerang berganti-ganti IP. Kuncinya
+// email yang sudah dinormalisasi seperti di loginSchema; permintaan tanpa email
+// jatuh kembali ke IP supaya tetap ada batasnya.
+const loginAccountLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const email =
+      typeof req.body?.email === "string"
+        ? req.body.email.trim().toLowerCase()
+        : "";
+    return email
+      ? `login-email:${email}`
+      : `login-ip:${ipKeyGenerator(req.ip)}`;
+  },
+  // Sama seperti limiter per IP: login yang berhasil tidak menghabiskan jatah.
+  skipSuccessfulRequests: true,
+  message: {
+    message: "Terlalu banyak percobaan login. Coba lagi beberapa menit lagi.",
+  },
+});
+
 const changePasswordSchema = z.object({
   currentPassword: withPasswordByteLimit(
     z
@@ -112,7 +137,7 @@ const changePasswordLimiter = rateLimit({
   },
 });
 
-router.post("/login", loginLimiter, async (req, res, next) => {
+router.post("/login", loginLimiter, loginAccountLimiter, async (req, res, next) => {
   try {
     const parsed = loginSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -136,6 +161,12 @@ router.post("/login", loginLimiter, async (req, res, next) => {
     );
 
     if (!passwordMatches) {
+      // Percobaan gagal hanya dicatat bila akunnya ada: mencatat email yang tidak
+      // terdaftar sama saja membuat audit log bisa dipakai menebak email mana
+      // yang punya akun.
+      if (user) {
+        await logAudit(req, "login-failed", "user", user.id, {});
+      }
       return res.status(401).json({ message: "Email atau password salah." });
     }
 
@@ -154,19 +185,30 @@ router.post("/login", loginLimiter, async (req, res, next) => {
         { afterStep: toTimeStep(user.totp_last_step) },
       );
       if (!ok) {
+        await logAudit(req, "login-failed", "user", user.id, {});
         return res.status(401).json({ message: "Kode verifikasi salah." });
       }
 
-      // Langkah kode disimpan supaya kode yang sama tidak bisa dipakai ulang.
-      await pool.query("UPDATE users SET totp_last_step = $1 WHERE id = $2", [
-        step,
-        user.id,
-      ]);
+      // Satu UPDATE atomik yang sekaligus mengklaim langkah kode: dua permintaan
+      // bersamaan dengan kode yang sama hanya boleh lolos satu. Baris yang tidak
+      // kembali berarti langkah itu sudah dipakai (kode dipakai ulang), jadi
+      // cookie tidak diterbitkan.
+      const claimed = await pool.query(
+        `UPDATE users SET totp_last_step = $1
+         WHERE id = $2 AND (totp_last_step IS NULL OR totp_last_step < $1)
+         RETURNING id`,
+        [step, user.id],
+      );
+      if (!claimed.rowCount) {
+        await logAudit(req, "login-failed", "user", user.id, {});
+        return res.status(401).json({ message: "Kode verifikasi salah." });
+      }
     }
 
     res.cookie(AUTH_COOKIE, signToken(user), cookieOptions());
-    // Login berhasil dicatat; percobaan gagal sengaja tidak dicatat. req.user
-    // belum ada di sini, jadi id pengguna dikirim eksplisit.
+    // Login berhasil dicatat. Percobaan gagal hanya dicatat bila akun dengan
+    // email tersebut memang ada (lihat di atas). req.user belum ada di sini,
+    // jadi id pengguna dikirim eksplisit.
     await logAudit(req, "login", "user", user.id, {}, user.id);
     return res.json({ user: publicUser(user) });
   } catch (error) {
@@ -370,7 +412,7 @@ router.post(
       }
 
       const { rows } = await pool.query(
-        `SELECT password_hash, totp_enabled, totp_secret
+        `SELECT password_hash, totp_enabled, totp_secret, totp_last_step
          FROM users WHERE id = $1`,
         [req.user.id],
       );
@@ -392,9 +434,12 @@ router.post(
         return res.status(400).json({ message: "Password salah." });
       }
 
+      // afterStep menolak kode dari langkah yang sudah terpakai, sama seperti
+      // saat login: kode lama tidak bisa dipakai ulang untuk mematikan 2FA.
       const { ok } = await verifyCode(
         decryptSecret(user.totp_secret),
         parsed.data.code,
+        { afterStep: toTimeStep(user.totp_last_step) },
       );
       if (!ok) {
         return res.status(400).json({ message: "Kode verifikasi salah." });
