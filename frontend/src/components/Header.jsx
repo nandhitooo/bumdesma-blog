@@ -149,15 +149,6 @@ function MobileNavigation({ active, onNavClick, items }) {
 
   useEffect(() => {
     if (!isOpen) return undefined;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return undefined;
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         setIsOpen(false);
@@ -170,7 +161,7 @@ function MobileNavigation({ active, onNavClick, items }) {
 
   useEffect(() => {
     if (!isOpen) return undefined;
-    const desktopQuery = window.matchMedia("(min-width: 1280px)");
+    const desktopQuery = window.matchMedia("(min-width: 1536px)");
     const handleChange = (event) => {
       if (event.matches) {
         setIsOpen(false);
@@ -189,7 +180,7 @@ function MobileNavigation({ active, onNavClick, items }) {
         aria-label={isOpen ? "Tutup menu" : "Buka menu"}
         aria-expanded={isOpen}
         aria-controls="mobile-nav-drawer"
-        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-xl text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 xl:hidden"
+        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-xl text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 2xl:hidden"
         onClick={() => setIsOpen((open) => !open)}
       >
         <i className={`fa-solid ${isOpen ? "fa-xmark" : "fa-bars"}`} aria-hidden="true"></i>
@@ -198,7 +189,7 @@ function MobileNavigation({ active, onNavClick, items }) {
       {isOpen && (
         <nav
           id="mobile-nav-drawer"
-          className="absolute left-0 right-0 top-full max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-b border-t border-gray-200 bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-sm xl:hidden"
+          className="absolute left-0 right-0 top-full max-h-[calc(100dvh-5rem-env(safe-area-inset-top))] overflow-y-auto overscroll-contain border-b border-t border-gray-200 bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-sm 2xl:hidden"
           aria-label="Navigasi Utama"
         >
           <ul className="space-y-1">
@@ -349,8 +340,8 @@ export default function Header() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden xl:flex" aria-label="Navigasi Utama">
-          <ul className="flex items-center gap-2 xl:gap-4">
+        <nav className="hidden 2xl:flex" aria-label="Navigasi Utama">
+          <ul className="flex items-center gap-2 2xl:gap-4">
             {primaryItems.map((item) => (
               <li key={item.id}>
                 <NavItem
