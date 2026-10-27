@@ -86,10 +86,19 @@ export async function processUploadedImage(buffer) {
       .webp({ quality: 80 })
       .toBuffer();
     return { buffer: processed, extension: "webp" };
-  } catch {
-    const error = new Error("Gambar tidak dapat diproses.");
-    error.status = 400;
-    throw error;
+  } catch (error) {
+    // sharp 0.35.5 menolak dekode yang melewati limitInputPixels dengan pesan
+    // "Input image exceeds pixel limit" (sudah diperiksa langsung, bukan tebakan).
+    // Hanya pesan itu yang diterjemahkan; kegagalan lain tetap generik supaya
+    // detail internal tidak bocor ke pengunggah.
+    const tooLarge = /exceeds pixel limit/i.test(error?.message ?? "");
+    const failure = new Error(
+      tooLarge
+        ? "Resolusi gambar terlalu besar (maksimal sekitar 24 megapiksel). Perkecil gambar lalu unggah ulang."
+        : "Gambar tidak dapat diproses.",
+    );
+    failure.status = 400;
+    throw failure;
   }
 }
 

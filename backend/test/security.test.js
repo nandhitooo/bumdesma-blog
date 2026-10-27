@@ -303,6 +303,7 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
   let articleId = null;
   let formatArticleId = null;
   let partialArticleId = null;
+  let documentId = null;
 
   // Endpoint admin memakai id numerik, jadi artikel uji dicari lewat daftar.
   async function findArticleIdBySlug(slug) {
@@ -366,6 +367,14 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
     const partialId = partialArticleId ?? (await findArticleIdBySlug(PARTIAL_SLUG));
     if (partialId && adminCookie) {
       await request(`/api/admin/articles/${partialId}`, {
+        method: "DELETE",
+        cookie: adminCookie,
+      });
+    }
+
+    // Dokumen uji audit dibersihkan juga bila tesnya gagal di tengah jalan.
+    if (documentId && adminCookie) {
+      await request(`/api/admin/documents/${documentId}`, {
         method: "DELETE",
         cookie: adminCookie,
       });
@@ -821,6 +830,61 @@ describe("Uji keamanan API dengan kredensial admin", { skip: skipWhenApiDown || 
     assert.equal(tooBig.status, 400);
   });
 
+  it("audit dokumen mencatat create, update, dan delete tanpa nilainya", async () => {
+    const created = await request("/api/admin/documents", {
+      method: "POST",
+      cookie: adminCookie,
+      body: {
+        title: "zz-uji-dokumen-audit",
+        year: 2026,
+        description: "Dokumen sementara untuk uji audit.",
+        url: "https://contoh.id/zz-uji-dokumen.pdf",
+      },
+    });
+    assert.equal(created.status, 201, JSON.stringify(created.data));
+    documentId = created.data.document.id;
+
+    const updated = await request(`/api/admin/documents/${documentId}`, {
+      method: "PUT",
+      cookie: adminCookie,
+      body: { title: "zz-uji-dokumen-audit-baru" },
+    });
+    assert.equal(updated.status, 200, JSON.stringify(updated.data));
+
+    const removed = await request(`/api/admin/documents/${documentId}`, {
+      method: "DELETE",
+      cookie: adminCookie,
+    });
+    assert.equal(removed.status, 204);
+    documentId = null;
+
+    const logs = await request("/api/admin/audit-logs?limit=100", {
+      cookie: adminCookie,
+    });
+    assert.equal(logs.status, 200);
+    const entries = logs.data.logs.filter(
+      (log) =>
+        log.entity === "document" &&
+        log.entityId === String(created.data.document.id),
+    );
+    const actions = entries.map((log) => log.action);
+    for (const action of ["create", "update", "delete"]) {
+      assert.ok(
+        actions.includes(action),
+        `audit ${action} dokumen harus tercatat`,
+      );
+    }
+
+    // Detail update hanya memuat nama field yang berubah, tidak nilainya.
+    const updateEntry = entries.find((log) => log.action === "update");
+    assert.deepEqual(updateEntry.detail, { fields: ["title"] });
+    assert.doesNotMatch(
+      JSON.stringify(updateEntry.detail),
+      /zz-uji-dokumen-audit-baru/,
+      "nilai field tidak boleh ikut tercatat",
+    );
+  });
+
   it("tanggapannya tidak di-cache oleh browser", async () => {
     const result = await request("/api/admin/articles", { cookie: adminCookie });
     assert.equal(result.headers.get("cache-control"), "no-store");
@@ -1262,6 +1326,31 @@ describe(
       // 3. Kembalikan data semula dari backup awal.
       const restored = await restoreBackup(backupCookie, backupPassword, originalPath);
       assert.equal(restored.status, 200, JSON.stringify(restored.data));
+    });
+
+    it("backup dengan dua kategori berslug sama ditolak (400), bukan 500", async () => {
+      // Duplikat baru terdeteksi saat INSERT di dalam transaksi, yaitu setelah
+      // snapshot pra-restore ditulis dan snapshot lama dipangkas. Karena itu uji
+      // ini hanya boleh berjalan sebagai bagian dari suite destruktif.
+      const duplicate = backupData({
+        categories: [
+          { name: "Kategori Ganda A", slug: "zz-uji-ganda" },
+          { name: "Kategori Ganda B", slug: "zz-uji-ganda" },
+        ],
+      });
+
+      await withBackupZip([["data.json", duplicate]], async (zipPath) => {
+        const result = await restoreBackup(
+          backupCookie,
+          backupPassword,
+          zipPath,
+        );
+        assert.equal(result.status, 400, JSON.stringify(result.data));
+        assert.equal(
+          result.data.message,
+          "Backup berisi data duplikat (mis. slug kembar).",
+        );
+      });
     });
   },
 );

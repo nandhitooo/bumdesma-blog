@@ -103,6 +103,22 @@ function AdminLayoutContent() {
     };
   }, []);
 
+  // Menyegarkan data pengguna tanpa mengubah layar menjadi "Memeriksa sesi..."
+  // dan tanpa mengalihkan halaman: pemanggilnya (mis. halaman 2FA) sudah berada
+  // di panel dengan sesi yang valid. Kegagalan menyegarkan tidak boleh
+  // menggagalkan aksi yang sudah berhasil, jadi data lama tetap dipakai.
+  const refreshUser = async () => {
+    try {
+      const { user: currentUser } = await adminApi("/api/auth/me", {
+        redirectOnUnauthorized: false,
+      });
+      setUser(currentUser);
+      return currentUser;
+    } catch {
+      return null;
+    }
+  };
+
   // Selama panel geser terbuka: scroll body dikunci dan Escape menutupnya.
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -301,7 +317,7 @@ function AdminLayoutContent() {
       </aside>
 
       <main className="min-w-0 flex-1 px-4 py-7 sm:px-6 lg:px-10 lg:py-10">
-        <Outlet context={{ user }} />
+        <Outlet context={{ user, refreshUser }} />
       </main>
     </div>
   );

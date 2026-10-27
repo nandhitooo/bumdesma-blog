@@ -94,6 +94,9 @@ function AuditLog() {
                       {log.action}
                     </span>
                   </div>
+                  {log.detail?.ip && (
+                    <p className="mt-1 text-xs text-gray-500">{log.detail.ip}</p>
+                  )}
                   <p className="mt-2 break-words font-semibold text-gray-900">
                     {log.userName || "—"}
                   </p>
@@ -133,6 +136,11 @@ function AuditLog() {
                       <span className="inline-block break-words rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-800">
                         {log.action}
                       </span>
+                      {log.detail?.ip && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          {log.detail.ip}
+                        </p>
+                      )}
                     </td>
                     <td className="break-words px-5 py-3 text-gray-700" title={log.entity}>
                       {log.entity}

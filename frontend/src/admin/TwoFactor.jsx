@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import { adminApi } from "./api";
 import PageHeader from "./components/PageHeader";
 import { useToast } from "./components/Toast";
@@ -15,6 +16,10 @@ function AdminTwoFactor() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const toast = useToast();
+  // Status 2FA di konteks AdminLayout hanya dimuat sekali saat panel dibuka,
+  // jadi halaman Backup bisa menampilkan kolom kode yang basi. Setiap perubahan
+  // di sini menyegarkan konteks tersebut.
+  const { refreshUser } = useOutletContext();
 
   useEffect(() => {
     let active = true;
@@ -65,6 +70,7 @@ function AdminTwoFactor() {
       setEnabled(Boolean(data.totpEnabled));
       setSetup(null);
       setEnableCode("");
+      await refreshUser();
       toast.show(data.message || "Verifikasi dua langkah berhasil diaktifkan.");
     } catch (requestError) {
       setError(requestError.message);
@@ -85,6 +91,7 @@ function AdminTwoFactor() {
       setEnabled(Boolean(data.totpEnabled));
       setDisableForm(emptyDisableForm);
       setSetup(null);
+      await refreshUser();
       toast.show(data.message || "Verifikasi dua langkah berhasil dinonaktifkan.");
     } catch (requestError) {
       setError(requestError.message);

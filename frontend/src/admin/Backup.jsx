@@ -22,6 +22,7 @@ function AdminBackup() {
   const [restoreError, setRestoreError] = useState("");
   const [restoreNotice, setRestoreNotice] = useState("");
   const [counts, setCounts] = useState(null);
+  const [revisionsCleared, setRevisionsCleared] = useState(0);
   const [failedFiles, setFailedFiles] = useState([]);
 
   // Pemeriksaan hak akses dilakukan sebelum panggilan API apa pun, mengikuti
@@ -78,6 +79,7 @@ function AdminBackup() {
     setRestoreError("");
     setRestoreNotice("");
     setCounts(null);
+    setRevisionsCleared(0);
     setFailedFiles([]);
 
     if (!file) {
@@ -115,6 +117,7 @@ function AdminBackup() {
       setRestoreNotice(result.message || "Backup berhasil dipulihkan.");
       toast.show(result.message || "Backup berhasil dipulihkan.");
       setCounts(result.counts ?? null);
+      setRevisionsCleared(result.revisionsCleared ?? 0);
       setFailedFiles(result.failedFiles ?? []);
 
       // Formulir dikosongkan supaya isi backup tidak terkirim ulang tanpa sengaja.
@@ -209,6 +212,11 @@ function AdminBackup() {
                 <li>{counts.faqs} FAQ</li>
                 <li>{counts.files} gambar</li>
               </ul>
+            )}
+            {revisionsCleared > 0 && (
+              <p className="mt-2 text-sm">
+                Riwayat revisi dihapus: {revisionsCleared}
+              </p>
             )}
             {failedFiles.length > 0 && (
               <p className="mt-2 break-words text-sm text-red-700">

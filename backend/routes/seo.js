@@ -3,6 +3,7 @@ import rateLimit from "express-rate-limit";
 import { env } from "../config/env.js";
 import { pool } from "../db/pool.js";
 import { DEFAULTS, getSiteIdentity } from "../services/siteContent.js";
+import { escapeXml } from "../services/xml.js";
 
 // Router ini dipasang di ROOT (bukan /api) karena berkas SEO dan pratinjau
 // tautan harus bisa diakses langsung di domain publik, mis. /sitemap.xml.
@@ -31,31 +32,11 @@ const HTML_ESCAPES = {
   "'": "&#39;",
 };
 
-const XML_ESCAPES = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&apos;",
-};
-
-// Semua nilai yang berasal dari database atau env harus melewati salah satu
-// fungsi ini sebelum masuk ke HTML/XML. Tanpa escape, judul artikel bisa
-// menyisipkan tag atau menutup atribut.
+// Nilai dari database atau env yang masuk ke HTML harus melewati fungsi ini.
+// Tanpa escape, judul artikel bisa menyisipkan tag atau menutup atribut.
+// (escapeXml untuk XML berada di services/xml.js.)
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
-}
-
-// Karakter kontrol yang tidak sah di XML 1.0 (termasuk NUL) membuat seluruh
-// dokumen ditolak parser, jadi dibuang sebelum escape.
-const XML_INVALID_CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g;
-
-// Diekspor agar aturan pembuangan karakter kontrol bisa diuji langsung tanpa
-// database (lihat backend/test/seo.test.js).
-export function escapeXml(value) {
-  return String(value ?? "")
-    .replace(XML_INVALID_CONTROL, "")
-    .replace(/[&<>"']/g, (char) => XML_ESCAPES[char]);
 }
 
 function siteUrl() {

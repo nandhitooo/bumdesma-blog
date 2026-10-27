@@ -33,7 +33,7 @@ import { requireAdmin } from "../middleware/auth.js";
 import { cleanContent } from "../services/articles.js";
 import { logAudit } from "../services/audit.js";
 import { SITE_CONTENT_KEYS, siteContentSchemas } from "../services/siteContent.js";
-import { decryptSecret, verifyCode } from "../services/totp.js";
+import { decryptSecret, toTimeStep, verifyCode } from "../services/totp.js";
 import {
   detectImage,
   extractUploadUrls,
@@ -137,14 +137,6 @@ function fileTimestamp(date = new Date()) {
 }
 
 const toIso = (value) => (value ? new Date(value).toISOString() : null);
-
-// bigint dari Postgres dikembalikan pg sebagai string; otplib membutuhkan
-// number untuk afterTimeStep. Nilai kosong berarti belum ada langkah tersimpan.
-function toTimeStep(value) {
-  if (value === null || value === undefined) return null;
-  const step = Number(value);
-  return Number.isSafeInteger(step) ? step : null;
-}
 
 async function fileExists(target) {
   try {
@@ -1064,8 +1056,10 @@ router.post(
 
       // Bila 2FA aktif, pemulihan juga wajib membuktikan kode authenticator:
       // satu password yang bocor tidak cukup untuk mengganti seluruh isi situs.
-      // Kode diverifikasi sebelum berkas backup dibaca. Kode salah tetap 400
+      // Kode diverifikasi tanpa menulis apa pun sebelum berkas backup dibaca,
+      // supaya kode yang jelas salah ditolak lebih awal. Kode salah tetap 400
       // (bukan 401) karena 401 akan membuat frontend mengira sesi berakhir.
+      let totpStep = null;
       if (user.totp_enabled) {
         const code = typeof req.body?.code === "string" ? req.body.code : "";
         // Secret yang hilang diperlakukan sebagai kode salah, bukan 500.
@@ -1077,22 +1071,26 @@ router.post(
         if (!verified.ok) {
           return res.status(400).json({ message: "Kode verifikasi salah." });
         }
+        totpStep = verified.step;
+      }
 
-        // Langkah kode disimpan secara atomik seperti saat login, sehingga satu
-        // kode tidak bisa dipakai dua kali untuk dua permintaan pemulihan.
+      stagingDir = await mkdtemp(path.join(os.tmpdir(), "bumdesma-restore-"));
+      const backup = await readBackupZip(tempZip, stagingDir);
+
+      // Langkah kode baru diklaim setelah isi zip lolos validasi: berkas yang
+      // ditolak (mis. format salah) tidak boleh menghanguskan kode. Klaim tetap
+      // satu UPDATE atomik supaya satu kode tidak bisa dipakai dua kali.
+      if (totpStep !== null) {
         const claimed = await pool.query(
           `UPDATE users SET totp_last_step = $1
            WHERE id = $2 AND (totp_last_step IS NULL OR totp_last_step < $1)
            RETURNING id`,
-          [verified.step, req.user.id],
+          [totpStep, req.user.id],
         );
         if (!claimed.rowCount) {
           return res.status(400).json({ message: "Kode verifikasi salah." });
         }
       }
-
-      stagingDir = await mkdtemp(path.join(os.tmpdir(), "bumdesma-restore-"));
-      const backup = await readBackupZip(tempZip, stagingDir);
 
       // Snapshot dibuat setelah isi backup lolos validasi tetapi sebelum satu
       // pun data diubah.

@@ -19,6 +19,7 @@ import {
   decryptSecret,
   encryptSecret,
   generateSecret,
+  toTimeStep,
   verifyCode,
 } from "../services/totp.js";
 
@@ -60,14 +61,6 @@ const disableTotpSchema = z.object({
     .trim()
     .min(1, "Kode verifikasi wajib diisi."),
 });
-
-// bigint dari Postgres dikembalikan pg sebagai string; otplib membutuhkan
-// number untuk afterTimeStep. Nilai kosong berarti belum ada langkah tersimpan.
-function toTimeStep(value) {
-  if (value === null || value === undefined) return null;
-  const step = Number(value);
-  return Number.isSafeInteger(step) ? step : null;
-}
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -165,7 +158,7 @@ router.post("/login", loginLimiter, loginAccountLimiter, async (req, res, next) 
       // terdaftar sama saja membuat audit log bisa dipakai menebak email mana
       // yang punya akun.
       if (user) {
-        await logAudit(req, "login-failed", "user", user.id, {});
+        await logAudit(req, "login-failed", "user", user.id, { ip: req.ip });
       }
       return res.status(401).json({ message: "Email atau password salah." });
     }
@@ -185,7 +178,7 @@ router.post("/login", loginLimiter, loginAccountLimiter, async (req, res, next) 
         { afterStep: toTimeStep(user.totp_last_step) },
       );
       if (!ok) {
-        await logAudit(req, "login-failed", "user", user.id, {});
+        await logAudit(req, "login-failed", "user", user.id, { ip: req.ip });
         return res.status(401).json({ message: "Kode verifikasi salah." });
       }
 
@@ -200,7 +193,7 @@ router.post("/login", loginLimiter, loginAccountLimiter, async (req, res, next) 
         [step, user.id],
       );
       if (!claimed.rowCount) {
-        await logAudit(req, "login-failed", "user", user.id, {});
+        await logAudit(req, "login-failed", "user", user.id, { ip: req.ip });
         return res.status(401).json({ message: "Kode verifikasi salah." });
       }
     }

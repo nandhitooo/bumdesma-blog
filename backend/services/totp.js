@@ -80,6 +80,14 @@ export function buildOtpauthUrl(email, secret) {
   });
 }
 
+// bigint dari Postgres dikembalikan pg sebagai string; otplib membutuhkan
+// number untuk afterTimeStep. Nilai kosong berarti belum ada langkah tersimpan.
+export function toTimeStep(value) {
+  if (value === null || value === undefined) return null;
+  const step = Number(value);
+  return Number.isSafeInteger(step) ? step : null;
+}
+
 // Toleransi satu langkah ke belakang dan ke depan (30 detik) untuk jam klien
 // yang sedikit bergeser. Kode harus string 6 digit; nilai lain ditolak sebelum
 // menyentuh otplib.

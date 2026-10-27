@@ -5,7 +5,8 @@
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
-import seoRoutes, { escapeXml } from "../routes/seo.js";
+import seoRoutes from "../routes/seo.js";
+import { escapeXml } from "../services/xml.js";
 
 let server = null;
 let baseUrl = "";
