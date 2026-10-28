@@ -21,7 +21,7 @@ export const ARTICLE_DETAIL_COLUMNS = `
 // gambar pelacak/pihak ketiga ikut termuat di halaman publik (juga membocorkan
 // alamat IP pembaca ke domain luar) sekaligus menutup jalur eksfiltrasi lewat
 // atribut src. Polanya sama dengan validasi coverImageUrl di routes/articles.js.
-const UPLOADED_IMAGE_SRC = /^\/uploads\/[0-9a-fA-F-]+\.(?:jpg|png|webp)$/;
+const UPLOADED_IMAGE_SRC = /^\/uploads\/(?:[a-z-]+\/)?[0-9a-fA-F-]+\.(?:jpg|png|webp)$/;
 
 // Daftar font dan ukuran di bawah adalah cermin dari
 // frontend/src/admin/editorFormats.js (FONT_FAMILIES dan FONT_SIZES). Sanitizer

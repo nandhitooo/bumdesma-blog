@@ -18,7 +18,7 @@ export function safeHttpsUrl(value) {
 export function safeImageUrl(value, fallback = "") {
   if (typeof value !== "string") return fallback;
   const trimmed = value.trim();
-  if (/^\/uploads\/[0-9a-fA-F-]+\.(?:jpg|png|webp)$/i.test(trimmed)) {
+  if (/^\/uploads\/(?:[a-z-]+\/)?[0-9a-fA-F-]+\.(?:jpg|png|webp)$/i.test(trimmed)) {
     return trimmed;
   }
   return safeHttpsUrl(trimmed) || fallback;

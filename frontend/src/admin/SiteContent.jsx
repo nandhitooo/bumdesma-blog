@@ -39,6 +39,7 @@ function ImageField({ id, label, value, onChange, previewFallback }) {
     try {
       const data = new FormData();
       data.append("image", file);
+      data.append("category", "site");
       const result = await adminApi("/api/admin/upload", {
         method: "POST",
         body: data,

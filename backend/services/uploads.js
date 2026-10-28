@@ -9,8 +9,8 @@ import { pool } from "../db/pool.js";
 export const uploadDir = path.join(serverDirPath, "uploads");
 
 // Hanya URL yang dibuat server sendiri yang boleh disentuh untuk dihapus.
-const UPLOAD_URL_PATTERN = /^\/uploads\/[0-9a-fA-F-]{1,64}\.(?:jpg|png|webp)$/;
-const UPLOAD_URL_IN_HTML_PATTERN = /\/uploads\/[0-9a-fA-F-]{1,64}\.(?:jpg|png|webp)/gi;
+const UPLOAD_URL_PATTERN = /^\/uploads\/(?:[a-z-]+\/)?[0-9a-fA-F-]{1,64}\.(?:jpg|png|webp)$/;
+const UPLOAD_URL_IN_HTML_PATTERN = /\/uploads\/(?:[a-z-]+\/)?[0-9a-fA-F-]{1,64}\.(?:jpg|png|webp)/gi;
 
 // Tabel lain yang juga menyimpan URL unggahan. Daftar ini konstanta kode, bukan
 // masukan pengguna, sehingga nama tabel/kolom aman disisipkan ke query. Tanpa
@@ -29,13 +29,13 @@ export function isUploadUrl(value) {
   return typeof value === "string" && UPLOAD_URL_PATTERN.test(value);
 }
 
-// Mengubah URL upload menjadi path absolut. Nama berkas diambil dengan
-// path.basename dan hasilnya harus tetap berada di dalam folder uploads,
-// sehingga nilai seperti "/uploads/../../backend/.env" tidak pernah lolos.
+// Mengubah URL upload menjadi path absolut. URL wajib cocok pola unggahan dan
+// hasilnya harus tetap berada di dalam folder uploads, sehingga nilai seperti
+// "/uploads/../../backend/.env" tidak pernah lolos.
 export function resolveUploadPath(url) {
   if (!isUploadUrl(url)) return null;
 
-  const filePath = path.resolve(uploadDir, path.basename(url));
+  const filePath = path.resolve(uploadDir, url.slice("/uploads/".length));
   const prefix = uploadDir.endsWith(path.sep) ? uploadDir : uploadDir + path.sep;
   return filePath.startsWith(prefix) ? filePath : null;
 }

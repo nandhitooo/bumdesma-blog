@@ -352,6 +352,7 @@ function ArticleEditor() {
   const uploadImage = async (file) => {
     const data = new FormData();
     data.append("image", file);
+    data.append("category", "articles");
     const result = await adminApi("/api/admin/upload", {
       method: "POST",
       body: data,

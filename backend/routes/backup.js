@@ -70,8 +70,8 @@ const SNAPSHOT_TABLES = [
   "faqs",
 ];
 
-const UPLOAD_NAME_PATTERN = /^[0-9a-fA-F-]{1,64}\.(jpg|png|webp)$/;
-const UPLOAD_ENTRY_PATTERN = /^uploads\/([^/]+)$/;
+const UPLOAD_NAME_PATTERN = /^(?:[a-z-]+\/)?[0-9a-fA-F-]{1,64}\.(jpg|png|webp)$/;
+const UPLOAD_ENTRY_PATTERN = /^uploads\/((?:[a-z-]+\/)?[^/]+)$/;
 
 // Limiter dipisah per pengguna, bukan per IP: beberapa pengelola bisa memakai
 // satu IP kantor. requireAuth sudah berjalan sebelum router ini.
@@ -295,20 +295,20 @@ async function readSnapshot() {
   const referenced = new Set();
   for (const article of normalizedArticles) {
     if (article.coverImageUrl && isUploadUrl(article.coverImageUrl)) {
-      referenced.add(path.basename(article.coverImageUrl));
+      referenced.add(article.coverImageUrl.slice("/uploads/".length));
     }
     for (const url of extractUploadUrls(article.contentHtml)) {
-      referenced.add(path.basename(url));
+      referenced.add(url.slice("/uploads/".length));
     }
   }
   for (const item of gallery) {
     if (item.imageUrl && isUploadUrl(item.imageUrl)) {
-      referenced.add(path.basename(item.imageUrl));
+      referenced.add(item.imageUrl.slice("/uploads/".length));
     }
   }
   for (const member of team) {
     if (member.photoUrl && isUploadUrl(member.photoUrl)) {
-      referenced.add(path.basename(member.photoUrl));
+      referenced.add(member.photoUrl.slice("/uploads/".length));
     }
   }
   // Logo situs dan gambar hero juga bisa berasal dari panel unggah, jadi
@@ -316,7 +316,7 @@ async function readSnapshot() {
   // karena nilainya bisa berada di kedalaman mana pun.
   for (const row of siteRows) {
     for (const url of extractUploadUrls(JSON.stringify(row.content))) {
-      referenced.add(path.basename(url));
+      referenced.add(url.slice("/uploads/".length));
     }
   }
 
@@ -649,8 +649,8 @@ async function readEntryBuffer(zipfile, entry, maxBytes) {
 
 // Membaca isi zip dan menaruh gambar yang lolos validasi di folder staging.
 // Tidak ada satu pun berkas yang ditulis ke uploads/ di sini: seluruh isi harus
-// lolos dulu. Nama entri tidak pernah dipakai sebagai path tujuan; berkas
-// staging selalu memakai basename yang sudah dicocokkan dengan pola nama.
+// lolos dulu. Nama entri hanya dipakai setelah dicocokkan dengan pola path
+// unggahan yang mengizinkan satu folder kategori.
 async function readBackupZip(zipPath, stagingDir) {
   let zipfile;
   try {
@@ -732,6 +732,7 @@ async function readBackupZip(zipPath, stagingDir) {
       }
 
       const stagedPath = path.join(stagingDir, filename);
+      await mkdir(path.dirname(stagedPath), { recursive: true });
       await writeFile(stagedPath, buffer, { flag: "wx" });
       staged.push({ name: filename, path: stagedPath });
       stageNames.add(filename);
@@ -1004,9 +1005,10 @@ async function writeStagedUploads(files) {
   }
 
   for (const file of files) {
-    const target = path.join(uploadDir, path.basename(file.name));
+    const target = path.join(uploadDir, file.name);
     const temporary = path.join(uploadDir, `.restore-${randomUUID()}.tmp`);
     try {
+      await mkdir(path.dirname(target), { recursive: true });
       await copyFile(file.path, temporary);
       await rename(temporary, target);
     } catch (error) {

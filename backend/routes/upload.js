@@ -28,6 +28,7 @@ const uploadLimiter = rateLimit({
   },
 });
 const mimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const uploadCategories = new Set(["team", "gallery", "articles", "site"]);
 const multipart = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 2 * 1024 * 1024, files: 1 },
@@ -46,6 +47,11 @@ router.post("/", uploadLimiter, multipart.single("image"), async (req, res) => {
     return res.status(400).json({ message: "Pilih file gambar untuk diunggah." });
   }
 
+  const category = req.body?.category || "site";
+  if (!uploadCategories.has(category)) {
+    return res.status(400).json({ message: "Kategori unggahan tidak valid." });
+  }
+
   const image = detectImage(req.file.buffer);
   if (!image || image.mime !== req.file.mimetype) {
     return res.status(400).json({ message: "Isi file bukan gambar JPG, PNG, atau WebP yang valid." });
@@ -54,12 +60,13 @@ router.post("/", uploadLimiter, multipart.single("image"), async (req, res) => {
   // Validasi magic bytes di atas tetap menjadi gerbang pertama; sharp baru
   // dijalankan setelah isinya terbukti gambar yang didukung.
   const processed = await processUploadedImage(req.file.buffer);
-  await mkdir(uploadDir, { recursive: true });
+  const categoryDir = path.join(uploadDir, category);
+  await mkdir(categoryDir, { recursive: true });
   const filename = `${randomUUID()}.${processed.extension}`;
-  await writeFile(path.join(uploadDir, filename), processed.buffer, { flag: "wx" });
+  await writeFile(path.join(categoryDir, filename), processed.buffer, { flag: "wx" });
   // Nama berkas dibuat server sendiri (UUID), bukan masukan pengguna.
-  await logAudit(req, "upload", "image", filename);
-  return res.status(201).json({ url: `/uploads/${filename}` });
+  await logAudit(req, "upload", "image", `${category}/${filename}`);
+  return res.status(201).json({ url: `/uploads/${category}/${filename}` });
 });
 
 export default router;

@@ -24,7 +24,7 @@ const imageUrlSchema = z
   .trim()
   .min(1, "Gambar wajib dipilih.")
   .max(500)
-  .regex(/^\/uploads\/[0-9a-f-]+\.(?:jpg|png|webp)$/i, "URL gambar tidak valid.");
+  .regex(/^\/uploads\/(?:[a-z-]+\/)?[0-9a-f-]+\.(?:jpg|png|webp)$/i, "URL gambar tidak valid.");
 
 const createGallerySchema = z.object({
   imageUrl: imageUrlSchema,

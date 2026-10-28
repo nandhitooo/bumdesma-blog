@@ -38,7 +38,7 @@ const uploadedImage = z
   .trim()
   .max(500)
   .regex(
-    /^\/uploads\/[0-9a-fA-F-]+\.(?:jpg|png|webp)$/i,
+    /^\/uploads\/(?:[a-z-]+\/)?[0-9a-fA-F-]+\.(?:jpg|png|webp)$/i,
     "Gambar harus diunggah lewat panel admin.",
   );
 

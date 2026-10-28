@@ -51,7 +51,7 @@ const photoUrlSchema = z
   .string()
   .trim()
   .max(500)
-  .regex(/^\/uploads\/[0-9a-f-]+\.(?:jpg|png|webp)$/i, "URL gambar tidak valid.")
+  .regex(/^\/uploads\/(?:[a-z-]+\/)?[0-9a-f-]+\.(?:jpg|png|webp)$/i, "URL gambar tidak valid.")
   .nullable()
   .optional();
 

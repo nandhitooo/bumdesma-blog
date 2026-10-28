@@ -68,6 +68,7 @@ function AdminGallery() {
     try {
       const data = new FormData();
       data.append("image", file);
+      data.append("category", "gallery");
       const result = await adminApi("/api/admin/upload", {
         method: "POST",
         body: data,
