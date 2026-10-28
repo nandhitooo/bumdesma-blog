@@ -84,7 +84,7 @@ const Footer = () => {
   return (
     <footer
       id="site-footer"
-      className="bg-brand-dark text-gray-300 border-t border-emerald-950"
+      className="bg-gray-800 text-gray-300 border-t border-gray-900"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* 4 Columns in Desktop, 1 Column in Mobile */}
