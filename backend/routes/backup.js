@@ -32,7 +32,11 @@ import { pool } from "../db/pool.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { cleanContent } from "../services/articles.js";
 import { logAudit } from "../services/audit.js";
-import { SITE_CONTENT_KEYS, siteContentSchemas } from "../services/siteContent.js";
+import {
+  DEFAULTS,
+  SITE_CONTENT_KEYS,
+  siteContentSchemas,
+} from "../services/siteContent.js";
 import { decryptSecret, toTimeStep, verifyCode } from "../services/totp.js";
 import {
   detectImage,
@@ -904,6 +908,33 @@ async function replaceData(client, data, adminId) {
        VALUES ($1, $2::jsonb, $3)`,
       [key, JSON.stringify(content), adminId],
     );
+  }
+
+  // Backup dari versi lama menyimpan Visi & Misi di dalam `about` dan
+  // `sections.about`. Bila key `vision-mission` belum ada di berkas, isinya
+  // dirakit dari field lama supaya pemulihan tidak mengembalikannya ke bawaan.
+  if (!Object.hasOwn(data.siteContent, "vision-mission")) {
+    const legacyAbout = data.siteContent.about;
+    if (
+      legacyAbout &&
+      (legacyAbout.vision !== undefined || legacyAbout.missions !== undefined)
+    ) {
+      const defaults = DEFAULTS["vision-mission"];
+      const legacySections = data.siteContent.sections?.about || {};
+      const merged = {
+        eyebrow: legacySections.visionEyebrow ?? defaults.eyebrow,
+        title: legacySections.visionTitle ?? defaults.title,
+        visionLabel: legacySections.visionLabel ?? defaults.visionLabel,
+        missionLabel: legacySections.missionLabel ?? defaults.missionLabel,
+        vision: legacyAbout.vision ?? defaults.vision,
+        missions: legacyAbout.missions ?? defaults.missions,
+      };
+      await client.query(
+        `INSERT INTO site_content (key, content, updated_by)
+         VALUES ($1, $2::jsonb, $3)`,
+        ["vision-mission", JSON.stringify(merged), adminId],
+      );
+    }
   }
 
   // Tabel baru hanya diganti bila kuncinya ADA di backup DAN tabelnya ada.

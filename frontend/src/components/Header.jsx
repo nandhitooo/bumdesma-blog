@@ -6,21 +6,39 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { useSiteContent } from "../lib/siteContent";
 import { safeImageUrl } from "../lib/siteContentUtils";
 
-// Rute dan ikon tetap; labelnya berasal dari konten situs (key `site.nav`).
+// Rute, ikon, dan label cadangan tetap; label final berasal dari konten situs
+// (key `site.nav`). Cadangan dipakai saat label di CMS kosong supaya id mentah
+// seperti "vision-mission" tidak pernah tampil di navigasi.
 const NAV_BASE = [
-  { id: "home", to: "/#home", icon: "house", group: "primary" },
-  { id: "about", to: "/#about", icon: "circle-info", group: "primary" },
-  { id: "services", to: "/#services", icon: "gear", group: "primary" },
-  { id: "activity", to: "/#activity", icon: "calendar", group: "primary" },
-  { id: "contact", to: "/#contact", icon: "phone", group: "primary" },
-  { id: "blog", to: "/blog", icon: "newspaper", group: "primary" },
-  { id: "gallery", to: "/galeri", icon: "images", group: "more" },
-  { id: "transparency", to: "/transparansi", icon: "file-lines", group: "more" },
-  { id: "team", to: "/pengurus", icon: "people-group", group: "more" },
+  { id: "home", to: "/#home", icon: "house", group: "primary", label: "Beranda" },
+  { id: "about", to: "/#about", icon: "circle-info", group: "primary", label: "Tentang" },
+  {
+    id: "vision-mission",
+    to: "/#vision-mission",
+    icon: "bullseye",
+    group: "primary",
+    label: "Visi & Misi",
+  },
+  { id: "services", to: "/#services", icon: "gear", group: "primary", label: "Layanan" },
+  { id: "activity", to: "/#activity", icon: "calendar", group: "primary", label: "Kegiatan" },
+  { id: "contact", to: "/#contact", icon: "phone", group: "primary", label: "Kontak" },
+  { id: "blog", to: "/blog", icon: "newspaper", group: "more", label: "Blog" },
+  { id: "gallery", to: "/galeri", icon: "images", group: "more", label: "Galeri" },
+  {
+    id: "transparency",
+    to: "/transparansi",
+    icon: "file-lines",
+    group: "more",
+    label: "Transparansi",
+  },
+  { id: "team", to: "/pengurus", icon: "people-group", group: "more", label: "Pengurus" },
 ];
 
 function buildNavItems(nav = {}) {
-  return NAV_BASE.map((item) => ({ ...item, label: nav[item.id] || item.id }));
+  return NAV_BASE.map((item) => ({
+    ...item,
+    label: nav[item.id] || item.label,
+  }));
 }
 
 function NavItem({ item, active, mobile = false, onClick }) {
@@ -44,7 +62,10 @@ function NavItem({ item, active, mobile = false, onClick }) {
       }`}
     >
       {mobile && (
-        <i className={`fa-solid fa-${item.icon} w-5 text-center text-sm`} aria-hidden="true"></i>
+        <i
+          className={`fa-solid fa-${item.icon} w-5 text-center text-sm`}
+          aria-hidden="true"
+        ></i>
       )}
       <span>{item.label}</span>
     </Link>
@@ -183,7 +204,10 @@ function MobileNavigation({ active, onNavClick, items }) {
         className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-xl text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 xl:hidden"
         onClick={() => setIsOpen((open) => !open)}
       >
-        <i className={`fa-solid ${isOpen ? "fa-xmark" : "fa-bars"}`} aria-hidden="true"></i>
+        <i
+          className={`fa-solid ${isOpen ? "fa-xmark" : "fa-bars"}`}
+          aria-hidden="true"
+        ></i>
       </button>
 
       {isOpen && (
@@ -242,7 +266,14 @@ export default function Header() {
   useEffect(() => {
     if (location.pathname !== "/") return undefined;
 
-    const sections = ["home", "about", "services", "activity", "contact"];
+    const sections = [
+      "home",
+      "about",
+      "vision-mission",
+      "services",
+      "activity",
+      "contact",
+    ];
     const handleScroll = () => {
       const headerHeight = document.querySelector("header")?.offsetHeight || 72;
       const scrollPosition = window.scrollY + headerHeight + 1;

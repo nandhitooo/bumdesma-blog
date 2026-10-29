@@ -220,10 +220,6 @@ const SECTION_FIELDS = [
     title: "Tentang",
     fields: [
       { name: "eyebrow", label: "Eyebrow", max: 120 },
-      { name: "visionEyebrow", label: "Eyebrow visi & misi", max: 120 },
-      { name: "visionTitle", label: "Judul visi & misi", max: 200 },
-      { name: "visionLabel", label: "Label visi", max: 60 },
-      { name: "missionLabel", label: "Label misi", max: 60 },
       { name: "profileCta", label: "Teks tombol unduh profil", max: 120 },
     ],
   },
@@ -369,6 +365,7 @@ const TABS = [
   { key: "site", label: "Identitas", preview: "/" },
   { key: "hero", label: "Beranda", preview: "/#home" },
   { key: "about", label: "Tentang", preview: "/#about" },
+  { key: "vision-mission", label: "Visi & Misi", preview: "/#vision-mission" },
   { key: "services", label: "Layanan", preview: "/#services" },
   { key: "contact", label: "Kontak", preview: "/#contact" },
   { key: "footer", label: "Footer", preview: "/" },
@@ -378,6 +375,7 @@ const TABS = [
 const FORM_KEYS = [
   "hero",
   "about",
+  "vision-mission",
   "services",
   "contact",
   "footer",
@@ -401,6 +399,7 @@ function stableStringify(value) {
 const NAV_FIELDS = [
   { name: "home", label: "Beranda" },
   { name: "about", label: "Tentang" },
+  { name: "vision-mission", label: "Visi & Misi" },
   { name: "services", label: "Layanan" },
   { name: "activity", label: "Kegiatan" },
   { name: "contact", label: "Kontak" },
@@ -427,6 +426,9 @@ export default function SiteContent() {
   // Individual section states
   const [heroForm, setHeroForm] = useState(DEFAULT_SITE_CONTENT.hero);
   const [aboutForm, setAboutForm] = useState(DEFAULT_SITE_CONTENT.about);
+  const [visionMissionForm, setVisionMissionForm] = useState(
+    DEFAULT_SITE_CONTENT["vision-mission"],
+  );
   const [servicesForm, setServicesForm] = useState(
     DEFAULT_SITE_CONTENT.services,
   );
@@ -444,6 +446,7 @@ export default function SiteContent() {
   const [status, setStatus] = useState({
     hero: { saving: false, error: "", success: "" },
     about: { saving: false, error: "", success: "" },
+    "vision-mission": { saving: false, error: "", success: "" },
     services: { saving: false, error: "", success: "" },
     contact: { saving: false, error: "", success: "" },
     footer: { saving: false, error: "", success: "" },
@@ -472,6 +475,9 @@ export default function SiteContent() {
         const loaded = {
           hero: data?.content?.hero || DEFAULT_SITE_CONTENT.hero,
           about: data?.content?.about || DEFAULT_SITE_CONTENT.about,
+          "vision-mission":
+            data?.content?.["vision-mission"] ||
+            DEFAULT_SITE_CONTENT["vision-mission"],
           services: data?.content?.services || DEFAULT_SITE_CONTENT.services,
           contact: data?.content?.contact || DEFAULT_SITE_CONTENT.contact,
           footer: data?.content?.footer || DEFAULT_SITE_CONTENT.footer,
@@ -480,6 +486,7 @@ export default function SiteContent() {
         };
         setHeroForm(loaded.hero);
         setAboutForm(loaded.about);
+        setVisionMissionForm(loaded["vision-mission"]);
         setServicesForm(loaded.services);
         setContactForm(loaded.contact);
         setFooterForm(loaded.footer);
@@ -510,6 +517,7 @@ export default function SiteContent() {
   const forms = {
     hero: heroForm,
     about: aboutForm,
+    "vision-mission": visionMissionForm,
     services: servicesForm,
     contact: contactForm,
     footer: footerForm,
@@ -549,6 +557,7 @@ export default function SiteContent() {
         const applyToForm = {
           hero: setHeroForm,
           about: setAboutForm,
+          "vision-mission": setVisionMissionForm,
           services: setServicesForm,
           contact: setContactForm,
           footer: setFooterForm,
@@ -580,6 +589,7 @@ export default function SiteContent() {
     const sectionNames = {
       hero: "Hero (Beranda Utama)",
       about: "Tentang",
+      "vision-mission": "Visi & Misi",
       services: "Layanan",
       contact: "Kontak",
       footer: "Footer",
@@ -601,6 +611,7 @@ export default function SiteContent() {
       const defaultData = DEFAULT_SITE_CONTENT[key];
       if (key === "hero") setHeroForm(defaultData);
       if (key === "about") setAboutForm(defaultData);
+      if (key === "vision-mission") setVisionMissionForm(defaultData);
       if (key === "services") setServicesForm(defaultData);
       if (key === "contact") setContactForm(defaultData);
       if (key === "footer") setFooterForm(defaultData);
@@ -1100,7 +1111,7 @@ export default function SiteContent() {
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
               Judul bagian, teks lokasi, paragraf profil, dan tautan dokumen
-              profil resmi.
+              profil resmi. Visi & Misi diatur di tabnya sendiri.
             </p>
           </div>
           {updatedAt.about && (
@@ -1269,103 +1280,6 @@ export default function SiteContent() {
             </div>
           </div>
 
-          {/* Visi */}
-          <div>
-            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-              <label
-                htmlFor="about-vision"
-                className="block text-sm font-bold text-gray-700"
-              >
-                Visi (opsional)
-              </label>
-              <CharCounter current={aboutForm.vision?.length} max={500} />
-            </div>
-            <textarea
-              id="about-vision"
-              rows={3}
-              maxLength={500}
-              value={aboutForm.vision || ""}
-              onChange={(e) =>
-                setAboutForm({ ...aboutForm, vision: e.target.value })
-              }
-              className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
-            />
-          </div>
-
-          {/* Misi */}
-          <div className="pt-2">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <label className="block text-sm font-bold text-gray-700">
-                  Misi ({aboutForm.missions?.length || 0} / 8)
-                </label>
-                <p className="text-xs text-gray-500">
-                  Opsional, maksimal 8 butir.
-                </p>
-              </div>
-              <button
-                type="button"
-                disabled={(aboutForm.missions?.length || 0) >= 8}
-                onClick={() => {
-                  const current = aboutForm.missions || [];
-                  if (current.length < 8) {
-                    setAboutForm({ ...aboutForm, missions: [...current, ""] });
-                  }
-                }}
-                className="min-h-[44px] shrink-0 cursor-pointer rounded-lg bg-green-50 px-4 py-2.5 text-sm font-bold text-green-800 hover:bg-green-100 disabled:opacity-50"
-              >
-                + Tambah Misi
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {(aboutForm.missions || []).map((mission, index) => (
-                <div
-                  key={index}
-                  className="p-3.5 rounded-xl border border-gray-200 bg-gray-50"
-                >
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <label
-                      htmlFor={`about-mission-${index}`}
-                      className="text-xs font-bold text-gray-600"
-                    >
-                      Misi #{index + 1}
-                    </label>
-                    <div className="flex items-center gap-1">
-                      <CharCounter current={mission?.length} max={300} />
-                      <button
-                        type="button"
-                        title="Hapus misi"
-                        onClick={() => {
-                          const copy = aboutForm.missions.filter(
-                            (_, i) => i !== index,
-                          );
-                          setAboutForm({ ...aboutForm, missions: copy });
-                        }}
-                        className="ml-2 flex h-11 w-11 items-center justify-center rounded hover:bg-red-100 text-red-600 cursor-pointer"
-                      >
-                        <i className="fa-solid fa-trash text-xs"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <textarea
-                    id={`about-mission-${index}`}
-                    required
-                    rows={2}
-                    maxLength={300}
-                    value={mission}
-                    onChange={(e) => {
-                      const copy = [...aboutForm.missions];
-                      copy[index] = e.target.value;
-                      setAboutForm({ ...aboutForm, missions: copy });
-                    }}
-                    className="min-h-[44px] w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2 text-base outline-none focus:border-green-700"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div>
             <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
               <label
@@ -1423,6 +1337,224 @@ export default function SiteContent() {
               className="min-h-[44px] w-full cursor-pointer rounded-xl bg-green-700 px-6 py-2.5 text-sm font-bold text-white hover:bg-green-800 disabled:opacity-50 sm:w-auto"
             >
               {status.about.saving ? "Menyimpan..." : "Simpan Tentang"}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* Visi & Misi */}
+      {/* ========================================================================= */}
+      <section
+        hidden={activeTab !== "vision-mission"}
+        className="rounded-3xl bg-white p-5 shadow-sm sm:p-8 border border-gray-200"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-5 border-b border-gray-100">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Visi & Misi</h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Judul section, label, teks visi, dan butir misi yang tampil di
+              bagian Visi & Misi pada beranda.
+            </p>
+          </div>
+          {updatedAt["vision-mission"] && (
+            <span className="text-xs text-gray-400">
+              Diperbarui:{" "}
+              {dateFormatter.format(new Date(updatedAt["vision-mission"]))}
+            </span>
+          )}
+        </div>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSave("vision-mission", visionMissionForm);
+          }}
+          className="mt-6 space-y-5"
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {[
+              { name: "eyebrow", label: "Eyebrow", max: 120 },
+              { name: "title", label: "Judul section", max: 200 },
+              { name: "visionLabel", label: "Label visi", max: 60 },
+              { name: "missionLabel", label: "Label misi", max: 60 },
+            ].map((field) => (
+              <div key={field.name}>
+                <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                  <label
+                    htmlFor={`vision-mission-${field.name}`}
+                    className="block text-sm font-bold text-gray-700"
+                  >
+                    {field.label}
+                  </label>
+                  <CharCounter
+                    current={visionMissionForm[field.name]?.length}
+                    max={field.max}
+                  />
+                </div>
+                <input
+                  id={`vision-mission-${field.name}`}
+                  required
+                  maxLength={field.max}
+                  value={visionMissionForm[field.name] || ""}
+                  onChange={(e) =>
+                    setVisionMissionForm({
+                      ...visionMissionForm,
+                      [field.name]: e.target.value,
+                    })
+                  }
+                  className="min-h-[44px] w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base outline-none focus:border-green-700"
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Visi */}
+          <div>
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+              <label
+                htmlFor="vision-mission-text"
+                className="block text-sm font-bold text-gray-700"
+              >
+                Teks Visi (opsional)
+              </label>
+              <CharCounter
+                current={visionMissionForm.vision?.length}
+                max={500}
+              />
+            </div>
+            <textarea
+              id="vision-mission-text"
+              rows={3}
+              maxLength={500}
+              value={visionMissionForm.vision || ""}
+              onChange={(e) =>
+                setVisionMissionForm({
+                  ...visionMissionForm,
+                  vision: e.target.value,
+                })
+              }
+              className="min-h-[44px] w-full resize-y rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-green-700"
+            />
+          </div>
+
+          {/* Misi */}
+          <div className="pt-2">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <label className="block text-sm font-bold text-gray-700">
+                  Misi ({visionMissionForm.missions?.length || 0} / 8)
+                </label>
+                <p className="text-xs text-gray-500">
+                  Opsional, maksimal 8 butir.
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={(visionMissionForm.missions?.length || 0) >= 8}
+                onClick={() => {
+                  const current = visionMissionForm.missions || [];
+                  if (current.length < 8) {
+                    setVisionMissionForm({
+                      ...visionMissionForm,
+                      missions: [...current, ""],
+                    });
+                  }
+                }}
+                className="min-h-[44px] shrink-0 cursor-pointer rounded-lg bg-green-50 px-4 py-2.5 text-sm font-bold text-green-800 hover:bg-green-100 disabled:opacity-50"
+              >
+                + Tambah Misi
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {(visionMissionForm.missions || []).map((mission, index) => (
+                <div
+                  key={index}
+                  className="p-3.5 rounded-xl border border-gray-200 bg-gray-50"
+                >
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <label
+                      htmlFor={`vision-mission-mission-${index}`}
+                      className="text-xs font-bold text-gray-600"
+                    >
+                      Misi #{index + 1}
+                    </label>
+                    <div className="flex items-center gap-1">
+                      <CharCounter current={mission?.length} max={300} />
+                      <button
+                        type="button"
+                        title="Hapus misi"
+                        onClick={() => {
+                          const copy = visionMissionForm.missions.filter(
+                            (_, i) => i !== index,
+                          );
+                          setVisionMissionForm({
+                            ...visionMissionForm,
+                            missions: copy,
+                          });
+                        }}
+                        className="ml-2 flex h-11 w-11 items-center justify-center rounded hover:bg-red-100 text-red-600 cursor-pointer"
+                      >
+                        <i className="fa-solid fa-trash text-xs"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <textarea
+                    id={`vision-mission-mission-${index}`}
+                    required
+                    rows={2}
+                    maxLength={300}
+                    value={mission}
+                    onChange={(e) => {
+                      const copy = [...visionMissionForm.missions];
+                      copy[index] = e.target.value;
+                      setVisionMissionForm({
+                        ...visionMissionForm,
+                        missions: copy,
+                      });
+                    }}
+                    className="min-h-[44px] w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2 text-base outline-none focus:border-green-700"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {status["vision-mission"].error && (
+            <p
+              role="alert"
+              className="rounded-xl bg-red-50 p-4 text-xs font-medium text-red-700"
+            >
+              {status["vision-mission"].error}
+            </p>
+          )}
+          {status["vision-mission"].success && (
+            <p
+              role="status"
+              className="rounded-xl bg-green-50 p-4 text-xs font-medium text-green-800"
+            >
+              {status["vision-mission"].success}
+            </p>
+          )}
+
+          <div className="flex flex-col gap-3 pt-4 border-t border-gray-100 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <button
+              type="button"
+              disabled={status["vision-mission"].saving}
+              onClick={() => handleReset("vision-mission")}
+              className="min-h-[44px] w-full cursor-pointer rounded-xl px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-50 sm:w-auto"
+            >
+              Kembalikan ke bawaan
+            </button>
+            <button
+              type="submit"
+              disabled={status["vision-mission"].saving}
+              className="min-h-[44px] w-full cursor-pointer rounded-xl bg-green-700 px-6 py-2.5 text-sm font-bold text-white hover:bg-green-800 disabled:opacity-50 sm:w-auto"
+            >
+              {status["vision-mission"].saving
+                ? "Menyimpan..."
+                : "Simpan Visi & Misi"}
             </button>
           </div>
         </form>

@@ -11,6 +11,7 @@ const TAB_TARGETS = {
   site: { path: "/", hash: "" },
   hero: { path: "/", hash: "#home" },
   about: { path: "/", hash: "#about" },
+  "vision-mission": { path: "/", hash: "#vision-mission" },
   services: { path: "/", hash: "#services" },
   contact: { path: "/", hash: "#contact" },
   footer: { path: "/", hash: "#site-footer" },

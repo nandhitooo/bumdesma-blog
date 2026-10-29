@@ -9,6 +9,7 @@ const SiteContentContext = createContext({
   refreshContent: async () => {},
   hero: DEFAULT_SITE_CONTENT.hero,
   about: DEFAULT_SITE_CONTENT.about,
+  visionMission: DEFAULT_SITE_CONTENT["vision-mission"],
   services: DEFAULT_SITE_CONTENT.services,
   contact: DEFAULT_SITE_CONTENT.contact,
   footer: DEFAULT_SITE_CONTENT.footer,
@@ -37,6 +38,7 @@ function mergeContent(defaults, fetched) {
 const PREVIEW_KEYS = [
   "hero",
   "about",
+  "vision-mission",
   "services",
   "contact",
   "footer",
@@ -148,6 +150,9 @@ export function SiteContentProvider({ children }) {
       refreshContent: fetchContent,
       hero: effectiveContent.hero || DEFAULT_SITE_CONTENT.hero,
       about: effectiveContent.about || DEFAULT_SITE_CONTENT.about,
+      visionMission:
+        effectiveContent["vision-mission"] ||
+        DEFAULT_SITE_CONTENT["vision-mission"],
       services: effectiveContent.services || DEFAULT_SITE_CONTENT.services,
       contact: effectiveContent.contact || DEFAULT_SITE_CONTENT.contact,
       footer: effectiveContent.footer || DEFAULT_SITE_CONTENT.footer,

@@ -44,6 +44,19 @@ export const DEFAULT_SITE_CONTENT = {
       "Mendampingi kelompok dan pelaku usaha desa melalui pembinaan berkala."
     ]
   },
+  "vision-mission": {
+    "eyebrow": "Arah Lembaga",
+    "title": "Visi & Misi",
+    "visionLabel": "Visi",
+    "missionLabel": "Misi",
+    "vision": "Menjadi penggerak ekonomi dan kemandirian desa di Kecamatan Wilangan melalui pengelolaan usaha bersama yang profesional, transparan, dan inovatif.",
+    "missions": [
+      "Menyediakan layanan permodalan dan keuangan yang mudah dijangkau kelompok masyarakat desa.",
+      "Mengelola unit usaha secara profesional dan inovatif demi kesejahteraan masyarakat.",
+      "Menjaga keterbukaan melalui laporan dan dokumen yang dapat diakses publik.",
+      "Mendampingi kelompok dan pelaku usaha desa melalui pembinaan berkala."
+    ]
+  },
   "services": {
     "items": [
       {
@@ -161,6 +174,7 @@ export const DEFAULT_SITE_CONTENT = {
     "nav": {
       "home": "Beranda",
       "about": "Tentang",
+      "vision-mission": "Visi & Misi",
       "services": "Layanan",
       "activity": "Kegiatan",
       "contact": "Kontak",

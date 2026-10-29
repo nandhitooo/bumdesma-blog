@@ -4,15 +4,19 @@ import { useSiteContent } from "../lib/siteContent";
 import { safeHttpsUrl, safeImageUrl } from "../lib/siteContentUtils";
 
 const About = () => {
-  const { about, sections, site } = useSiteContent();
+  const { about, visionMission, sections, site } = useSiteContent();
   const profileUrl = safeHttpsUrl(about.profileUrl);
-  const vision = typeof about.vision === "string" ? about.vision.trim() : "";
-  const missions = Array.isArray(about.missions)
-    ? about.missions.filter((item) => typeof item === "string" && item.trim())
+  const vision =
+    typeof visionMission.vision === "string" ? visionMission.vision.trim() : "";
+  const missions = Array.isArray(visionMission.missions)
+    ? visionMission.missions.filter(
+        (item) => typeof item === "string" && item.trim(),
+      )
     : [];
 
   return (
-    <section className="py-12 md:py-20 bg-gray-50 border-b border-gray-200 scroll-mt-18" id="about">
+    <>
+    <section className="py-12 md:py-20 bg-white border-b border-gray-200 scroll-mt-18" id="about">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-12">
           <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
@@ -71,31 +75,33 @@ const About = () => {
             )}
           </div>
         </div>
-
-        {(vision || missions.length > 0) && (
-          <div className="mt-14 border-t border-gray-200 pt-10 sm:mt-16 sm:pt-12">
-            <div className="mb-8 max-w-3xl">
-              <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
-                {sections.about.visionEyebrow}
-              </span>
-              <h3 className="mt-1 text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-gray-900">
-                {sections.about.visionTitle}
-              </h3>
-            </div>
-
+      </div>
+    </section>
+    {(vision || missions.length > 0) && (
+      <section className="scroll-mt-18 border-b border-gray-200 bg-gray-50 py-12 md:py-16" id="vision-mission">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 max-w-3xl">
+            <span className="text-xs font-semibold tracking-wider text-brand-primary uppercase">
+              {visionMission.eyebrow}
+            </span>
+            <h2 className="mt-1 text-xl font-bold tracking-tight text-gray-900 sm:text-2xl lg:text-3xl">
+              {visionMission.title}
+            </h2>
+          </div>
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             {vision && (
-              <div className="flex flex-col gap-4 rounded-lg bg-brand-primary p-6 text-white shadow-sm sm:flex-row sm:items-start sm:gap-6 sm:p-8">
+              <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:gap-6 sm:p-8">
                 <div
-                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 text-xl"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-brand-primary text-xl text-white"
                   aria-hidden="true"
                 >
                   <i className="fa-solid fa-bullseye"></i>
                 </div>
                 <div className="min-w-0">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-white/80">
-                    {sections.about.visionLabel}
-                  </h4>
-                  <p className="mt-2 break-words text-base font-medium leading-relaxed sm:text-lg">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
+                    {visionMission.visionLabel}
+                  </h3>
+                  <p className="mt-2 break-words text-base font-medium leading-relaxed text-gray-900 sm:text-lg">
                     {vision}
                   </p>
                 </div>
@@ -103,20 +109,29 @@ const About = () => {
             )}
 
             {missions.length > 0 && (
-              <div className={vision ? "mt-8" : ""}>
-                <h4 className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  {sections.about.missionLabel}
-                </h4>
-                <ol className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div
+                className={`bg-gray-50 p-6 sm:p-8 ${
+                  vision ? "border-t border-gray-200" : ""
+                }`}
+              >
+                <div className="mb-4 flex items-center gap-3">
+                  <span
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand-primary"
+                    aria-hidden="true"
+                  >
+                    <i className="fa-solid fa-list-check text-sm"></i>
+                  </span>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
+                    {visionMission.missionLabel}
+                  </h3>
+                </div>
+                <ol className="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2">
                   {missions.map((mission, index) => (
-                    <li
-                      key={index}
-                      className="flex min-w-0 items-start gap-4 rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
-                    >
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-light text-sm font-bold text-brand-primary">
+                    <li key={index} className="flex min-w-0 items-start gap-3">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-primary text-xs font-bold text-white">
                         {index + 1}
                       </span>
-                      <p className="min-w-0 break-words pt-0.5 text-sm leading-relaxed text-gray-700 sm:text-base">
+                      <p className="min-w-0 break-words text-sm leading-relaxed text-gray-700 sm:text-base">
                         {mission}
                       </p>
                     </li>
@@ -125,9 +140,10 @@ const About = () => {
               </div>
             )}
           </div>
-        )}
-      </div>
-    </section>
+        </div>
+      </section>
+    )}
+    </>
   );
 };
 

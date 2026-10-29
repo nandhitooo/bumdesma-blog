@@ -4,6 +4,7 @@ import { pool } from "../db/pool.js";
 export const SITE_CONTENT_KEYS = [
   "hero",
   "about",
+  "vision-mission",
   "services",
   "contact",
   "footer",
@@ -107,6 +108,20 @@ export const siteContentSchemas = {
       profileUrl: httpsUrl,
       // Opsional supaya data lama dan backup lama tetap valid; string kosong
       // berarti admin sengaja mengosongkan visi.
+      // Warisan: Visi & Misi kini punya key sendiri. Field ini tetap diterima
+      // supaya baris lama dan backup lama tidak ditolak saat dipulihkan.
+      vision: z.union([z.literal(""), plainText(500)]).optional(),
+      missions: z.array(plainText(300)).max(8).optional(),
+    })
+    .strict(),
+  "vision-mission": z
+    .object({
+      eyebrow: plainText(120),
+      title: plainText(200),
+      visionLabel: plainText(60),
+      missionLabel: plainText(60),
+      // Opsional, sama seperti dulu di `about`: string kosong berarti admin
+      // sengaja mengosongkan visi.
       vision: z.union([z.literal(""), plainText(500)]).optional(),
       missions: z.array(plainText(300)).max(8).optional(),
     })
@@ -174,6 +189,7 @@ export const siteContentSchemas = {
         .object({
           home: plainText(40),
           about: plainText(40),
+          "vision-mission": plainText(40),
           services: plainText(40),
           activity: plainText(40),
           contact: plainText(40),
@@ -299,6 +315,20 @@ export const DEFAULTS = {
       "Mendampingi kelompok dan pelaku usaha desa melalui pembinaan berkala.",
     ],
   },
+  "vision-mission": {
+    eyebrow: "Arah Lembaga",
+    title: "Visi & Misi",
+    visionLabel: "Visi",
+    missionLabel: "Misi",
+    vision:
+      "Menjadi penggerak ekonomi dan kemandirian desa di Kecamatan Wilangan melalui pengelolaan usaha bersama yang profesional, transparan, dan inovatif.",
+    missions: [
+      "Menyediakan layanan permodalan dan keuangan yang mudah dijangkau kelompok masyarakat desa.",
+      "Mengelola unit usaha secara profesional dan inovatif demi kesejahteraan masyarakat.",
+      "Menjaga keterbukaan melalui laporan dan dokumen yang dapat diakses publik.",
+      "Mendampingi kelompok dan pelaku usaha desa melalui pembinaan berkala.",
+    ],
+  },
   services: {
     items: [
       {
@@ -394,6 +424,7 @@ export const DEFAULTS = {
     nav: {
       home: "Beranda",
       about: "Tentang",
+      "vision-mission": "Visi & Misi",
       services: "Layanan",
       activity: "Kegiatan",
       contact: "Kontak",
