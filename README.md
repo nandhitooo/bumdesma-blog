@@ -118,6 +118,7 @@ Syarat dan catatan:
 - Domain harus sudah mengarah (A/AAAA) ke server dan port 80 serta 443 terbuka; Caddy memakai port 80 untuk verifikasi sertifikat.
 - `PUBLIC_SITE_URL` dan `CLIENT_ORIGIN` wajib `https://` dan berisi domain asli. API menolak start bila URL publiknya masih host lokal.
 - `TRUST_PROXY=2` karena ada dua hop di depan API (Caddy, lalu nginx frontend), sehingga rate limit tetap memakai IP klien asli.
+- Caddy mengalihkan `www.<domain>` ke domain utama dengan 308 dan memasang CSP bersama HSTS, `nosniff`, serta `Referrer-Policy`. CSP mengizinkan Google Fonts, peta Google Maps, iframe pratinjau admin yang same-origin, dan JSON-LD inline; aset build tetap dibatasi ke origin sendiri. Bila `www` tidak dipakai, hapus blok `www.{$DOMAIN}` pada `Caddyfile` agar Caddy tidak mencoba menerbitkan sertifikat untuk nama itu.
 - Sertifikat disimpan di volume `caddy-data` dan `caddy-config` agar tidak diminta ulang setiap container dibuat ulang.
 - `POSTGRES_PASSWORD` hanya berlaku saat volume database pertama kali dibuat. Mengubahnya setelah data ada tidak mengubah password user di dalam PostgreSQL.
 - Tag `!reset` pada berkas override membutuhkan Docker Compose 2.24 atau lebih baru.

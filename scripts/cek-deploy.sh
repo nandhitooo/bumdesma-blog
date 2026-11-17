@@ -354,6 +354,7 @@ if [ "$MODE" = "setelah" ]; then
     header=$(curl -sI --max-time 10 "$ALAMAT/" 2>/dev/null || true)
     echo "$header" | grep -qi 'strict-transport-security' && ok "HSTS ada" || gagal "HSTS tidak ada"
     echo "$header" | grep -qi 'x-content-type-options: nosniff' && ok "nosniff ada" || gagal "header nosniff tidak ada"
+    echo "$header" | grep -qi 'content-security-policy' && ok "CSP ada" || gagal "header Content-Security-Policy tidak ada"
 
     kode_http=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "http://${DOMAIN-}/" 2>/dev/null || true)
     if [ "$kode_http" = "308" ] || [ "$kode_http" = "301" ] || [ "$kode_http" = "302" ]; then

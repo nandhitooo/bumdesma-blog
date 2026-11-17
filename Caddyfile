@@ -4,9 +4,16 @@
 #
 # Domain dan email diisi lewat environment DOMAIN dan ACME_EMAIL
 # (lihat docker-compose.prod.yml).
-
 {
 	email {$ACME_EMAIL}
+}
+
+# www dialihkan ke domain utama. Blok ini hanya bisa menerbitkan sertifikat
+# bila ada catatan DNS untuk www.<domain>; hapus blok ini bila www tidak dipakai.
+# Alamat http:// ditulis eksplisit supaya permintaan http://www… langsung
+# dialihkan ke domain utama, bukan dua kali (http→https www, lalu www→utama).
+http://www.{$DOMAIN}, https://www.{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} 308
 }
 
 {$DOMAIN} {
@@ -19,6 +26,11 @@
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
+		# Font diambil dari Google Fonts, peta dari Google Maps, dan admin memuat
+		# pratinjau situs di iframe same-origin. JSON-LD disisipkan React saat
+		# runtime sehingga script butuh 'unsafe-inline'; aset build sendiri tetap
+		# dibatasi ke origin ini.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self'; frame-src 'self' https://www.google.com; form-action 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'"
 		# Versi Caddy tidak perlu diumumkan.
 		-Server
 	}
