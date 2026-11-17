@@ -1,0 +1,89 @@
+# Menjalankan seluruh stack dengan satu perintah:
+#
+#   docker compose up --build -d
+#
+# Nilai di bawah bisa ditimpa lewat file .env di root repositori (tidak masuk
+# git) atau variabel lingkungan saat perintah dijalankan, mis.
+#   FRONTEND_PORT=8081 docker compose up -d
+name: bumdesma
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bumdesma}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bumdesma}
+      POSTGRES_DB: ${POSTGRES_DB:-bumdesma}
+    # Tidak membuka port ke host: hanya container API yang perlu menghubungi
+    # database. Untuk keperluan debug gunakan `docker compose exec db psql`.
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      # $$ mencegah compose mengganti variabel ini; nilainya dibaca oleh shell
+      # di dalam container.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # development dipakai sebagai default agar situs bisa dibuka lewat http
+      # di mesin lokal. Untuk produksi isi NODE_ENV=production (wajib https,
+      # lihat catatan di README).
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-bumdesma}:${POSTGRES_PASSWORD:-bumdesma}@db:5432/${POSTGRES_DB:-bumdesma}
+      # Nilai default hanya untuk pengembangan lokal; ganti sebelum dipakai
+      # sungguhan (minimal 32 karakter).
+      JWT_SECRET: ${JWT_SECRET:-docker-dev-secret-minimal-32-karakter-ubah-di-produksi}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:${FRONTEND_PORT:-8080}}
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-http://localhost:${FRONTEND_PORT:-8080}}
+      # Satu reverse proxy (nginx) berada di depan API.
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+      # Bila keduanya diisi, container membuat admin pertama saat start.
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    volumes:
+      # Gambar unggahan dan arsip backup harus bertahan saat container dibuat
+      # ulang, dan ikut dicadangkan bersama database.
+      - uploads:/app/backend/uploads
+      - backups:/app/backend/backups
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    # Port API tidak dibuka ke host; akses lewat reverse proxy /api pada
+    # container frontend.
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+volumes:
+  db-data:
+  uploads:
+  backups:

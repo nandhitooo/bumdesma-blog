@@ -51,6 +51,76 @@ Isi situs publik mencakup profil lembaga, unit layanan, kegiatan, galeri, transp
 
 Situs dapat dibuka di `http://localhost:5173`, API di `http://localhost:4000`, dan panel pengelola di `http://localhost:5173/admin/login`.
 
+## Menjalankan dengan Docker
+
+Repositori ini menyertakan `docker-compose.yml` berisi tiga service: PostgreSQL, API Express, dan frontend nginx.
+
+1. Build dan jalankan seluruh stack:
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+2. Buka `http://localhost:8080`. Berkas statis dan endpoint `/api`, `/uploads`, `/sitemap.xml`, serta `/feed.xml` dilayani dari origin yang sama, sehingga tidak ada pengaturan CORS tambahan.
+
+3. Buat admin pertama (sekali saja). Entrypoint container menjalankan migrasi otomatis, tetapi admin hanya dibuat bila kredensialnya diberikan:
+
+   ```bash
+   docker compose exec -e ADMIN_EMAIL=admin@example.com \
+     -e ADMIN_PASSWORD='PasswordKuat123' backend node db/seed.js
+   ```
+
+   Nilai yang sama bisa ditulis di `.env` root sebagai `ADMIN_EMAIL` dan `ADMIN_PASSWORD`; container akan menjalankannya saat start (seed tidak menimpa user yang sudah ada).
+
+Perintah lain yang sering dipakai:
+
+| Perintah | Fungsi |
+| --- | --- |
+| `docker compose logs -f backend` | Melihat log API |
+| `docker compose exec db psql -U bumdesma -d bumdesma` | Masuk ke PostgreSQL |
+| `docker compose down` | Menghentikan container (data tetap ada) |
+| `docker compose down -v` | Menghentikan dan **menghapus** database, unggahan, serta backup |
+
+Nilai berikut bisa ditimpa lewat `.env` di root atau variabel lingkungan:
+
+| Variabel | Default | Keterangan |
+| --- | --- | --- |
+| `FRONTEND_PORT` | `8080` | Port host untuk situs |
+| `JWT_SECRET` | secret pengembangan | Ganti dengan string acak minimal 32 karakter |
+| `CLIENT_ORIGIN` | `http://localhost:<FRONTEND_PORT>` | Origin yang diizinkan mengakses API |
+| `PUBLIC_SITE_URL` | `http://localhost:<FRONTEND_PORT>` | URL publik untuk sitemap dan feed |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | `bumdesma` | Kredensial database internal |
+| `NODE_ENV` | `development` | Isi `production` hanya bila situs diakses lewat HTTPS |
+| `TRUST_PROXY` | `1` | Jumlah reverse proxy di depan API |
+
+Hanya port frontend yang dibuka ke host. API dan PostgreSQL berada di jaringan internal compose; port `4000` di host tidak dipakai sehingga tidak bentrok dengan server pengembangan lokal.
+
+Data yang bertahan ada di tiga volume bernama: `db-data`, `uploads`, dan `backups`.
+
+### Profil produksi (Caddy + TLS)
+
+`docker-compose.prod.yml` menimpa compose dasar untuk produksi: API berjalan dengan `NODE_ENV=production`, port frontend ditutup dari host, dan service `caddy` mengurus sertifikat HTTPS otomatis (ACME) di port 80 dan 443.
+
+```bash
+DOMAIN=bumdesma.example.id \
+ACME_EMAIL=admin@example.id \
+PUBLIC_SITE_URL=https://bumdesma.example.id \
+CLIENT_ORIGIN=https://bumdesma.example.id \
+JWT_SECRET="$(openssl rand -hex 32)" \
+POSTGRES_PASSWORD="$(openssl rand -hex 16)" \
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+Syarat dan catatan:
+
+- Domain harus sudah mengarah (A/AAAA) ke server dan port 80 serta 443 terbuka; Caddy memakai port 80 untuk verifikasi sertifikat.
+- `PUBLIC_SITE_URL` dan `CLIENT_ORIGIN` wajib `https://` dan berisi domain asli. API menolak start bila URL publiknya masih host lokal.
+- `TRUST_PROXY=2` karena ada dua hop di depan API (Caddy, lalu nginx frontend), sehingga rate limit tetap memakai IP klien asli.
+- Sertifikat disimpan di volume `caddy-data` dan `caddy-config` agar tidak diminta ulang setiap container dibuat ulang.
+- `POSTGRES_PASSWORD` hanya berlaku saat volume database pertama kali dibuat. Mengubahnya setelah data ada tidak mengubah password user di dalam PostgreSQL.
+- Tag `!reset` pada berkas override membutuhkan Docker Compose 2.24 atau lebih baru.
+- Untuk mencoba alur TLS tanpa domain asli, tambahkan `local_certs` pada blok global `Caddyfile`; sertifikat yang dipakai kalau begitu berasal dari CA lokal Caddy.
+
 ## Daftar script
 
 Dijalankan dari root repositori.
@@ -95,6 +165,14 @@ Catatan: `npm test` menjalankan test backend yang sebagian memanggil API sungguh
 │       ├── pages/          # halaman publik (blog, galeri, FAQ, layanan, dll.)
 │       ├── lib/            # hook dan util (konten situs, SEO, API, tanggal)
 │       └── assets/         # gambar statis
+├── docker-compose.yml
+├── docker-compose.prod.yml
+├── Caddyfile
+├── .dockerignore
+├── frontend/Dockerfile
+├── frontend/nginx.conf
+├── backend/Dockerfile
+├── backend/docker-entrypoint.sh
 └── .github/workflows/ci.yml
 ```
 

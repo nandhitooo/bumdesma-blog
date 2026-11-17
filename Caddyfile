@@ -1,0 +1,25 @@
+# Reverse proxy produksi. Caddy mengurus sertifikat TLS otomatis (ACME) dan
+# meneruskan semua permintaan ke container frontend (nginx), yang kemudian
+# meneruskan /api dan /uploads ke container API.
+#
+# Domain dan email diisi lewat environment DOMAIN dan ACME_EMAIL
+# (lihat docker-compose.prod.yml).
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy frontend:80
+
+	header {
+		# HSTS: browser hanya memakai https untuk domain ini selama satu tahun.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Versi Caddy tidak perlu diumumkan.
+		-Server
+	}
+}

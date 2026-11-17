@@ -1,0 +1,24 @@
+# Konteks build adalah root repositori. Yang dikecualikan di bawah tidak boleh
+# ikut terkirim ke daemon Docker: isinya besar, khusus platform host, atau
+# rahasia.
+
+# Dependency dan hasil build lokal (berisi binary untuk platform host).
+node_modules
+**/node_modules
+frontend/dist
+
+# Nilai env asli tidak pernah masuk image. Template .env.example juga tidak
+# dibutuhkan saat runtime container.
+**/.env
+**/.env.*
+
+# Data runtime: diisi lewat volume, bukan dari isi folder host.
+backend/uploads
+backend/backups
+
+# Riwayat dan cache alat pengembangan.
+.git
+.github
+graphify-out
+*.log
+bumdesma-blog.xml
