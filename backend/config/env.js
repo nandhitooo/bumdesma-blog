@@ -106,6 +106,15 @@ export function isPlaceholderValue(value) {
   return /GANTI_|CHANGE_?ME|USER:PASSWORD|NAMA_DATABASE/i.test(value);
 }
 
+// Host loopback tidak akan pernah bisa diakses perayap. Bila URL publik situs
+// memakainya di produksi, sitemap.xml dan feed berisi tautan localhost.
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "[::1]", "::1"]);
+
+function isLoopbackHost(hostname) {
+  const host = String(hostname ?? "").toLowerCase();
+  return LOOPBACK_HOSTS.has(host) || host.endsWith(".localhost");
+}
+
 function collectEnvProblems() {
   const problems = [];
 
@@ -192,6 +201,30 @@ function collectEnvProblems() {
     } else if (env.isProduction && parsed.protocol !== "https:") {
       problems.push(
         "PUBLIC_SITE_URL harus https saat NODE_ENV=production (contoh: https://bumdesma.example.id).",
+      );
+    }
+  }
+
+  // PUBLIC_SITE_URL kosong berarti getter publicSiteUrl memakai origin pertama
+  // CLIENT_ORIGIN, jadi nilai efektifnya tetap diperiksa. Host lokal di produksi
+  // membuat sitemap.xml, feed, dan pratinjau tautan menunjuk localhost yang tidak
+  // bisa diakses perayap maupun pengunjung.
+  if (env.isProduction) {
+    if (!publicSiteUrl) {
+      console.warn(
+        "PUBLIC_SITE_URL belum diisi padahal NODE_ENV=production. URL absolut di sitemap.xml, feed, dan pratinjau tautan akan memakai origin pertama CLIENT_ORIGIN; pastikan origin itu domain asli atau isi PUBLIC_SITE_URL.",
+      );
+    }
+
+    let effectivePublicUrl = null;
+    try {
+      effectivePublicUrl = new URL(publicSiteUrl || clientOrigins[0] || "");
+    } catch {
+      effectivePublicUrl = null;
+    }
+    if (effectivePublicUrl && isLoopbackHost(effectivePublicUrl.hostname)) {
+      problems.push(
+        `URL publik situs masih memakai host lokal (${effectivePublicUrl.hostname}). Isi PUBLIC_SITE_URL dengan domain asli, contoh https://bumdesma.example.id, supaya sitemap.xml tidak mengindeks localhost.`,
       );
     }
   }
