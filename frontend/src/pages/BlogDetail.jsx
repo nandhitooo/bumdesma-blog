@@ -74,7 +74,7 @@ function BlogDetail() {
   }, [article?.slug]);
 
   return (
-    <main className="min-h-dvh bg-white py-12 md:py-20">
+    <main id="main-content" tabIndex={-1} className="min-h-dvh bg-white py-12 md:py-20">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 text-xs text-gray-500">

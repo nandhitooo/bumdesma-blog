@@ -9,7 +9,7 @@ function NotFound() {
   return (
     <>
       <Header />
-      <main className="flex min-h-[70vh] items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+      <main id="main-content" tabIndex={-1} className="flex min-h-[70vh] items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
         <div className="max-w-md w-full text-center bg-white border border-gray-200 rounded-lg p-8 sm:p-10 shadow-sm">
           <p className="text-6xl font-bold text-brand-primary mb-3">404</p>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 break-words">

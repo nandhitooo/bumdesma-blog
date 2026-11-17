@@ -111,7 +111,7 @@ function BlogList() {
   const gridArticles = showFeatured ? articles.slice(1) : articles;
 
   return (
-    <main className="min-h-dvh bg-gray-50 py-12 md:py-20">
+    <main id="main-content" tabIndex={-1} className="min-h-dvh bg-gray-50 py-12 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-2 text-xs text-gray-500">

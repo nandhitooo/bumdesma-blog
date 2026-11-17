@@ -56,7 +56,7 @@ function ServiceDetail() {
   const steps = Array.isArray(service?.steps) ? service.steps : [];
 
   return (
-    <main className="min-h-dvh bg-white py-12 md:py-20">
+    <main id="main-content" tabIndex={-1} className="min-h-dvh bg-white py-12 md:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2 text-xs text-gray-500">

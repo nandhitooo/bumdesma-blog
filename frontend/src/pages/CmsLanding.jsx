@@ -62,7 +62,7 @@ function CmsLanding() {
   }, []);
 
   return (
-    <main>
+    <main id="main-content" tabIndex={-1}>
       {/* Hero */}
       <section className="bg-white py-12 md:py-20 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
