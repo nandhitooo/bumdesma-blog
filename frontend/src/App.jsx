@@ -36,6 +36,7 @@ const AdminDocuments = lazy(() => import("./admin/Documents"));
 const AdminTeam = lazy(() => import("./admin/Team"));
 const AdminServiceDetails = lazy(() => import("./admin/ServiceDetails"));
 const AdminFaqs = lazy(() => import("./admin/Faqs"));
+const AdminMessages = lazy(() => import("./admin/Messages"));
 const AdminAuditLog = lazy(() => import("./admin/AuditLog"));
 const AdminTwoFactor = lazy(() => import("./admin/TwoFactor"));
 
@@ -207,6 +208,7 @@ function App() {
               element={<AdminServiceDetails />}
             />
             <Route path="faqs" element={<AdminFaqs />} />
+            <Route path="messages" element={<AdminMessages />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="content" element={<AdminSiteContent />} />

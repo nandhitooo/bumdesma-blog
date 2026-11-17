@@ -22,6 +22,9 @@ const navigation = [
       { to: "/admin/gallery", label: "Galeri", icon: "images", adminOnly: true },
       { to: "/admin/documents", label: "Dokumen", icon: "file-lines", adminOnly: true },
       { to: "/admin/faqs", label: "FAQ", icon: "circle-question", adminOnly: true },
+      // Pesan kontak juga dibaca editor: isinya masuk dari situs publik dan
+      // hanya butuh sesi login, bukan hak admin penuh.
+      { to: "/admin/messages", label: "Pesan Masuk", icon: "envelope" },
     ],
   },
   {
