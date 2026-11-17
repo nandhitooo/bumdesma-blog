@@ -132,7 +132,10 @@ export function SiteContentProvider({ children }) {
     const description = content.site?.metaDescription;
     if (!description) return;
     const tag = document.querySelector('meta[name="description"]');
-    if (tag) tag.setAttribute("content", description);
+    // Halaman yang mengatur deskripsinya sendiri (usePageTitle) menandai tag ini
+    // supaya identitas situs tidak menimpanya saat konten selesai dimuat.
+    if (!tag || tag.hasAttribute("data-page-seo")) return;
+    tag.setAttribute("content", description);
   }, [content.site?.metaDescription]);
 
   // Di luar mode pratinjau nilainya persis `content` (identitas sama), jadi

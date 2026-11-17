@@ -7,19 +7,23 @@ import { usePageTitle } from "../lib/usePageTitle";
 
 function ServiceDetail() {
   const { slug } = useParams();
-  const { contact } = useSiteContent();
+  const { contact, sections } = useSiteContent();
   const [result, setResult] = useState(null);
   const loading = result?.slug !== slug;
   const service = result?.slug === slug ? result.service : null;
   const error = result?.slug === slug ? result.error : "";
   const notFound = result?.slug === slug && !result.service;
-  usePageTitle(
-    service
+  usePageTitle({
+    title: service
       ? service.title
       : result?.slug === slug
         ? "Layanan tidak ditemukan"
         : "Layanan",
-  );
+    // Ringkasan tiap layanan sudah ada di database; deskripsi daftar layanan
+    // dipakai selama detailnya belum termuat.
+    description: service?.summary || sections.serviceList.description,
+    path: `/layanan/${encodeURIComponent(slug)}`,
+  });
 
   useEffect(() => {
     const controller = new AbortController();

@@ -7,7 +7,11 @@ import { usePageTitle } from "../lib/usePageTitle";
 
 function Team() {
   const { sections } = useSiteContent();
-  usePageTitle("Pengurus");
+  usePageTitle({
+    title: "Pengurus",
+    description: sections.team.description,
+    path: "/pengurus",
+  });
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

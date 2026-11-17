@@ -7,7 +7,11 @@ import { usePageTitle } from "../lib/usePageTitle";
 
 function Gallery() {
   const { sections } = useSiteContent();
-  usePageTitle("Galeri");
+  usePageTitle({
+    title: "Galeri",
+    description: sections.gallery.description,
+    path: "/galeri",
+  });
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

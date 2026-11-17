@@ -5,6 +5,7 @@ import ArticleImage from "./ArticleImage";
 import { useSiteContent } from "../lib/siteContent";
 import { isValidIcon, safeImageUrl } from "../lib/siteContentUtils";
 import { usePageTitle } from "../lib/usePageTitle";
+import { useJsonLd } from "../lib/useJsonLd";
 import { formatDate } from "../lib/date";
 import { apiUrl } from "../lib/apiUrl";
 import kegiatan1 from "../assets/kegiatan/kegiatan1.jpg";
@@ -42,8 +43,27 @@ const defaultHighlights = [
 ];
 
 const Home = () => {
-  const { hero, sections } = useSiteContent();
-  usePageTitle();
+  const { contact, hero, sections, site } = useSiteContent();
+  // Deskripsi beranda memakai ringkasan hero, URL kanonik menunjuk akar situs.
+  usePageTitle({ description: hero.description, path: "/" });
+  // JSON-LD Organization menjelaskan lembaga ke mesin pencari: nama resmi,
+  // situs, dan kontak kantor yang dipakai di seluruh halaman publik.
+  useJsonLd({
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: site.legalName || site.name,
+    url: `${window.location.origin}/`,
+    description: site.metaDescription,
+    email: contact.email,
+    telephone: contact.whatsappDisplay || contact.whatsapp,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: contact.address,
+      addressLocality: "Wilangan",
+      addressRegion: "Jawa Timur",
+      addressCountry: "ID",
+    },
+  });
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
 

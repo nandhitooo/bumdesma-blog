@@ -19,7 +19,11 @@ function groupByYear(documents) {
 
 function Transparency() {
   const { sections } = useSiteContent();
-  usePageTitle("Transparansi");
+  usePageTitle({
+    title: "Transparansi",
+    description: sections.transparency.description,
+    path: "/transparansi",
+  });
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

@@ -6,7 +6,11 @@ import { usePageTitle } from "../lib/usePageTitle";
 
 function ServiceList() {
   const { sections } = useSiteContent();
-  usePageTitle("Layanan");
+  usePageTitle({
+    title: "Layanan",
+    description: sections.serviceList.description,
+    path: "/layanan",
+  });
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

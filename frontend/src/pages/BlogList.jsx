@@ -8,7 +8,11 @@ import { usePageTitle } from "../lib/usePageTitle";
 
 function BlogList() {
   const { sections } = useSiteContent();
-  usePageTitle("Blog");
+  usePageTitle({
+    title: "Blog",
+    description: sections.blog.description,
+    path: "/blog",
+  });
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("q") || "");
   const [articleResult, setArticleResult] = useState(null);

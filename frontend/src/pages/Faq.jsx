@@ -3,14 +3,34 @@ import { Link } from "react-router-dom";
 import { apiUrl } from "../lib/apiUrl";
 import { useSiteContent } from "../lib/siteContent";
 import { usePageTitle } from "../lib/usePageTitle";
+import { useJsonLd } from "../lib/useJsonLd";
 
 function Faq() {
   const { sections } = useSiteContent();
-  usePageTitle("FAQ");
+  usePageTitle({
+    title: "FAQ",
+    description: sections.faq.description,
+    path: "/faq",
+  });
   const [faqs, setFaqs] = useState([]);
   const [openIds, setOpenIds] = useState(() => new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // JSON-LD FAQPage dibuat dari data yang sudah dimuat, supaya pertanyaan yang
+  // tampil di halaman sama persis dengan yang dibaca mesin pencari.
+  useJsonLd(
+    faqs.length === 0
+      ? null
+      : {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.question,
+            acceptedAnswer: { "@type": "Answer", text: faq.answer },
+          })),
+        },
+  );
 
   useEffect(() => {
     const controller = new AbortController();
