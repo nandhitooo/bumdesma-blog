@@ -102,6 +102,30 @@ export async function processUploadedImage(buffer) {
   }
 }
 
+// Lebar varian responsif yang dibuat bersama berkas asli. Nama berkas varian
+// mengikuti berkas asli dengan akhiran "-<lebar>", mis. <uuid>-480.webp, supaya
+// frontend bisa menurunkannya dari URL asli tanpa kolom tambahan di database.
+export const RESPONSIVE_VARIANT_WIDTHS = [480, 960];
+
+// Membuat varian WebP yang lebih kecil untuk srcset. Berkas asli tidak diubah;
+// varian yang tidak lebih kecil dari aslinya dilewati supaya tidak ada berkas
+// duplikat untuk gambar yang sudah kecil.
+export async function buildResponsiveVariants(buffer) {
+  const { width: originalWidth } = await sharp(buffer).metadata();
+  const variants = [];
+
+  for (const width of RESPONSIVE_VARIANT_WIDTHS) {
+    if (!originalWidth || width >= originalWidth) continue;
+    const variantBuffer = await sharp(buffer)
+      .resize({ width, withoutEnlargement: true })
+      .webp({ quality: 78 })
+      .toBuffer();
+    variants.push({ width, buffer: variantBuffer });
+  }
+
+  return variants;
+}
+
 // Semua gambar unggahan yang dirujuk di dalam HTML artikel (gambar inline).
 export function extractUploadUrls(html) {
   if (typeof html !== "string") return [];

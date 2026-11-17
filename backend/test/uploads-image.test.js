@@ -2,7 +2,12 @@ import { randomBytes } from "node:crypto";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import sharp from "sharp";
-import { detectImage, processUploadedImage } from "../services/uploads.js";
+import {
+  RESPONSIVE_VARIANT_WIDTHS,
+  buildResponsiveVariants,
+  detectImage,
+  processUploadedImage,
+} from "../services/uploads.js";
 
 test("processUploadedImage menghasilkan WebP <= 1600 px dan lebih kecil dari input", async () => {
   const width = 3000;
@@ -52,6 +57,51 @@ test("processUploadedImage menolak gambar di atas 24 megapiksel dengan pesan res
     );
     return true;
   });
+});
+
+test("buildResponsiveVariants membuat varian 480 dan 960 px berformat WebP", async () => {
+  const input = await sharp({
+    create: {
+      width: 1600,
+      height: 900,
+      channels: 3,
+      background: "#2f855a",
+    },
+  })
+    .jpeg()
+    .toBuffer();
+  const { buffer } = await processUploadedImage(input);
+
+  const variants = await buildResponsiveVariants(buffer);
+
+  assert.deepEqual(
+    variants.map((variant) => variant.width),
+    RESPONSIVE_VARIANT_WIDTHS,
+  );
+  for (const variant of variants) {
+    const metadata = await sharp(variant.buffer).metadata();
+    assert.equal(metadata.format, "webp");
+    assert.equal(metadata.width, variant.width);
+    // Varian tidak boleh lebih besar dari berkas aslinya.
+    assert.ok(
+      variant.buffer.length < buffer.length,
+      `varian ${variant.width} px harus lebih kecil dari berkas asli`,
+    );
+  }
+});
+
+test("buildResponsiveVariants tidak memperbesar gambar yang sudah kecil", async () => {
+  const input = await sharp({
+    create: { width: 300, height: 200, channels: 3, background: "#ffffff" },
+  })
+    .jpeg()
+    .toBuffer();
+  const { buffer } = await processUploadedImage(input);
+
+  const variants = await buildResponsiveVariants(buffer);
+
+  // Lebar asli 300 px: varian 480 dan 960 px tidak masuk akal untuk dibuat.
+  assert.equal(variants.length, 0);
 });
 
 test("processUploadedImage menolak buffer sampah dengan status 400", async () => {

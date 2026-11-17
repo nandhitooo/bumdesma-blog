@@ -6,6 +6,7 @@ import multer from "multer";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { logAudit } from "../services/audit.js";
 import {
+  buildResponsiveVariants,
   detectImage,
   processUploadedImage,
   uploadDir,
@@ -64,6 +65,18 @@ router.post("/", uploadLimiter, multipart.single("image"), async (req, res) => {
   await mkdir(categoryDir, { recursive: true });
   const filename = `${randomUUID()}.${processed.extension}`;
   await writeFile(path.join(categoryDir, filename), processed.buffer, { flag: "wx" });
+
+  // Varian responsif untuk srcset. Berkas asli tidak pernah diubah dan berkas
+  // lama tidak disentuh; gambar tanpa varian tetap dilayani apa adanya.
+  const baseName = filename.slice(0, filename.lastIndexOf("."));
+  const variants = await buildResponsiveVariants(processed.buffer);
+  for (const variant of variants) {
+    await writeFile(
+      path.join(categoryDir, `${baseName}-${variant.width}.${processed.extension}`),
+      variant.buffer,
+      { flag: "wx" },
+    );
+  }
   // Nama berkas dibuat server sendiri (UUID), bukan masukan pengguna.
   await logAudit(req, "upload", "image", `${category}/${filename}`);
   return res.status(201).json({ url: `/uploads/${category}/${filename}` });
