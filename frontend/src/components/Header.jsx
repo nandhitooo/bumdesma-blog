@@ -32,6 +32,16 @@ const NAV_BASE = [
     label: "Transparansi",
   },
   { id: "team", to: "/pengurus", icon: "people-group", group: "more", label: "Pengurus" },
+  // Dua id di bawah belum ada di skema `site.nav`, jadi labelnya selalu
+  // memakai cadangan di sini.
+  {
+    id: "service-list",
+    to: "/layanan",
+    icon: "gear",
+    group: "more",
+    label: "Layanan",
+  },
+  { id: "faq", to: "/faq", icon: "circle-question", group: "more", label: "FAQ" },
 ];
 
 function buildNavItems(nav = {}) {
@@ -251,6 +261,8 @@ export default function Header() {
   const isGallery = location.pathname.startsWith("/galeri");
   const isTransparency = location.pathname.startsWith("/transparansi");
   const isTeam = location.pathname.startsWith("/pengurus");
+  const isServiceList = location.pathname.startsWith("/layanan");
+  const isFaq = location.pathname.startsWith("/faq");
   const active = isBlog
     ? "blog"
     : isGallery
@@ -259,9 +271,13 @@ export default function Header() {
         ? "transparency"
         : isTeam
           ? "team"
-          : location.pathname === "/"
-            ? scrollActive
-            : "";
+          : isServiceList
+            ? "service-list"
+            : isFaq
+              ? "faq"
+              : location.pathname === "/"
+                ? scrollActive
+                : "";
 
   useEffect(() => {
     if (location.pathname !== "/") return undefined;
