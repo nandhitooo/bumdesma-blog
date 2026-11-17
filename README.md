@@ -101,6 +101,8 @@ Data yang bertahan ada di tiga volume bernama: `db-data`, `uploads`, dan `backup
 
 `docker-compose.prod.yml` menimpa compose dasar untuk produksi: API berjalan dengan `NODE_ENV=production`, port frontend ditutup dari host, dan service `caddy` mengurus sertifikat HTTPS otomatis (ACME) di port 80 dan 443.
 
+Langkah lengkap dari DNS sampai verifikasi ada di bagian [Deploy ke server](#deploy-ke-server); perintah singkatnya:
+
 ```bash
 DOMAIN=bumdesma.example.id \
 ACME_EMAIL=admin@example.id \
@@ -173,8 +175,87 @@ Catatan: `npm test` menjalankan test backend yang sebagian memanggil API sungguh
 ├── frontend/nginx.conf
 ├── backend/Dockerfile
 ├── backend/docker-entrypoint.sh
+├── scripts/cek-deploy.sh   # pemeriksaan DNS, port, env, dan sertifikat
 └── .github/workflows/ci.yml
 ```
+
+## Deploy ke server
+
+Urutan lengkap untuk server baru. Semua perintah dijalankan di server, dari akar repo.
+
+**1. Arahkan domain lebih dulu.** Buat catatan `A` untuk `DOMAIN` (dan `www` bila dipakai) berisi IP publik server. Bila server punya IPv6, buat juga catatan `AAAA`; kalau tidak, jangan membuat `AAAA` sama sekali agar browser tidak mencoba alamat yang tak terjangkau. Periksa dari komputer lain:
+
+```bash
+dig +short A bumdesma.example.id
+dig +short AAAA bumdesma.example.id
+```
+
+**2. Buka port 80 dan 443.** Port 80 tetap diperlukan Caddy untuk verifikasi sertifikat dan mengalihkan ke https. Port 443/udp hanya untuk HTTP/3 (opsional). Contoh untuk ufw:
+
+```bash
+ufw allow 80,443/tcp
+ufw allow 443/udp   # opsional
+```
+
+Bila ada firewall jaringan atau security group di depan server, buka port yang sama di sana.
+
+**3. Pasang Docker Engine dan plugin Compose** (versi Compose 2.24 atau lebih baru karena profil produksi memakai `!reset`).
+
+**4. Siapkan berkas `.env`** di akar repo, lalu batasi izinnya:
+
+```bash
+cat > .env <<'EOF'
+DOMAIN=bumdesma.example.id
+ACME_EMAIL=admin@example.id
+PUBLIC_SITE_URL=https://bumdesma.example.id
+CLIENT_ORIGIN=https://bumdesma.example.id
+JWT_SECRET=ganti-dengan-openssl-rand-hex-32
+POSTGRES_PASSWORD=ganti-dengan-openssl-rand-hex-16
+ADMIN_EMAIL=admin@example.id
+ADMIN_PASSWORD=ganti-password-admin
+EOF
+chmod 600 .env
+```
+
+`ADMIN_EMAIL` dan `ADMIN_PASSWORD` hanya dipakai saat start pertama untuk membuat admin; setelah itu boleh dihapus dari `.env`.
+
+**5. Jalankan pemeriksaan pra-deploy.** Skrip ini tidak mengubah apa pun, hanya membaca DNS, port, env, dan kapasitas disk:
+
+```bash
+bash scripts/cek-deploy.sh
+```
+
+Semua baris harus `OK`. `GAGAL` berarti deploy akan bermasalah; `PERIKSA` berarti perlu keputusan manual (misalnya catatan `AAAA` yang mengarah ke alamat yang belum siap). Bila deteksi IP publik keliru (server di belakang NAT), jalankan `SERVER_IP=<ip-publik> bash scripts/cek-deploy.sh`.
+
+**6. Nyalakan stack produksi:**
+
+```bash
+DOMAIN=bumdesma.example.id \
+ACME_EMAIL=admin@example.id \
+PUBLIC_SITE_URL=https://bumdesma.example.id \
+CLIENT_ORIGIN=https://bumdesma.example.id \
+JWT_SECRET=... POSTGRES_PASSWORD=... \
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+Nilai variabel bisa dibaca dari `.env` pada langkah 4, sehingga perintahnya cukup satu baris. Penerbitan sertifikat biasanya selesai dalam hitungan detik sampai satu menit; pantau dengan `docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f caddy`.
+
+**7. Verifikasi dari luar.** Setelah stack hidup, jalankan mode verifikasi yang memeriksa endpoint, sitemap, penerbit sertifikat, header keamanan, dan pengalihan http ke https:
+
+```bash
+bash scripts/cek-deploy.sh --setelah
+```
+
+Bila sertifikat masih dari CA lokal atau `PERIKSA` muncul pada penerbit, berarti ACME belum berhasil — periksa kembali DNS dan port 80.
+
+**8. Rilis berikutnya.** Tarik kode baru lalu build ulang; migrasi berjalan otomatis lewat entrypoint:
+
+```bash
+git pull
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+Cadangkan volume `db-data` dan `uploads` secara berkala, jangan hanya database-nya: gambar disimpan di volume terpisah.
 
 ## Catatan produksi
 
