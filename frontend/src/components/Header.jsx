@@ -33,13 +33,14 @@ const NAV_BASE = [
   },
   { id: "team", to: "/pengurus", icon: "people-group", group: "more", label: "Pengurus" },
   // Dua id di bawah belum ada di skema `site.nav`, jadi labelnya selalu
-  // memakai cadangan di sini.
+  // memakai cadangan di sini. Label diberi "Semua Layanan" supaya tidak sama
+  // dengan menu utama `services`.
   {
     id: "service-list",
     to: "/layanan",
     icon: "gear",
     group: "more",
-    label: "Layanan",
+    label: "Semua Layanan",
   },
   { id: "faq", to: "/faq", icon: "circle-question", group: "more", label: "FAQ" },
 ];
