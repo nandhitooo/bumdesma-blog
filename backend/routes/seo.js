@@ -87,9 +87,30 @@ router.get("/sitemap.xml", seoLimiter, async (req, res) => {
     [SITEMAP_LIMIT],
   );
 
+  // Halaman detail layanan berubah-ubah dari panel admin. Jika tabelnya belum
+  // siap atau query gagal, sitemap tetap disajikan tanpa halaman layanan
+  // ketimbang menjawab 500 ke perayap.
+  let serviceRows = [];
+  try {
+    const services = await pool.query(
+      `SELECT slug FROM service_details ORDER BY sort_order ASC, id ASC`,
+    );
+    serviceRows = services.rows;
+  } catch {
+    serviceRows = [];
+  }
+
+  // Halaman statis publik ikut didaftarkan supaya perayap bisa menemukannya
+  // tanpa bergantung pada tautan footer.
   const urls = [
     { loc: absoluteUrl("/") },
     { loc: absoluteUrl("/blog") },
+    { loc: absoluteUrl("/galeri") },
+    { loc: absoluteUrl("/pengurus") },
+    { loc: absoluteUrl("/transparansi") },
+    { loc: absoluteUrl("/layanan") },
+    { loc: absoluteUrl("/faq") },
+    ...serviceRows.map((row) => ({ loc: absoluteUrl(`/layanan/${row.slug}`) })),
     ...rows.map((row) => ({
       loc: absoluteUrl(`/blog/${row.slug}`),
       lastmod: isoDate(row.updated_at),
