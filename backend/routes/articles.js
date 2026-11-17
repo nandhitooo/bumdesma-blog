@@ -294,6 +294,41 @@ publicRouter.get("/:slug", async (req, res) => {
   return res.json({ article: rows[0] });
 });
 
+// Penghitung dibaca tanpa pelacak pihak ketiga: browser hanya mengirim satu
+// permintaan per kunjungan. Batas per IP menjaga agar satu pembaca tidak bisa
+// menggelembungkan angka dengan me-refresh halaman berkali-kali.
+const viewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  keyGenerator: (req) => `article-view:${ipKeyGenerator(req.ip)}`,
+  message: {
+    message: "Terlalu banyak permintaan. Coba lagi beberapa saat lagi.",
+  },
+});
+
+// Hanya artikel yang sudah benar-benar terbit yang dihitung, sama seperti syarat
+// halaman detailnya bisa dibuka.
+publicRouter.post("/:slug/view", viewLimiter, async (req, res) => {
+  const slug = slugParamSchema.safeParse(req.params.slug);
+  if (!slug.success) {
+    return res.status(400).json({ message: "Slug artikel tidak valid." });
+  }
+
+  const { rows } = await pool.query(
+    `UPDATE articles SET views = views + 1
+     WHERE slug = $1 AND status = 'published' AND published_at <= now()
+     RETURNING views`,
+    [slug.data],
+  );
+  if (!rows[0]) {
+    return res.status(404).json({ message: "Artikel tidak ditemukan." });
+  }
+
+  return res.json({ views: rows[0].views });
+});
+
 /* ----------------------------------------------------------------- admin ---- */
 
 // Router ini dipasang di /api/admin/articles, jadi requireAuth sudah dijalankan

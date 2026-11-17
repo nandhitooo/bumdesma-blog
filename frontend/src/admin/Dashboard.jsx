@@ -228,6 +228,10 @@ function AdminDashboard() {
                         <span>
                           Diperbarui {dateFormatter.format(new Date(article.updatedAt))}
                         </span>
+                        <span>
+                          <i className="fa-solid fa-eye mr-1" aria-hidden="true"></i>
+                          {article.views ?? 0} dibaca
+                        </span>
                       </span>
                     </Link>
                   </li>

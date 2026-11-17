@@ -230,6 +230,10 @@ function AdminArticles() {
                     <time dateTime={article.updatedAt}>
                       Diperbarui {dateFormatter.format(new Date(article.updatedAt))}
                     </time>
+                    <span>
+                      <i className="fa-solid fa-eye mr-1" aria-hidden="true"></i>
+                      {article.views ?? 0} dibaca
+                    </span>
                   </div>
                 </div>
 

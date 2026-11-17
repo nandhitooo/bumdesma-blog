@@ -9,7 +9,7 @@ export const ARTICLE_LIST_COLUMNS = `
   a.cover_image_url AS "coverImageUrl", a.category_id AS "categoryId",
   c.name AS "categoryName", c.slug AS "categorySlug",
   u.name AS "authorName", a.published_at AS "publishedAt",
-  a.created_at AS "createdAt", a.updated_at AS "updatedAt"
+  a.views, a.created_at AS "createdAt", a.updated_at AS "updatedAt"
 `;
 
 export const ARTICLE_DETAIL_COLUMNS = `

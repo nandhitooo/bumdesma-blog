@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ArticleView from "../components/ArticleView";
 import ShareButtons from "../components/ShareButtons";
@@ -41,6 +41,37 @@ function BlogDetail() {
 
     return () => controller.abort();
   }, [slug]);
+
+  // Dihitung sekali per kunjungan. Ref mencegah render ulang (dan efek ganda
+  // StrictMode) memicu permintaan baru, sedangkan sessionStorage membuat
+  // kunjungan berikutnya ke artikel yang sama dalam satu sesi tidak dihitung
+  // lagi. Permintaan sengaja tidak di-abort: membatalkannya saat unmount bisa
+  // membuat hitungan tidak pernah sampai ke server.
+  const countedView = useRef(false);
+  useEffect(() => {
+    if (!article?.slug || countedView.current) return;
+    const storageKey = `article-view:${article.slug}`;
+    try {
+      if (sessionStorage.getItem(storageKey)) return;
+    } catch {
+      // Penyimpanan sesi bisa diblokir; hitungan tetap dikirim sekali per mount.
+    }
+    countedView.current = true;
+    fetch(apiUrl(`/api/articles/${encodeURIComponent(article.slug)}/view`), {
+      method: "POST",
+    })
+      .then((response) => {
+        if (!response.ok) return;
+        try {
+          sessionStorage.setItem(storageKey, "1");
+        } catch {
+          // Abaikan: kegagalan menyimpan penanda tidak boleh merusak tampilan.
+        }
+      })
+      .catch(() => {
+        // Hitungan gagal tidak boleh mengganggu pembacaan artikel.
+      });
+  }, [article?.slug]);
 
   return (
     <main className="min-h-dvh bg-white py-12 md:py-20">
