@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    name: Lint, test, dan build
+    runs-on: ubuntu-latest
+
+    # Test backend memanggil API sungguhan, dan API membutuhkan PostgreSQL.
+    # Kredensial di bawah hanya untuk database sementara di runner, bukan
+    # rahasia produksi, sehingga tidak perlu GitHub Secrets.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: bumdesma
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bumdesma
+      JWT_SECRET: 9f2c1d4b7a6e8f0c3b5d7a9e1f2c4b6d8a0e2f4c6b8d0a2e4f6c8b0d2a4e6f8c
+      # NODE_ENV sengaja tidak diisi "production": aturan produksi mewajibkan
+      # https dan cookie Secure sehingga test lokal akan ditolak.
+      CLIENT_ORIGIN: http://localhost:5173
+      PUBLIC_SITE_URL: http://localhost:5173
+      PORT: 4000
+      TRUST_PROXY: "1"
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: RahimUjiCobaCi2026!
+
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Siapkan Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Pasang dependency
+        run: npm ci
+
+      - name: Terapkan migrasi
+        run: npm run migrate
+
+      - name: Buat admin pertama
+        run: npm run seed
+
+      - name: Jalankan API
+        run: |
+          node backend/index.js > server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4000/api/health > /dev/null; then
+              echo "API siap"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API tidak siap dalam 30 detik" >&2
+          cat server.log >&2
+          exit 1
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Tampilkan log server bila gagal
+        if: failure()
+        run: cat server.log
