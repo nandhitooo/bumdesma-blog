@@ -398,11 +398,13 @@ export const DEFAULTS = {
       { label: "Tanya Jawab (FAQ)", href: "/faq" },
     ],
     servicesHeading: "Unit Layanan Usaha",
+    // Tiap unit layanan punya halaman detail sendiri, bukan menuju /layanan semua.
     serviceLinks: [
-      { label: "Dana Bergulir Masyarakat (SPP)", href: "/layanan" },
-      { label: "Perdagangan & Jasa Desa", href: "/layanan" },
-      { label: "Penguatan Usaha Warga", href: "/layanan" },
-      { label: "Syarat & Alur Pengajuan", href: "/layanan" },
+      { label: "Dana Bergulir Masyarakat", href: "/layanan/dana-bergulir-masyarakat" },
+      { label: "Pembelian Kredit", href: "/layanan/pembelian-kredit" },
+      { label: "Keagenan Bank", href: "/layanan/keagenan-bank" },
+      { label: "Penyewaan Elf", href: "/layanan/penyewaan-elf" },
+      { label: "PT. LKM", href: "/layanan/pt-lkm" },
     ],
     contactHeading: "Kontak Kantor",
   },
